@@ -6,9 +6,9 @@ import { ethers } from "hardhat";
 describe("TicketToken", () => {
     const name = "TicketToken";
     const symbol = "TT";
-    const events: { id: string, cost: number }[] = [{
+    const events: { id: string, cost: BigNumber }[] = [{
         id: "ds786fsdb6f76ds87f96sdb87",
-        cost: 200
+        cost: ethers.utils.parseUnits("200", 'wei')
     }]
 
     describe("Deployment", function () {
@@ -57,13 +57,13 @@ describe("TicketToken", () => {
             contract = await TicketTokenContract.deploy(name, symbol);
         });
 
-        it("owner Should be able to add event cost", async function () {
+        it("should allow the owner to add event cost", async function () {
             await contract.addEventCost(events[0].id, events[0].cost);
             const cost: BigNumber = await contract.getEventCost(events[0].id);
             expect(cost.eq(events[0].cost));
         });
 
-        it("any one Should Not be able to add event cost", async function () {
+        it("Should Not let any one be able to add event cost", async function () {
             await contract.addEventCost(events[0].id, events[0].cost);
             const cost: BigNumber = await contract.getEventCost(events[0].id);
             expect(!cost.eq(events[0].cost));
@@ -77,21 +77,40 @@ describe("TicketToken", () => {
             }
         });
 
-        it("buyer Should Not be able to buy TicketToken with Out Enough funds", async function () {
+        it("Should Not let buyer be able to buy TicketToken with Out Enough funds", async function () {
             await contract.addEventCost(events[0].id, events[0].cost);
             try {
-                await contract.connect(buyer).mint(events[0].id, 1, { value: (ethers.utils.parseUnits("10", 'gwei')) })
+                await contract.connect(buyer).mint(events[0].id, 1, { value: (ethers.utils.parseUnits("100", 'wei')) })
             } catch (error: any) {
-                console.log({ error })
-                expect(error.toString()).to.equals(`Error: VM Exception while processing transaction: reverted with reason string 'check your funds'`);
+                expect(error.toString()).to.equals(`Error: VM Exception while processing transaction: reverted with reason string 'Not enough funds'`);
             }
         });
 
-        it("buyer Should Not be able to buy less then 1 TicketToken", async function () {
+        it("Should Not let buyer be able to buy TicketToken with Overpayment", async function () {
+            await contract.addEventCost(events[0].id, events[0].cost);
+            try {
+                await contract.connect(buyer).mint(events[0].id, 1, { value: (ethers.utils.parseUnits("300", 'wei')) })
+            } catch (error: any) {
+                expect(error.toString()).to.equals(`Error: VM Exception while processing transaction: reverted with reason string 'Overpayment'`);
+            }
+        });
+
+        it("Should Not let buyer be able to buy less then 1 TicketToken", async function () {
             await contract.addEventCost(events[0].id, events[0].cost);
 
             try {
-                await contract.connect(buyer).mint(events[0].id, 0, { value: ethers.utils.parseUnits("0.000000000000000003") })
+                await contract.connect(buyer).mint(events[0].id, 0, { value: (ethers.utils.parseUnits("200", 'wei')) })
+            } catch (error: any) {
+                expect(error.toString()).to.equals(`Error: VM Exception while processing transaction: reverted with reason string 'amount must be 1 to 5'`);
+
+            }
+        });
+
+        it("Should Not let buyer be able to buy greater then 5 TicketToken", async function () {
+            await contract.addEventCost(events[0].id, events[0].cost);
+
+            try {
+                await contract.connect(buyer).mint(events[0].id, 6, { value: (ethers.utils.parseUnits("200", 'wei')) })
             } catch (error: any) {
                 expect(error.toString()).to.equals(`Error: VM Exception while processing transaction: reverted with reason string 'amount must be 1 to 5'`);
 

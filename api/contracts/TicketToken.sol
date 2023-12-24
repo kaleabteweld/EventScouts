@@ -2,10 +2,12 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "hardhat/console.sol";
 
 //OrganizerContract
 contract TicketToken is ERC721 {
     address public immutable owner;
+    uint256 private totalTokenSupply;
 
     struct EntityStruct {
         uint256 cost;
@@ -25,13 +27,25 @@ contract TicketToken is ERC721 {
         _;
     }
 
-    function mint(string memory _eventId, uint256 _tokenCount) public payable {
+    modifier checkCost(string memory _eventId, uint256 _tokenCount) {
         uint256 eventCost = getEventCost(_eventId);
-        require(msg.value != eventCost, "check your funds");
+        uint256 tokenCost = _tokenCount * eventCost;
 
+        require(msg.value > tokenCost, "Not enough funds");
+        require(msg.value < tokenCost, "Overpayment");
+        _;
+    }
+
+    modifier checkAmount(uint256 _tokenCount) {
         require(_tokenCount <= 5 && _tokenCount >= 1, "amount must be 1 to 5");
+        _;
+    }
 
-        // _safeMint(msg.sender, totalSupply);
+    function mint(
+        string memory _eventId,
+        uint256 _tokenCount
+    ) public payable checkAmount(_tokenCount) checkCost(_eventId, _tokenCount) {
+        _safeMint(msg.sender, ++totalTokenSupply);
     }
 
     function addEventCost(string memory _id, uint256 _cost) public onlyOwner {
@@ -46,5 +60,9 @@ contract TicketToken is ERC721 {
 
     function EventIsEntity(string memory _id) public view returns (bool) {
         return EventCosts[_id].isEntity;
+    }
+
+    function getTotalTokenSupply() public view onlyOwner returns (uint256) {
+        return totalTokenSupply;
     }
 }
