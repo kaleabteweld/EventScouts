@@ -30,9 +30,11 @@ contract TicketToken is ERC721 {
     modifier checkCost(string memory _eventId, uint256 _tokenCount) {
         uint256 eventCost = getEventCost(_eventId);
         uint256 tokenCost = _tokenCount * eventCost;
+        // console.log(msg.value, eventCost, tokenCost);
 
-        require(msg.value > tokenCost, "Not enough funds");
-        require(msg.value < tokenCost, "Overpayment");
+        require(msg.value >= tokenCost, "Not enough funds");
+        require(msg.value <= tokenCost, "Overpayment");
+        // tokenCost > msg.value
         _;
     }
 

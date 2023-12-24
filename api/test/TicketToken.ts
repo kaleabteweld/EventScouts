@@ -80,7 +80,7 @@ describe("TicketToken", () => {
         it("Should Not let buyer be able to buy TicketToken with Out Enough funds", async function () {
             await contract.addEventCost(events[0].id, events[0].cost);
             try {
-                await contract.connect(buyer).mint(events[0].id, 1, { value: (ethers.utils.parseUnits("100", 'wei')) })
+                await contract.connect(buyer).mint(events[0].id, 1, { value: events[0].cost.sub(BigNumber.from(100)) })
             } catch (error: any) {
                 expect(error.toString()).to.equals(`Error: VM Exception while processing transaction: reverted with reason string 'Not enough funds'`);
             }
@@ -89,7 +89,7 @@ describe("TicketToken", () => {
         it("Should Not let buyer be able to buy TicketToken with Overpayment", async function () {
             await contract.addEventCost(events[0].id, events[0].cost);
             try {
-                await contract.connect(buyer).mint(events[0].id, 1, { value: (ethers.utils.parseUnits("300", 'wei')) })
+                await contract.connect(buyer).mint(events[0].id, 1, { value: events[0].cost.add(BigNumber.from(100)) })
             } catch (error: any) {
                 expect(error.toString()).to.equals(`Error: VM Exception while processing transaction: reverted with reason string 'Overpayment'`);
             }
@@ -99,7 +99,7 @@ describe("TicketToken", () => {
             await contract.addEventCost(events[0].id, events[0].cost);
 
             try {
-                await contract.connect(buyer).mint(events[0].id, 0, { value: (ethers.utils.parseUnits("200", 'wei')) })
+                await contract.connect(buyer).mint(events[0].id, 0, { value: events[0].cost })
             } catch (error: any) {
                 expect(error.toString()).to.equals(`Error: VM Exception while processing transaction: reverted with reason string 'amount must be 1 to 5'`);
 
@@ -110,11 +110,22 @@ describe("TicketToken", () => {
             await contract.addEventCost(events[0].id, events[0].cost);
 
             try {
-                await contract.connect(buyer).mint(events[0].id, 6, { value: (ethers.utils.parseUnits("200", 'wei')) })
+                await contract.connect(buyer).mint(events[0].id, 6, { value: events[0].cost })
             } catch (error: any) {
                 expect(error.toString()).to.equals(`Error: VM Exception while processing transaction: reverted with reason string 'amount must be 1 to 5'`);
 
             }
+        });
+
+        it("Should let buyer be able to buy", async function () {
+            await contract.addEventCost(events[0].id, events[0].cost);
+
+            const totalTokenSupplyBefor = await contract.getTotalTokenSupply();
+            await contract.connect(buyer).mint(events[0].id, 2, { value: events[0].cost.mul(BigNumber.from(2)) })
+            const totalTokenSupplyAfter = await contract.getTotalTokenSupply();
+
+            expect(totalTokenSupplyBefor < totalTokenSupplyAfter)
+
         });
     })
 
