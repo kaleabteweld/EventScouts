@@ -50,6 +50,11 @@ contract TicketToken is ERC721 {
         _safeMint(msg.sender, ++totalTokenSupply);
     }
 
+    function withdraw() public payable onlyOwner {
+        (bool os, ) = payable(owner).call{value: address(this).balance}("");
+        require(os);
+    }
+
     function addEventCost(string memory _id, uint256 _cost) public onlyOwner {
         EventCosts[_id].cost = _cost;
         EventCosts[_id].isEntity = true;

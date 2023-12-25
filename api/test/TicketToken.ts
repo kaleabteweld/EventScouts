@@ -63,12 +63,6 @@ describe("TicketToken", () => {
             expect(cost.eq(events[0].cost));
         });
 
-        it("Should Not let any one be able to add event cost", async function () {
-            await contract.addEventCost(events[0].id, events[0].cost);
-            const cost: BigNumber = await contract.getEventCost(events[0].id);
-            expect(!cost.eq(events[0].cost));
-        });
-
         it("Should Throw error if eventId does not exist", async function () {
             try {
                 await await contract.getEventCost(" ")
@@ -77,8 +71,29 @@ describe("TicketToken", () => {
             }
         });
 
-        it("Should Not let buyer be able to buy TicketToken with Out Enough funds", async function () {
+    })
+
+    describe("mint", function () {
+
+        let owner: SignerWithAddress;
+        let buyer: SignerWithAddress;
+
+        let contract: Contract;
+
+
+        beforeEach(async function () {
+            // Create the smart contract object to test from
+            [owner, buyer] = await ethers.getSigners();
+            const TicketTokenContract = await ethers.getContractFactory("TicketToken");
+            contract = await TicketTokenContract.deploy(name, symbol);
             await contract.addEventCost(events[0].id, events[0].cost);
+        });
+
+        it("Should Not let any one be able to add event cost", async function () {
+            const cost: BigNumber = await contract.getEventCost(events[0].id);
+            expect(!cost.eq(events[0].cost));
+        });
+        it("Should Not let buyer be able to buy TicketToken with Out Enough funds", async function () {
             try {
                 await contract.connect(buyer).mint(events[0].id, 1, { value: events[0].cost.sub(BigNumber.from(100)) })
             } catch (error: any) {
@@ -87,7 +102,6 @@ describe("TicketToken", () => {
         });
 
         it("Should Not let buyer be able to buy TicketToken with Overpayment", async function () {
-            await contract.addEventCost(events[0].id, events[0].cost);
             try {
                 await contract.connect(buyer).mint(events[0].id, 1, { value: events[0].cost.add(BigNumber.from(100)) })
             } catch (error: any) {
@@ -96,8 +110,6 @@ describe("TicketToken", () => {
         });
 
         it("Should Not let buyer be able to buy less then 1 TicketToken", async function () {
-            await contract.addEventCost(events[0].id, events[0].cost);
-
             try {
                 await contract.connect(buyer).mint(events[0].id, 0, { value: events[0].cost })
             } catch (error: any) {
@@ -107,8 +119,6 @@ describe("TicketToken", () => {
         });
 
         it("Should Not let buyer be able to buy greater then 5 TicketToken", async function () {
-            await contract.addEventCost(events[0].id, events[0].cost);
-
             try {
                 await contract.connect(buyer).mint(events[0].id, 6, { value: events[0].cost })
             } catch (error: any) {
@@ -118,15 +128,64 @@ describe("TicketToken", () => {
         });
 
         it("Should let buyer be able to buy", async function () {
-            await contract.addEventCost(events[0].id, events[0].cost);
-
-            const totalTokenSupplyBefor = await contract.getTotalTokenSupply();
+            const totalTokenSupplyBefore = await contract.getTotalTokenSupply();
             await contract.connect(buyer).mint(events[0].id, 2, { value: events[0].cost.mul(BigNumber.from(2)) })
             const totalTokenSupplyAfter = await contract.getTotalTokenSupply();
 
-            expect(totalTokenSupplyBefor < totalTokenSupplyAfter)
+            expect(totalTokenSupplyBefore < totalTokenSupplyAfter)
 
         });
+
+        it("Should update contracts Balance on mint", async function () {
+            const balanceBefore = await ethers.provider.getBalance(contract.address);
+            await contract.connect(buyer).mint(events[0].id, 2, { value: events[0].cost.mul(BigNumber.from(2)) })
+            const balanceAfter = await ethers.provider.getBalance(contract.address);
+
+            expect(balanceBefore < balanceAfter)
+
+        });
+
+    })
+
+    describe("withdraw", function () {
+
+        let owner: SignerWithAddress;
+        let buyer: SignerWithAddress;
+
+        let contract: Contract;
+
+
+        beforeEach(async function () {
+            // Create the smart contract object to test from
+            [owner, buyer] = await ethers.getSigners();
+            const TicketTokenContract = await ethers.getContractFactory("TicketToken");
+            contract = await TicketTokenContract.deploy(name, symbol);
+            await contract.addEventCost(events[0].id, events[0].cost);
+            await contract.connect(buyer).mint(events[0].id, 2, { value: events[0].cost.mul(BigNumber.from(2)) })
+        });
+
+        it("Should only let owner be able to withdraw all funds", async function () {
+            try {
+                const balanceBefore = await ethers.provider.getBalance(owner.address);
+                await contract.connect(owner).withdraw();
+                const balanceAfter = await ethers.provider.getBalance(owner.address);
+                expect(balanceBefore < balanceAfter);
+            } catch (error: any) {
+                console.log({ error })
+            }
+        })
+
+        it("Should Not let any one be able to withdraw all funds", async function () {
+            try {
+                const balanceBefore = await ethers.provider.getBalance(buyer.address);
+                await contract.connect(buyer).withdraw();
+                const balanceAfter = await ethers.provider.getBalance(buyer.address);
+                console.log({ balanceBefore, balanceAfter })
+
+            } catch (error: any) {
+                expect(error.toString()).to.equals(`Error: VM Exception while processing transaction: reverted with reason string 'ownership is required'`);
+            }
+        })
     })
 
 })
