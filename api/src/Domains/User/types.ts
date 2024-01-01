@@ -5,6 +5,10 @@ export interface IUserLogInFrom {
     password: string
 }
 
+export interface IUserLogInFromWithWallet {
+    walletAccounts: string[]
+}
+
 export interface IUserSignUpFrom {
     email: string,
     name: string,

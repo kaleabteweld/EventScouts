@@ -6,3 +6,7 @@ export interface errorResponse {
 export interface ValidationError extends errorResponse {
     attr: string
 }
+
+export function isValidationError(error: errorResponse): error is ValidationError {
+    return (error as ValidationError).attr !== undefined;
+}

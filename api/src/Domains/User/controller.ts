@@ -1,5 +1,5 @@
-import { IUserLogInFrom, IUserSignUpFrom } from "./types";
-import { logInSchema, newUserSchema, userChangePassword } from "./validation";
+import { IUserLogInFrom, IUserLogInFromWithWallet, IUserSignUpFrom } from "./types";
+import { logInSchema, logInWithWalletSchema, newUserSchema, userChangePassword } from "./validation";
 import { UserType } from "../../Types";
 import commonAuthenticationController from "../Common/authentication";
 import { IChangePasswordFrom, IResponseType, IResponseWithHeaderType } from "../Common/types";
@@ -18,7 +18,7 @@ export default class UserController {
     // Promise<IResponseType<IUser>>
     static async signUp(_user: IUserSignUpFrom): Promise<IResponseWithHeaderType<IUser>> {
 
-        await User.validator(_user)
+        await User.validator(_user, newUserSchema)
         const user = await new User((_user as any));
         await user.save();
         const { accessToken, refreshToken } = await MakeTokens(user.toJSON(), UserType.user);
@@ -26,16 +26,30 @@ export default class UserController {
         return { body: user.toJSON(), header: { accessToken, refreshToken } }
     }
 
-    // @Path("/Authentication/user")
-    // @Tags("Auth")
-    // @Post("/logIn")
-    // static async logIn(@Body() from: IUserLogInFrom): Promise<IResponseType<User>> {
-    //     return await commonAuthenticationController.logIn<User, IUserLogInFrom>(from, {
-    //         prismaClient: UserController.domainPrisma,
-    //         userType: UserType.user,
-    //         validator: logInSchema
-    //     })
-    // }
+    @Path("/Authentication/user")
+    @Tags("Auth")
+    @Post("/logIn")
+    static async logIn(from: IUserLogInFrom): Promise<IResponseWithHeaderType<IUser>> {
+        await User.validator(from, logInSchema);
+        const user = await User.getUserByEmail(from.email);
+        await user!.checkPassword(from.password);
+
+        const { accessToken, refreshToken } = await MakeTokens(user!.toJSON(), UserType.user);
+        return { body: user!.toJSON(), header: { accessToken, refreshToken } }
+
+    }
+
+    @Path("/Authentication/user")
+    @Tags("Auth")
+    @Post("/logIn/wallet")
+    static async logInWithWallet(from: IUserLogInFromWithWallet): Promise<IResponseWithHeaderType<IUser>> {
+        await User.validator(from, logInWithWalletSchema);
+        const user = await User.getUserByWalletAccounts(from.walletAccounts);
+
+        const { accessToken, refreshToken } = await MakeTokens(user!.toJSON(), UserType.user);
+        return { body: user!.toJSON(), header: { accessToken, refreshToken } }
+
+    }
 
     // @Path("/Authentication/user")
     // @Tags("Auth")

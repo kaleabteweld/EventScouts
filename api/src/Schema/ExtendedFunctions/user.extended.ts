@@ -1,11 +1,10 @@
 import * as bcrypt from "bcrypt";
-import { errorFactory } from "../../Util/Factories";
-import { IUser } from "../user.schema";
+import { ValidationErrorFactory, errorFactory } from "../../Util/Factories";
+import { IUser, UserModel } from "../user.schema";
 import mongoose from "mongoose";
 import { MakeValidator } from "../../Domains/Common";
-import { newUserSchema } from "../../Domains/User/validation";
 import Joi from "joi";
-import { IUserSignUpFrom } from "../../Domains/User/types";
+import { isValidationError } from "../../Types/error"
 
 export async function encryptPassword(password: string): Promise<string> {
 
@@ -23,11 +22,23 @@ export async function encryptPassword(password: string): Promise<string> {
     }
 }
 
-export async function checkPassword(password: string, passwordHash: string): Promise<boolean> {
+export async function checkPassword(this: IUser, password: string): Promise<boolean> {
 
     try {
-        return await bcrypt.compare(password, passwordHash);
-    } catch (error) {
+        const gate = await bcrypt.compare(password, this.password);
+        if (gate === false) {
+            throw ValidationErrorFactory({
+                msg: "Invalid Email or Password",
+                statusCode: 404,
+                type: "Validation"
+            }, "")
+        }
+        return gate;
+    } catch (error: any) {
+
+        if (isValidationError(error)) {
+            throw error;
+        }
         console.log("[-] Bcrypt Error", error);
         throw errorFactory({
             msg: "Bcrypt Error",
@@ -37,7 +48,36 @@ export async function checkPassword(password: string, passwordHash: string): Pro
     }
 }
 
-export function validator(userInput: IUserSignUpFrom, schema: Joi.ObjectSchema<IUserSignUpFrom> = newUserSchema) {
-    return MakeValidator<IUserSignUpFrom>(schema, userInput);
+export function validator<T>(userInput: T, schema: Joi.ObjectSchema<T>) {
+    return MakeValidator<T>(schema, userInput);
 
+}
+
+export async function getUserByEmail(this: mongoose.Model<IUser>, email: string): Promise<mongoose.Document<unknown, UserModel, IUser> & IUser & { _id: mongoose.Types.ObjectId; } | null> {
+    const user = await this.findOne({ email });
+    if (user == null) {
+        throw ValidationErrorFactory({
+            msg: "Invalid Email or Password",
+            statusCode: 404,
+            type: "Validation"
+        }, "")
+    }
+    return user;
+}
+
+export async function getUserByWalletAccounts(this: mongoose.Model<IUser>, walletAccounts: string[]): Promise<mongoose.Document<unknown, UserModel, IUser> & IUser & { _id: mongoose.Types.ObjectId; } | null> {
+
+    const user = await this.findOne({
+        walletAccounts: {
+            $in: walletAccounts
+        }
+    });
+    if (user == null) {
+        throw ValidationErrorFactory({
+            msg: "Invalid Wallet Address",
+            statusCode: 404,
+            type: "Validation"
+        }, "walletAccounts")
+    }
+    return user;
 }

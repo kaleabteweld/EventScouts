@@ -37,8 +37,20 @@ publicAuthenticationRouter.post('/:userType/logIn', MakeErrorHandler(
         const controller: any = ClassMap(req.params.userType);
         const user = await controller.logIn(req.body);
 
-        // makeAuthHeaders(res, user.header)
-        res.json(user)
+        makeAuthHeaders(res, user.header)
+        res.json({ body: user.body })
+    }
+));
+
+publicAuthenticationRouter.post('/:userType/logIn/wallet', MakeErrorHandler(
+    async (req: Request, res: Response) => {
+
+        // const controller: any = getControllerFactory(req.params.userType);
+        const controller: any = ClassMap(req.params.userType);
+        const user = await controller.logInWithWallet(req.body);
+
+        makeAuthHeaders(res, user.header)
+        res.json({ body: user.body })
     }
 ));
 
