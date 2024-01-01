@@ -5,7 +5,8 @@ import commonAuthenticationController from "../Common/authentication";
 import { IChangePasswordFrom, IResponseType, IResponseWithHeaderType } from "../Common/types";
 import { Route, Tags, Get, Patch, Post, Delete, Body, Query, Path } from "tsoa";
 import User, { IUser } from "../../Schema/user.schema";
-import { MakeTokens, verifyRefreshToken } from "../Common/utils";
+import { MakeTokens, verifyAccessToken, verifyRefreshToken } from "../Common/utils";
+import Cache from "../../Util/cache";
 
 @Route("/user")
 @Tags("User")
@@ -62,14 +63,13 @@ export default class UserController {
         return { body: undefined, header: { accessToken, refreshToken } }
     }
 
-    // @Path("/Authentication/user")
-    // @Tags("Auth")
-    // @Post("/logOut")
-    // static async logOut(@Query() token: string): Promise<void> {
-    //     return await commonAuthenticationController.logOut<User>(token, {
-    //         userType: UserType.user,
-    //     })
-    // }
+    @Path("/Authentication/user")
+    @Tags("Auth")
+    @Post("/logOut")
+    static async logOut(token: string): Promise<void> {
+        const user = await verifyAccessToken<IUser>(token, UserType.user);
+        await Cache.run(() => Cache.removeRefreshToken(user.id));
+    }
 
     // @Path("/Authentication/user")
     // @Tags("Auth")

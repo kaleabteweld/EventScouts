@@ -37,6 +37,8 @@ function validUserLoginWithWalletFactory(WalletIndex: "1" | "2" | "both" | "none
 const sighupUrl = (user: UserType) => `/Api/v1/public/authentication/${user}/signUp`;
 const loginUrl = (user: UserType, wallet: boolean = false) => `/Api/v1/public/authentication/${user}/login${wallet ? "/wallet" : ""}`;
 const refreshTokenUrl = (user: UserType) => `/Api/v1/public/authentication/${user}/refreshToken`;
+const logoutUrl = (user: UserType) => `/Api/v1/private/authentication/${user}/logOut`;
+
 
 
 
@@ -433,5 +435,48 @@ describe('Authentication', () => {
             });
 
         });
+
+        describe("Logout", () => {
+
+            var user: IUser;
+            var userAccessToken: string;
+
+            beforeEach(async () => {
+
+                const response = await request(app).post(sighupUrl(UserType.user)).send(newValidUser);
+                user = response.body;
+                userAccessToken = response.header.authorization.split(" ")[1];
+            })
+
+            describe("WHEN a valid user logout THEN user token is remove", () => {
+
+
+                it("Should return 200", async () => {
+                    const response = await request(app).delete(logoutUrl(UserType.user)).set('authorization', `Bearer ${userAccessToken}`)
+                    expect((response).status).toBe(200);
+                });
+
+                it("Should remove Refresh Token token from Cache", async () => {
+                    const response = await request(app).delete(logoutUrl(UserType.user)).set('authorization', `Bearer ${userAccessToken}`)
+                    const cacheRefreshToken = await Cache.getRefreshToken(user.id);
+                    expect(cacheRefreshToken).toBeFalsy();
+                });
+
+            });
+
+            describe("WHEN an invalid user logout THEN user token is NOT remove", () => {
+
+                it("should return 401", async () => request(app).delete(logoutUrl(UserType.user)).set('authorization', "Bearer ").expect(401));
+
+                it("Should only remove token from Cache if valid", async () => {
+                    const response = await request(app).delete(logoutUrl(UserType.user)).set('authorization', `Bearer `)
+                    const cacheRefreshToken = await Cache.getRefreshToken(user.id);
+                    expect(cacheRefreshToken).toBeTruthy();
+                });
+
+            })
+
+        });
+
     })
 })
