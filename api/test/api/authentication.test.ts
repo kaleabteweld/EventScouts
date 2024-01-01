@@ -2,7 +2,7 @@ import { IUserLogInFrom, IUserLogInFromWithWallet, IUserSignUpFrom } from "../..
 import { UserType } from "../../src/Types";
 import { makeServer } from "../../src/Util/Factories";
 import Cache from "../../src/Util/cache";
-import { connectDB, dropCollections, dropDB } from "./util";
+import { connectDB, dropCollections, dropDB, testPasswordReset } from "./util";
 import request from "supertest";
 import { describe, expect, beforeEach, afterEach, beforeAll, afterAll, it } from '@jest/globals';
 import { verifyAccessToken, verifyRefreshToken } from "../../src/Domains/Common/utils";
@@ -39,6 +39,8 @@ const loginUrl = (user: UserType, wallet: boolean = false) => `/Api/v1/public/au
 const refreshTokenUrl = (user: UserType) => `/Api/v1/public/authentication/${user}/refreshToken`;
 const logoutUrl = (user: UserType) => `/Api/v1/private/authentication/${user}/logOut`;
 const verifyUserUrl = (key: string, user: UserType) => `/Api/v1/private/${user}/VerifyUser/${key}`;
+const forgotPasswordUrl = (key: string, value: string, newPassword: string, user: UserType) => `/Api/v1/public/authentication/${user}/forgotPassword/${key}/${value}/${newPassword}`;
+
 
 
 
@@ -516,6 +518,80 @@ describe('Authentication', () => {
             });
 
 
+        })
+
+        describe("forgotPassword", () => {
+
+            var user: IUser;
+            var accessToken: string;
+            const validValue: any = { email: newValidUser.email, phone: newValidUser.phone }
+            const validNewPassword = "abcd123451"
+
+            beforeEach(async () => {
+
+                const response = await request(app).post(sighupUrl(UserType.user)).send(newValidUser);
+                user = response.body;
+                accessToken = response.header.authorization.split(" ")[1];
+            })
+
+            describe("WHEN user request to reset password with invalid input", () => {
+
+                it("Should return 404 if invalid key", () => request(app).patch(forgotPasswordUrl("abc", newValidUser.email, newValidUser.password, UserType.user)).expect(404));
+                it("Should return 404 if invalid value", () => request(app).patch(forgotPasswordUrl("email", "invalid", newValidUser.password, UserType.user)).expect(404));
+                it("should return 404 if invalid new password", () => request(app).patch(forgotPasswordUrl("email", newValidUser.email, "", UserType.user)).expect(404));
+                // it("invalid old password should return 404", () => request(app).patch(forgotPasswordUrl("email", validValue.Email, validNewPassword, userType)).expect(404));
+            })
+
+            describe.each(
+                ['email', 'phone'].map((resetBy, index, array) => ({
+                    testName: `WHEN user reset password with ${resetBy} THEN But user is verified By ${array[array.length - 1 > (index + 1) ? array.length - 1 : 0]}`,
+                    resetBy,
+                    index,
+                    array
+                })))(`$testName`, ({ resetBy, index, array }) => {
+
+                    beforeEach(async () => {
+                        await request(app).patch(verifyUserUrl(resetBy, UserType.user)).set('authorization', `Bearer ${accessToken}`);
+                    });
+                    it("Should return 404", () => request(app).patch(forgotPasswordUrl(array[array.length - 1 > (index + 1) ? array.length - 1 : 0], validValue[resetBy[array.length - 1 > (index + 1) ? array.length - 1 : 0]], validNewPassword, UserType.user)).expect(404));
+                });
+
+
+            describe.each(
+                [...['email', 'phone'].map((resetBy) => ({
+                    testName: `WHEN user reset password with ${resetBy} and user is verified with ${resetBy} THEN user password is reset`,
+                    resetBy,
+                    verifiedBy: resetBy
+                })),
+                ]
+            )(`$testName`, ({ resetBy, verifiedBy }) => {
+
+                console.log({ resetBy, verifiedBy })
+
+                beforeEach(async () => {
+                    await request(app).patch(verifyUserUrl(verifiedBy, UserType.user)).set('authorization', `Bearer ${accessToken}`);
+                });
+
+                it("should return 200", async () => request(app).patch(forgotPasswordUrl(resetBy, validValue[resetBy], validNewPassword, UserType.user)).expect(200));
+
+                it("should logIn with New password", async () => {
+                    await request(app).patch(forgotPasswordUrl(resetBy, validValue[resetBy], validNewPassword, UserType.user))
+
+                    const response = await request(app).post(loginUrl(UserType.user)).send({ email: newValidUser.email, password: validNewPassword });
+                    const newUser = { ...newValidUser }
+                    delete (newUser as any).password;
+                    expect(response.body).toMatchObject({ ...newUser, dateOfBirth: expect.any(String) });
+                });
+
+                it("should Not logIn with old password", async () => {
+                    await request(app).patch(forgotPasswordUrl(resetBy, validValue[resetBy], validNewPassword, UserType.user))
+                    const response = await request(app).post(loginUrl(UserType.user)).send({ email: newValidUser.email, password: newValidUser.password });
+                    const error = response.body.error;
+                    expect(error).toBeTruthy();
+                    expect(error).toMatchObject({ msg: 'Invalid Email or Password', type: 'Validation' });
+                });
+
+            });
         })
 
     })

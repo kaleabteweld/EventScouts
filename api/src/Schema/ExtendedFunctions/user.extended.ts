@@ -6,11 +6,13 @@ import { MakeValidator } from "../../Domains/Common";
 import Joi from "joi";
 import { isValidationError } from "../../Types/error"
 
-export async function encryptPassword(password: string): Promise<string> {
+export async function encryptPassword(this: IUser, password?: string): Promise<string> {
 
     const saltRounds: number = Number.parseInt(process.env.saltRounds || "11");
     try {
-        return await bcrypt.hash(password, saltRounds);
+        const hashPassword = await bcrypt.hash(password ?? this.password, saltRounds);
+        this.password = hashPassword;
+        return this.password;
     } catch (error) {
         console.log("[-] Bcrypt Error", error);
         throw errorFactory({
@@ -120,4 +122,51 @@ export async function applyUserVerify(this: IUser, key: TVerified): Promise<IUse
         });
 
     }
+}
+export async function getByVerifiedKey(this: mongoose.Model<IUser>, key: TVerified, value: string): Promise<mongoose.Document<unknown, UserModel, IUser> & IUser & { _id: mongoose.Types.ObjectId; } | null> {
+
+    try {
+        const user = await this.findOne({
+            [key]: value
+        });
+
+        if (user == null) {
+            throw ValidationErrorFactory({
+                msg: "Invalid Key for Verification",
+                statusCode: 404,
+                type: "Validation"
+            }, "key")
+        }
+        return user;
+
+    } catch (error: any) {
+        if (isValidationError(error)) {
+            throw error;
+        }
+        console.log("[-] getByVerifiedKey", error);
+        throw errorFactory({
+            msg: "mongoose",
+            statusCode: 418,
+            type: "system"
+        });
+    }
+}
+export function checkVerifiedBy(this: IUser, key: "email" | "phone"): boolean {
+    try {
+
+        if (!['email', 'phone'].includes(key)) {
+            throw ValidationErrorFactory({
+                msg: "Invalid Key for Verification",
+                statusCode: 404,
+                type: "Validation"
+            }, "key")
+        }
+        if (this.verified === key) {
+            return true;
+        }
+        return false;
+    } catch (error: any) {
+        throw error
+    }
+
 }

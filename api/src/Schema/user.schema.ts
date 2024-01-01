@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { getUserByEmail, checkPassword, encryptPassword, validator, getUserByWalletAccounts, getUserById, applyUserVerify } from './ExtendedFunctions/user.extended';
+import { getUserByEmail, checkPassword, encryptPassword, validator, getUserByWalletAccounts, getUserById, applyUserVerify, getByVerifiedKey } from './ExtendedFunctions/user.extended';
 import Joi from 'joi';
 import { mongooseErrorPlugin } from './Middleware/errors.middleware';
 
@@ -19,7 +19,7 @@ export interface IUser extends mongoose.Document {
 
 // methods
 interface IUserMethods {
-    encryptPassword(password: string): Promise<string>
+    encryptPassword(password?: string): Promise<string>
     checkPassword(password: string): Promise<boolean>
     applyUserVerify(this: IUser, key: TVerified): Promise<IUser>
 }
@@ -33,6 +33,7 @@ export interface UserModel extends mongoose.Model<IUserDocument> {
     getUserByEmail(email: string): Promise<IUserDocument | null>
     getUserByWalletAccounts(walletAccounts: string[]): Promise<IUserDocument | null>
     getUserById(_id: string): Promise<IUserDocument | null>
+    getByVerifiedKey(key: TVerified, value: string): Promise<IUserDocument | null>
 }
 
 export const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
@@ -65,6 +66,7 @@ export const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
         getUserByEmail,
         getUserByWalletAccounts,
         getUserById,
+        getByVerifiedKey,
     }
 });
 
@@ -78,14 +80,14 @@ userSchema.set('toJSON', {
 })
 userSchema.plugin(mongooseErrorPlugin)
 
-userSchema.pre('save', async function (next) {
+// userSchema.pre('save', async function (next) {
 
-    // hash password
-    if (!this.isModified('password')) {
-        return next()
-    }
-    this.password = await this.encryptPassword(this.password);
-})
+//     // hash password
+//     if (!this.isModified('password')) {
+//         return next()
+//     }
+//     this.password = await this.encryptPassword(this.password);
+// })
 
 const User = mongoose.model<IUser, UserModel>('User', userSchema);
 

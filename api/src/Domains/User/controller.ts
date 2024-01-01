@@ -5,7 +5,7 @@ import commonAuthenticationController from "../Common/authentication";
 import { IChangePasswordFrom, IResponseType, IResponseWithHeaderType } from "../Common/types";
 import { Route, Tags, Get, Patch, Post, Delete, Body, Query, Path } from "tsoa";
 import User, { IUser, TVerified } from "../../Schema/user.schema";
-import { MakeTokens, verifyAccessToken, verifyRefreshToken } from "../Common/utils";
+import { MakeTokens, MakeValidator, verifyAccessToken, verifyRefreshToken } from "../Common/utils";
 import Cache from "../../Util/cache";
 
 @Route("/user")
@@ -20,6 +20,7 @@ export default class UserController {
 
         await User.validator(_user, newUserSchema)
         const user = await new User((_user as any));
+        await user!.encryptPassword();
         await user.save();
         const { accessToken, refreshToken } = await MakeTokens(user.toJSON(), UserType.user);
 
@@ -71,17 +72,19 @@ export default class UserController {
         await Cache.run(() => Cache.removeRefreshToken(user.id));
     }
 
-    // @Path("/Authentication/user")
-    // @Tags("Auth")
-    // @Patch("/forgotPassword/{key}/{Value}/{newPassword}")
-    // static async forgotPassword(key: string, Value: string, newPassword: string): Promise<any> {
-    //     return await commonAuthenticationController.forgotPassword<User, IChangePasswordFrom, UserVerified>(key, Value, newPassword, {
-    //         validator: userChangePassword,
-    //         prismaClient: UserController.domainPrisma,
-    //         checkVerifiedBy: userCheckVerifiedBy
+    @Path("/Authentication/user")
+    @Tags("Auth")
+    @Patch("/forgotPassword/{key}/{Value}/{newPassword}")
+    static async forgotPassword(key: "email" | "phone", value: string, _newPassword: string): Promise<IResponseType<undefined>> {
 
-    //     })
-    // }
+        const { password } = await MakeValidator<IChangePasswordFrom>(userChangePassword, { password: _newPassword });
+
+        const user = await User.getByVerifiedKey(key, value);
+        await user!.encryptPassword(password);
+        await user!.save();
+
+        return { body: undefined }
+    }
 
     @Patch("VerifyUser/{key}")
     static async verifyUser(_user: IUser, key: TVerified): Promise<IResponseType<IUser>> {
