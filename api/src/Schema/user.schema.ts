@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { getUserByEmail, checkPassword, encryptPassword, validator, getUserByWalletAccounts } from './ExtendedFunctions/user.extended';
+import { getUserByEmail, checkPassword, encryptPassword, validator, getUserByWalletAccounts, getUserById } from './ExtendedFunctions/user.extended';
 import Joi from 'joi';
 import { mongooseErrorPlugin } from './Middleware/errors.middleware';
 
@@ -31,6 +31,7 @@ export interface UserModel extends mongoose.Model<IUserDocument> {
     validator<T>(userInput: T, schema: Joi.ObjectSchema<T>): Promise<any>
     getUserByEmail(email: string): Promise<IUserDocument | null>
     getUserByWalletAccounts(walletAccounts: string[]): Promise<IUserDocument | null>
+    getUserById(_id: string): Promise<IUserDocument | null>
 }
 
 export const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
@@ -61,6 +62,7 @@ export const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
         validator,
         getUserByEmail,
         getUserByWalletAccounts,
+        getUserById,
     }
 });
 

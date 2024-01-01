@@ -81,3 +81,16 @@ export async function getUserByWalletAccounts(this: mongoose.Model<IUser>, walle
     }
     return user;
 }
+
+export async function getUserById(this: mongoose.Model<IUser>, _id: string): Promise<mongoose.Document<unknown, UserModel, IUser> & IUser & { _id: mongoose.Types.ObjectId; } | null> {
+    const user = await this.findOne({ _id });
+    if (user == null) {
+        throw ValidationErrorFactory({
+            msg: "Invalid Id",
+            statusCode: 404,
+            type: "Validation"
+        }, "_id")
+    }
+    return user;
+
+}

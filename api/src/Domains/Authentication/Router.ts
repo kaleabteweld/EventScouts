@@ -38,7 +38,7 @@ publicAuthenticationRouter.post('/:userType/logIn', MakeErrorHandler(
         const user = await controller.logIn(req.body);
 
         makeAuthHeaders(res, user.header)
-        res.json({ body: user.body })
+        res.json(user.body)
     }
 ));
 
@@ -50,7 +50,7 @@ publicAuthenticationRouter.post('/:userType/logIn/wallet', MakeErrorHandler(
         const user = await controller.logInWithWallet(req.body);
 
         makeAuthHeaders(res, user.header)
-        res.json({ body: user.body })
+        res.json(user.body)
     }
 ));
 
@@ -62,8 +62,8 @@ publicAuthenticationRouter.get('/:userType/refreshToken', MakeErrorHandler(
         const token = req.headers.authorization?.split('Bearer ')[1] ?? "";
         const user = await controller.refreshToken(token);
 
-        // makeAuthHeaders(res, user.header)
-        res.json(user)
+        makeAuthHeaders(res, user.header)
+        res.json({})
     }
 ));
 

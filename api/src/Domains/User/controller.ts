@@ -5,7 +5,7 @@ import commonAuthenticationController from "../Common/authentication";
 import { IChangePasswordFrom, IResponseType, IResponseWithHeaderType } from "../Common/types";
 import { Route, Tags, Get, Patch, Post, Delete, Body, Query, Path } from "tsoa";
 import User, { IUser } from "../../Schema/user.schema";
-import { MakeTokens } from "../Common/utils";
+import { MakeTokens, verifyRefreshToken } from "../Common/utils";
 
 @Route("/user")
 @Tags("User")
@@ -15,7 +15,6 @@ export default class UserController {
     @Path("/Authentication/user")
     @Tags("Auth")
     @Post("/SignUp")
-    // Promise<IResponseType<IUser>>
     static async signUp(_user: IUserSignUpFrom): Promise<IResponseWithHeaderType<IUser>> {
 
         await User.validator(_user, newUserSchema)
@@ -51,15 +50,17 @@ export default class UserController {
 
     }
 
-    // @Path("/Authentication/user")
-    // @Tags("Auth")
-    // @Get("/refreshToken/{}")
-    // static async refreshToken(@Query() _refreshToken: string): Promise<{ body: {}; header: { accessToken: string; refreshToken: string; }; }> {
-    //     return await commonAuthenticationController.refreshToken<User>(_refreshToken, {
-    //         prismaClient: UserController.domainPrisma,
-    //         userType: UserType.user,
-    //     })
-    // }
+    @Path("/Authentication/user")
+    @Tags("Auth")
+    @Get("/refreshToken/{}")
+    static async refreshToken(_refreshToken: string): Promise<IResponseWithHeaderType<undefined>> {
+
+        const tokenUser = await verifyRefreshToken<IUser>(_refreshToken, UserType.user);
+        const user = await User.getUserById(tokenUser!.id);
+        const { accessToken, refreshToken } = await MakeTokens(user!.toJSON(), UserType.user);
+
+        return { body: undefined, header: { accessToken, refreshToken } }
+    }
 
     // @Path("/Authentication/user")
     // @Tags("Auth")

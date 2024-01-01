@@ -6,6 +6,7 @@ import { connectDB, dropCollections, dropDB } from "./util";
 import request from "supertest";
 import { describe, expect, beforeEach, afterEach, beforeAll, afterAll, it } from '@jest/globals';
 import { verifyAccessToken, verifyRefreshToken } from "../../src/Domains/Common/utils";
+import { IUser } from "../../src/Schema/user.schema";
 
 const app = makeServer();
 
@@ -35,6 +36,8 @@ function validUserLoginWithWalletFactory(WalletIndex: "1" | "2" | "both" | "none
 }
 const sighupUrl = (user: UserType) => `/Api/v1/public/authentication/${user}/signUp`;
 const loginUrl = (user: UserType, wallet: boolean = false) => `/Api/v1/public/authentication/${user}/login${wallet ? "/wallet" : ""}`;
+const refreshTokenUrl = (user: UserType) => `/Api/v1/public/authentication/${user}/refreshToken`;
+
 
 
 describe('Authentication', () => {
@@ -135,7 +138,8 @@ describe('Authentication', () => {
 
                 it("should return Validation error message", async () => {
                     const response = await request(app).post(sighupUrl(UserType.user)).send({});
-                    expect(response.body.body).toBeUndefined();
+                    console.log({ body: response.body })
+                    expect(response.body.error).toBeDefined();
 
                     const error = response.body.error;
                     expect(error).toBeTruthy();
@@ -170,7 +174,7 @@ describe('Authentication', () => {
 
                     const newUser = { ...newValidUser }
                     delete (newUser as any).password;
-                    expect(response.body.body).toMatchObject({ ...newUser, dateOfBirth: expect.any(String) });
+                    expect(response.body).toMatchObject({ ...newUser, dateOfBirth: expect.any(String) });
                 });
 
                 describe("WHEN user enters valid inputs THEN Authentication header is set", () => {
@@ -193,7 +197,7 @@ describe('Authentication', () => {
 
                         const newUser = { ...newValidUser }
                         delete (newUser as any).password;
-                        expect(response.body.body).toMatchObject({ ...newUser, dateOfBirth: expect.any(String) });
+                        expect(response.body).toMatchObject({ ...newUser, dateOfBirth: expect.any(String) });
                     });
 
                 });
@@ -212,7 +216,7 @@ describe('Authentication', () => {
                         const response = await request(app).post(loginUrl(UserType.user)).send(ValidUserLogin);
                         expect(response.header).toHaveProperty("refreshtoken");
 
-                        const user: any = response.body.body;
+                        const user: any = response.body;
 
                         const refreshToken = response.header.refreshtoken.split(" ")[1];
                         const cacheRefreshToken = await Cache.getRefreshToken(user.id);
@@ -221,7 +225,7 @@ describe('Authentication', () => {
 
                         const newUser = { ...newValidUser }
                         delete (newUser as any).password;
-                        expect(response.body.body).toMatchObject({ ...newUser, dateOfBirth: expect.any(String) });
+                        expect(response.body).toMatchObject({ ...newUser, dateOfBirth: expect.any(String) });
 
                         expect(cacheRefreshToken).toBe(refreshToken);
                     });
@@ -242,7 +246,7 @@ describe('Authentication', () => {
 
                 it("Should return Validation error message", async () => {
                     const response = await request(app).post(loginUrl(UserType.user)).send({});
-                    expect(response.body.body).toBeUndefined();
+                    expect(response.body.error).toBeDefined();
 
                     const error = response.body.error;
                     expect(error).toBeTruthy();
@@ -251,7 +255,7 @@ describe('Authentication', () => {
 
                 it("Should return Invalid Email or Password error message", async () => {
                     const response = await request(app).post(loginUrl(UserType.user)).send({ email: "abc1@gmail.com", password: "12345678" });
-                    expect(response.body.body).toBeUndefined();
+                    expect(response.body.error).toBeDefined();
 
                     const error = response.body.error;
                     expect(error).toBeTruthy();
@@ -296,7 +300,7 @@ describe('Authentication', () => {
 
                     const newUser = { ...newValidUser }
                     delete (newUser as any).password;
-                    expect(response.body.body).toMatchObject({ ...newUser, dateOfBirth: expect.any(String) });
+                    expect(response.body).toMatchObject({ ...newUser, dateOfBirth: expect.any(String) });
                 });
 
             });
@@ -307,7 +311,7 @@ describe('Authentication', () => {
 
                 it("Should return Validation error message", async () => {
                     const response = await request(app).post(loginUrl(UserType.user, true)).send({});
-                    expect(response.body.body).toBeUndefined();
+                    expect(response.body.error).toBeDefined();
 
                     const error = response.body.error;
                     expect(error).toBeTruthy();
@@ -316,7 +320,7 @@ describe('Authentication', () => {
 
                 it("Should return Invalid Wallet Address error message", async () => {
                     const response = await request(app).post(loginUrl(UserType.user, true)).send({ walletAccounts: ["86d28dc7ecaa47a838b4f1dee8eb551afdd859c926ab9b8001bdc3fb758d143ece72cbb4d9c4d12170b6b7ac78d53f4acb177511c67cb9573"] });
-                    expect(response.body.body).toBeUndefined();
+                    expect(response.body.error).toBeDefined();
 
                     const error = response.body.error;
                     expect(error).toBeTruthy();
@@ -335,6 +339,98 @@ describe('Authentication', () => {
 
             });
 
+
+        });
+
+        describe("Refresh Token", () => {
+
+            var user: IUser;
+            var userRefreshToken: string;
+
+            beforeEach(async () => {
+                const response = await request(app).post(sighupUrl(UserType.user)).send(newValidUser);
+                user = response.body;
+                userRefreshToken = response.header.refreshtoken.split(" ")[1];
+            })
+
+            describe("WHEN user refresh a valid token THEN user gets new accessToken and refreshToken", () => {
+
+                it("Should return 200", async () => {
+                    const response = await request(app).get(refreshTokenUrl(UserType.user)).set('authorization', `Bearer ${userRefreshToken}`)
+                    expect((response).status).toBe(200);
+                });
+
+                it("Should have header AccessToken and Refreshtoken", async () => {
+
+                    const response = await request(app).get(refreshTokenUrl(UserType.user)).set('authorization', `Bearer ${userRefreshToken}`);
+                    expect(response.header).toHaveProperty("authorization");
+                    expect(response.header).toHaveProperty("refreshtoken");
+                });
+
+                it("Should have valid header AccessToken and Refreshtoken", async () => {
+
+                    const response = await request(app).get(refreshTokenUrl(UserType.user)).set('authorization', `Bearer ${userRefreshToken}`)
+
+                    expect(response.header).toHaveProperty("authorization");
+                    expect(response.header).toHaveProperty("refreshtoken");
+
+                    const accessToken = response.header.authorization.split(" ")[1];
+                    const refreshToken = response.header.refreshtoken.split(" ")[1];
+
+                    let user = await verifyAccessToken(accessToken, UserType.user);
+                    expect(user).toBeTruthy();
+                    user = await verifyRefreshToken(refreshToken, UserType.user);
+                    expect(user).toBeTruthy();
+
+                    userRefreshToken = refreshToken;
+
+                });
+
+
+                describe("WHEN user refresh a valid token THEN token MUST be set on Cache", () => {
+
+                    it("Should exist on Cache ", async () => {
+                        const response = await request(app).get(refreshTokenUrl(UserType.user)).set('authorization', `Bearer ${userRefreshToken}`);
+                        const cacheRefreshToken = await Cache.getRefreshToken(user.id);
+
+                        expect(cacheRefreshToken).toBeTruthy();
+                        expect(response.header).toHaveProperty("refreshtoken");
+
+                        const newRefreshToken = response.header.refreshtoken.split(" ")[1];
+
+                        expect(cacheRefreshToken).toBe(newRefreshToken);
+
+                        userRefreshToken = newRefreshToken;
+                    });
+
+                    it("Should be in sync with Cache", async () => {
+                        //TODO: compare old token with new token
+
+                        const response = await request(app).get(refreshTokenUrl(UserType.user)).set('authorization', `Bearer ${userRefreshToken}`);
+                        const cacheRefreshToken = await Cache.getRefreshToken(user.id);
+                        const newRefreshToken = response.header.refreshtoken.split(" ")[1];
+
+                        expect(cacheRefreshToken).toBeTruthy();
+                        expect(cacheRefreshToken).toBe(newRefreshToken);
+
+                    });
+                })
+
+            });
+
+            describe("WHEN user refresh an invalid token THEN user gets 400", () => {
+
+                it("should return 401", async () => request(app).get(refreshTokenUrl(UserType.user)).set('authorization', "").expect(400));
+
+                it("Should Not change header AccessToken and Refreshtoken ", async () => {
+                    const response = await request(app).get(refreshTokenUrl(UserType.user)).set('authorization', `Bearer `);
+                    const cacheRefreshToken = await Cache.getRefreshToken(user.id);
+
+                    expect(cacheRefreshToken).toBeTruthy();
+                    expect(response.header).not.toHaveProperty("authorization");
+                })
+
+            });
 
         });
     })
