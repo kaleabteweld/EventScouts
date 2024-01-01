@@ -38,6 +38,8 @@ const sighupUrl = (user: UserType) => `/Api/v1/public/authentication/${user}/sig
 const loginUrl = (user: UserType, wallet: boolean = false) => `/Api/v1/public/authentication/${user}/login${wallet ? "/wallet" : ""}`;
 const refreshTokenUrl = (user: UserType) => `/Api/v1/public/authentication/${user}/refreshToken`;
 const logoutUrl = (user: UserType) => `/Api/v1/private/authentication/${user}/logOut`;
+const verifyUserUrl = (key: string, user: UserType) => `/Api/v1/private/${user}/VerifyUser/${key}`;
+
 
 
 
@@ -477,6 +479,44 @@ describe('Authentication', () => {
             })
 
         });
+
+        describe("VerifyUser", () => {
+            var user: IUser;
+            var accessToken: string;
+
+            beforeEach(async () => {
+                const response = await request(app).post(sighupUrl(UserType.user)).send(newValidUser);
+                user = response.body;
+                accessToken = response.header.authorization.split(" ")[1];
+            })
+
+            describe("WHEN user sign up for the first time THEY must not be verified", () => {
+                it("Should be null", () => expect(user.verified).toBe("none"));
+            })
+
+            describe("WHEN user request to be verified WITH invalid request", () => {
+                it("Should return 404 when invalid verification key ", () => request(app).patch(verifyUserUrl("abc", UserType.user)).set('authorization', `Bearer ${accessToken}`).expect(404));
+                it("Should return 401 when invalid access Token", () => request(app).patch(verifyUserUrl("email", UserType.user)).set('authorization', `Bearer `).expect(401));
+
+            });
+
+
+            describe.each(
+                Object.values(['email', 'phone', 'Both']).map((verifyBy) => ({
+                    testName: `WHEN user verify with ${verifyBy} THEN user is verified`,
+                    verifyBy
+                }))
+            )(`$testName`, ({ verifyBy }) => {
+
+                it(`should be By ${verifyBy}`, async () => {
+                    const response = await request(app).patch(verifyUserUrl(verifyBy, UserType.user)).set('authorization', `Bearer ${accessToken}`);
+                    expect(response.body.verified).not.toBeNull();
+                    expect(response.body.verified).toBe(verifyBy);
+                })
+            });
+
+
+        })
 
     })
 })

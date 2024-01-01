@@ -1,9 +1,8 @@
 
-import * as bcrypt from "bcrypt";
 import Jwt from 'jsonwebtoken'
 import Cache from "../../Util/cache";
 import { Response } from "express";
-import { errorFactory, ValidationErrorFactory } from "../../Util/Factories";
+import { ValidationErrorFactory } from "../../Util/Factories";
 import { TokenSecret } from "../../Util";
 import { TokenType, UserType } from "../../Types";
 import Joi from "joi";
@@ -35,13 +34,6 @@ export async function MakeTokens(user: any, userType: UserType) {
     }
 
 }
-
-// export async function logout<T>(token: string, userType: UserType) {
-
-//     const user = await verifyAccessToken<T>(token, userType);
-//     await Cache.run(() => Cache.removeRefreshToken(user.id));
-
-// }
 
 export async function verifyAccessToken<T>(token: string, userType: UserType): Promise<T> {
 
@@ -104,20 +96,6 @@ export function makeAuthHeaders(res: Response, headers: { accessToken: string, r
     res.header("Authorization", "Bearer " + headers.accessToken);
     res.header("RefreshToken", "Bearer " + headers.refreshToken);
 }
-
-// export async function checkUserCredentials(from: any, user: any) {
-//     const passWordCheck: boolean = await checkPassword(from.password, user.password);
-//     if (passWordCheck) {
-//         return user;
-//     } else {
-//         throw errorFactory({
-//             msg: "User Name or Password Error",
-//             statusCode: 400,
-//             type: "validation"
-//         });
-
-//     }
-// }
 
 export async function MakeValidator<T>(validator: Joi.ObjectSchema<T>, obj: T, optional?: Joi.ValidationOptions) {
     const validationError: any = await validator.validate(obj, optional);

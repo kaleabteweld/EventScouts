@@ -1,6 +1,6 @@
 import * as bcrypt from "bcrypt";
 import { ValidationErrorFactory, errorFactory } from "../../Util/Factories";
-import { IUser, UserModel } from "../user.schema";
+import { IUser, TVerified, UserModel } from "../user.schema";
 import mongoose from "mongoose";
 import { MakeValidator } from "../../Domains/Common";
 import Joi from "joi";
@@ -83,7 +83,7 @@ export async function getUserByWalletAccounts(this: mongoose.Model<IUser>, walle
 }
 
 export async function getUserById(this: mongoose.Model<IUser>, _id: string): Promise<mongoose.Document<unknown, UserModel, IUser> & IUser & { _id: mongoose.Types.ObjectId; } | null> {
-    const user = await this.findOne({ _id });
+    const user = await this.findById(new mongoose.Types.ObjectId(_id));
     if (user == null) {
         throw ValidationErrorFactory({
             msg: "Invalid Id",
@@ -93,4 +93,31 @@ export async function getUserById(this: mongoose.Model<IUser>, _id: string): Pro
     }
     return user;
 
+}
+
+export async function applyUserVerify(this: IUser, key: TVerified): Promise<IUser> {
+    try {
+        if (!['email', 'phone', 'Both', 'none'].includes(key)) {
+            throw ValidationErrorFactory({
+                msg: "Invalid Key for Verification",
+                statusCode: 404,
+                type: "Validation"
+            }, "key")
+        }
+        this.verified = key;
+        await this.save()
+        return this;
+    } catch (error: any) {
+
+        if (isValidationError(error)) {
+            throw error;
+        }
+        console.log("[-] applyUserVerify", error);
+        throw errorFactory({
+            msg: "mongoose",
+            statusCode: 418,
+            type: "system"
+        });
+
+    }
 }

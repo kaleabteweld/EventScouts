@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { getUserByEmail, checkPassword, encryptPassword, validator, getUserByWalletAccounts, getUserById } from './ExtendedFunctions/user.extended';
+import { getUserByEmail, checkPassword, encryptPassword, validator, getUserByWalletAccounts, getUserById, applyUserVerify } from './ExtendedFunctions/user.extended';
 import Joi from 'joi';
 import { mongooseErrorPlugin } from './Middleware/errors.middleware';
 
@@ -21,6 +21,7 @@ export interface IUser extends mongoose.Document {
 interface IUserMethods {
     encryptPassword(password: string): Promise<string>
     checkPassword(password: string): Promise<boolean>
+    applyUserVerify(this: IUser, key: TVerified): Promise<IUser>
 }
 
 // Extend the Document type with IUserMethods
@@ -57,6 +58,7 @@ export const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
     methods: {
         encryptPassword,
         checkPassword,
+        applyUserVerify,
     },
     statics: {
         validator,

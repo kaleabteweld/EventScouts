@@ -4,7 +4,7 @@ import { UserType } from "../../Types";
 import commonAuthenticationController from "../Common/authentication";
 import { IChangePasswordFrom, IResponseType, IResponseWithHeaderType } from "../Common/types";
 import { Route, Tags, Get, Patch, Post, Delete, Body, Query, Path } from "tsoa";
-import User, { IUser } from "../../Schema/user.schema";
+import User, { IUser, TVerified } from "../../Schema/user.schema";
 import { MakeTokens, verifyAccessToken, verifyRefreshToken } from "../Common/utils";
 import Cache from "../../Util/cache";
 
@@ -83,12 +83,13 @@ export default class UserController {
     //     })
     // }
 
-    // @Patch("VerifyUser/{key}")
-    // static async verifyUser(@Body() user: User, key: string) {
-    //     return await CommonController.verifyUser<User, UserVerified>(user, key, {
-    //         prismaClient: UserController.domainPrisma
-    //     })
-    // }
+    @Patch("VerifyUser/{key}")
+    static async verifyUser(_user: IUser, key: TVerified): Promise<IResponseType<IUser>> {
+        const user = await User.getUserById(_user.id);
+        await user!.applyUserVerify(key);
+
+        return { body: user!.toJSON() }
+    }
 
     // @Get("/boughtTickets/{offset}/{amount}")
     // static async getBoughtTickets(offset?: number, amount?: number, @Query() userId?: string, @Query() ticketDetailID?: string) {

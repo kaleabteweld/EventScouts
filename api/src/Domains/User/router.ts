@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import { errorFactory } from "../../Util/Factories";
 import { MakeErrorHandler } from "../../Util/middlewares";
 import UserController from "./controller";
+import { IUser } from "../../Schema/user.schema";
 
 
 const publicUserRouter = express.Router();
@@ -35,15 +36,15 @@ const privateUserRouter = express.Router();
 //     }
 // ));
 
-// privateUserRouter.patch("/VerifyUser/:key", MakeErrorHandler(
-//     async (req: any, res: Response) => {
+privateUserRouter.patch("/VerifyUser/:key", MakeErrorHandler(
+    async (req: any, res: Response) => {
 
-//         const _user: User = req['user'];
-//         const key = req.params.key
-//         const user = await UserController.verifyUser(_user, key);
-//         res.json(user);
-//     }
-// ));
+        const _user: IUser = req['user'];
+        const key = req.params.key
+        const user = await UserController.verifyUser(_user, key);
+        res.json(user.body);
+    }
+));
 
 // publicUserRouter.get("/:id", MakeErrorHandler(
 //     async (req: Request, res: Response) => {
