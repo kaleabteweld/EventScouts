@@ -566,15 +566,13 @@ describe('Authentication', () => {
                 ]
             )(`$testName`, ({ resetBy, verifiedBy }) => {
 
-                console.log({ resetBy, verifiedBy })
-
                 beforeEach(async () => {
                     await request(app).patch(verifyUserUrl(verifiedBy, UserType.user)).set('authorization', `Bearer ${accessToken}`);
                 });
 
-                it("should return 200", async () => request(app).patch(forgotPasswordUrl(resetBy, validValue[resetBy], validNewPassword, UserType.user)).expect(200));
+                it("Should return 200", async () => request(app).patch(forgotPasswordUrl(resetBy, validValue[resetBy], validNewPassword, UserType.user)).expect(200));
 
-                it("should logIn with New password", async () => {
+                it("Should logIn with New password", async () => {
                     await request(app).patch(forgotPasswordUrl(resetBy, validValue[resetBy], validNewPassword, UserType.user))
 
                     const response = await request(app).post(loginUrl(UserType.user)).send({ email: newValidUser.email, password: validNewPassword });
@@ -583,7 +581,7 @@ describe('Authentication', () => {
                     expect(response.body).toMatchObject({ ...newUser, dateOfBirth: expect.any(String) });
                 });
 
-                it("should Not logIn with old password", async () => {
+                it("Should Not logIn with old password", async () => {
                     await request(app).patch(forgotPasswordUrl(resetBy, validValue[resetBy], validNewPassword, UserType.user))
                     const response = await request(app).post(loginUrl(UserType.user)).send({ email: newValidUser.email, password: newValidUser.password });
                     const error = response.body.error;
