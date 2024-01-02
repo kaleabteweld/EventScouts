@@ -2,7 +2,7 @@ import { IUserLogInFrom, IUserLogInFromWithWallet, IUserSignUpFrom } from "../..
 import { UserType } from "../../src/Types";
 import { makeServer } from "../../src/Util/Factories";
 import Cache from "../../src/Util/cache";
-import { connectDB, dropCollections, dropDB, testPasswordReset } from "./util";
+import { connectDB, dropCollections, dropDB, getAdjacentKey } from "./util";
 import request from "supertest";
 import { describe, expect, beforeEach, afterEach, beforeAll, afterAll, it } from '@jest/globals';
 import { verifyAccessToken, verifyRefreshToken } from "../../src/Domains/Common/utils";
@@ -20,20 +20,16 @@ const newValidUser: IUserSignUpFrom = {
     userName: "test",
     walletAccounts: ["fdd3d4ad2a1c88bfa0e44e18bf4b04886d28dc7ecaa47a838b4f1dee8eb551afdd859c926ab9b8001bdc3fb758fd7253a56df6f61cb93d0178d063cf79e602f5", "07f153aae615da277f12fc6d891d143ece72cbb4d9c4d12170b6b7ac78d53f4acb177511c67cb95737247fd3edfc94d3b33bb49a7432dcc838ba7a8fed5e015b"]
 };
+const newValidUserWithOutPassword = { ...newValidUser }
+delete (newValidUserWithOutPassword as any).password;
+
 const ValidUserLogin: IUserLogInFrom = {
     email: "test@test.com",
     password: "abcd12345",
 };
-function validUserLoginWithWalletFactory(WalletIndex: "1" | "2" | "both" | "none"): IUserLogInFromWithWallet {
-    var temp = [];
-    const walletAccounts = ["fdd3d4ad2a1c88bfa0e44e18bf4b04886d28dc7ecaa47a838b4f1dee8eb551afdd859c926ab9b8001bdc3fb758fd7253a56df6f61cb93d0178d063cf79e602f5", "07f153aae615da277f12fc6d891d143ece72cbb4d9c4d12170b6b7ac78d53f4acb177511c67cb95737247fd3edfc94d3b33bb49a7432dcc838ba7a8fed5e015b"]
-    if (WalletIndex == "1") temp.push(walletAccounts[0])
-    if (WalletIndex == "2") temp.push(walletAccounts[1])
-    if (WalletIndex == "1") temp = [...walletAccounts]
-    return {
-        walletAccounts: temp
-    }
-}
+const VerifyUserKeys = ['email', 'phone', 'Both'];
+const VerifyUserKeysSupported = ['email', 'phone'];
+
 const sighupUrl = (user: UserType) => `/Api/v1/public/authentication/${user}/signUp`;
 const loginUrl = (user: UserType, wallet: boolean = false) => `/Api/v1/public/authentication/${user}/login${wallet ? "/wallet" : ""}`;
 const refreshTokenUrl = (user: UserType) => `/Api/v1/public/authentication/${user}/refreshToken`;
@@ -69,9 +65,7 @@ describe('Authentication', () => {
 
                 it("Should return user obj", async () => {
                     const response = await request(app).post(sighupUrl(UserType.user)).send(newValidUser);
-                    const newUser = { ...newValidUser }
-                    delete (newUser as any).password;
-                    expect(response.body).toMatchObject({ ...newUser, dateOfBirth: expect.any(String) });
+                    expect(response.body).toMatchObject({ ...newValidUserWithOutPassword, dateOfBirth: expect.any(String) });
 
                 });
 
@@ -92,9 +86,7 @@ describe('Authentication', () => {
                         const accessToken = response.header.authorization.split(" ")[1];
                         const user = await verifyAccessToken(accessToken, UserType.user);
                         expect(user).toBeTruthy();
-                        const newUser = { ...newValidUser }
-                        delete (newUser as any).password;
-                        expect(user).toMatchObject({ ...newUser, dateOfBirth: expect.any(String) });
+                        expect(user).toMatchObject({ ...newValidUserWithOutPassword, dateOfBirth: expect.any(String) });
                     });
 
                 });
@@ -130,9 +122,7 @@ describe('Authentication', () => {
                         const user = await verifyRefreshToken(refreshToken, UserType.user);
 
                         expect(user).toBeTruthy();
-                        const newUser = { ...newValidUser }
-                        delete (newUser as any).password;
-                        expect(user).toMatchObject({ ...newUser, dateOfBirth: expect.any(String) });
+                        expect(user).toMatchObject({ ...newValidUserWithOutPassword, dateOfBirth: expect.any(String) });
                     });
 
                 });
@@ -144,7 +134,6 @@ describe('Authentication', () => {
 
                 it("should return Validation error message", async () => {
                     const response = await request(app).post(sighupUrl(UserType.user)).send({});
-                    console.log({ body: response.body })
                     expect(response.body.error).toBeDefined();
 
                     const error = response.body.error;
@@ -178,9 +167,7 @@ describe('Authentication', () => {
                 it("Should return user obj", async () => {
                     const response = await request(app).post(loginUrl(UserType.user)).send(ValidUserLogin);
 
-                    const newUser = { ...newValidUser }
-                    delete (newUser as any).password;
-                    expect(response.body).toMatchObject({ ...newUser, dateOfBirth: expect.any(String) });
+                    expect(response.body).toMatchObject({ ...newValidUserWithOutPassword, dateOfBirth: expect.any(String) });
                 });
 
                 describe("WHEN user enters valid inputs THEN Authentication header is set", () => {
@@ -201,9 +188,7 @@ describe('Authentication', () => {
                         const user = await verifyAccessToken(accessToken, UserType.user);
                         expect(user).toBeTruthy();
 
-                        const newUser = { ...newValidUser }
-                        delete (newUser as any).password;
-                        expect(response.body).toMatchObject({ ...newUser, dateOfBirth: expect.any(String) });
+                        expect(response.body).toMatchObject({ ...newValidUserWithOutPassword, dateOfBirth: expect.any(String) });
                     });
 
                 });
@@ -228,10 +213,7 @@ describe('Authentication', () => {
                         const cacheRefreshToken = await Cache.getRefreshToken(user.id);
 
                         expect(user).toBeTruthy();
-
-                        const newUser = { ...newValidUser }
-                        delete (newUser as any).password;
-                        expect(response.body).toMatchObject({ ...newUser, dateOfBirth: expect.any(String) });
+                        expect(response.body).toMatchObject({ ...newValidUserWithOutPassword, dateOfBirth: expect.any(String) });
 
                         expect(cacheRefreshToken).toBe(refreshToken);
                     });
@@ -289,24 +271,16 @@ describe('Authentication', () => {
 
             describe("WHEN user enters valid inputs THEN user login ", () => {
 
-                it.each(
-                    ["fdd3d4ad2a1c88bfa0e44e18bf4b04886d28dc7ecaa47a838b4f1dee8eb551afdd859c926ab9b8001bdc3fb758fd7253a56df6f61cb93d0178d063cf79e602f5",
-                        "07f153aae615da277f12fc6d891d143ece72cbb4d9c4d12170b6b7ac78d53f4acb177511c67cb95737247fd3edfc94d3b33bb49a7432dcc838ba7a8fed5e015b"]
-                )("Should LogIn with any Wallet", async (wallet) => request(app).post(loginUrl(UserType.user, true)).send({
-                    walletAccounts: [wallet]
-                }).expect(200));
+                it.each(newValidUser.walletAccounts)("Should LogIn with any Wallet", async (wallet) =>
+                    request(app).post(loginUrl(UserType.user, true)).send({
+                        walletAccounts: [wallet]
+                    }).expect(200));
 
-                it.each(
-                    ["fdd3d4ad2a1c88bfa0e44e18bf4b04886d28dc7ecaa47a838b4f1dee8eb551afdd859c926ab9b8001bdc3fb758fd7253a56df6f61cb93d0178d063cf79e602f5",
-                        "07f153aae615da277f12fc6d891d143ece72cbb4d9c4d12170b6b7ac78d53f4acb177511c67cb95737247fd3edfc94d3b33bb49a7432dcc838ba7a8fed5e015b"]
-                )("Should return user obj", async (wallet) => {
+                it.each(newValidUser.walletAccounts)("Should return user obj", async (wallet) => {
                     const response = await request(app).post(loginUrl(UserType.user, true)).send({
                         walletAccounts: [wallet]
                     });
-
-                    const newUser = { ...newValidUser }
-                    delete (newUser as any).password;
-                    expect(response.body).toMatchObject({ ...newUser, dateOfBirth: expect.any(String) });
+                    expect(response.body).toMatchObject({ ...newValidUserWithOutPassword, dateOfBirth: expect.any(String) });
                 });
 
             });
@@ -473,7 +447,7 @@ describe('Authentication', () => {
                 it("should return 401", async () => request(app).delete(logoutUrl(UserType.user)).set('authorization', "Bearer ").expect(401));
 
                 it("Should only remove token from Cache if valid", async () => {
-                    const response = await request(app).delete(logoutUrl(UserType.user)).set('authorization', `Bearer `)
+                    await request(app).delete(logoutUrl(UserType.user)).set('authorization', `Bearer `)
                     const cacheRefreshToken = await Cache.getRefreshToken(user.id);
                     expect(cacheRefreshToken).toBeTruthy();
                 });
@@ -493,7 +467,7 @@ describe('Authentication', () => {
             })
 
             describe("WHEN user sign up for the first time THEY must not be verified", () => {
-                it("Should be null", () => expect(user.verified).toBe("none"));
+                it("Should be None", () => expect(user.verified).toBe("none"));
             })
 
             describe("WHEN user request to be verified WITH invalid request", () => {
@@ -504,7 +478,7 @@ describe('Authentication', () => {
 
 
             describe.each(
-                Object.values(['email', 'phone', 'Both']).map((verifyBy) => ({
+                VerifyUserKeys.map((verifyBy) => ({
                     testName: `WHEN user verify with ${verifyBy} THEN user is verified`,
                     verifyBy
                 }))
@@ -543,8 +517,8 @@ describe('Authentication', () => {
             })
 
             describe.each(
-                ['email', 'phone'].map((resetBy, index, array) => ({
-                    testName: `WHEN user reset password with ${resetBy} THEN But user is verified By ${array[array.length - 1 > (index + 1) ? array.length - 1 : 0]}`,
+                VerifyUserKeysSupported.map((resetBy, index, array) => ({
+                    testName: `WHEN user reset password with ${resetBy} THEN But user is verified By ${getAdjacentKey(array, resetBy)}`,
                     resetBy,
                     index,
                     array
@@ -553,12 +527,12 @@ describe('Authentication', () => {
                     beforeEach(async () => {
                         await request(app).patch(verifyUserUrl(resetBy, UserType.user)).set('authorization', `Bearer ${accessToken}`);
                     });
-                    it("Should return 404", () => request(app).patch(forgotPasswordUrl(array[array.length - 1 > (index + 1) ? array.length - 1 : 0], validValue[resetBy[array.length - 1 > (index + 1) ? array.length - 1 : 0]], validNewPassword, UserType.user)).expect(404));
+                    it("Should return 404", () => request(app).patch(forgotPasswordUrl(resetBy, validValue[getAdjacentKey(array, resetBy)], validNewPassword, UserType.user)).expect(404));
                 });
 
 
             describe.each(
-                [...['email', 'phone'].map((resetBy) => ({
+                [...VerifyUserKeysSupported.map((resetBy) => ({
                     testName: `WHEN user reset password with ${resetBy} and user is verified with ${resetBy} THEN user password is reset`,
                     resetBy,
                     verifiedBy: resetBy
@@ -576,9 +550,7 @@ describe('Authentication', () => {
                     await request(app).patch(forgotPasswordUrl(resetBy, validValue[resetBy], validNewPassword, UserType.user))
 
                     const response = await request(app).post(loginUrl(UserType.user)).send({ email: newValidUser.email, password: validNewPassword });
-                    const newUser = { ...newValidUser }
-                    delete (newUser as any).password;
-                    expect(response.body).toMatchObject({ ...newUser, dateOfBirth: expect.any(String) });
+                    expect(response.body).toMatchObject({ ...newValidUserWithOutPassword, dateOfBirth: expect.any(String) });
                 });
 
                 it("Should Not logIn with old password", async () => {
