@@ -6,7 +6,7 @@ import { connectDB, dropCollections, dropDB, getAdjacentKey } from "./util";
 import request from "supertest";
 import { describe, expect, beforeEach, afterEach, beforeAll, afterAll, it } from '@jest/globals';
 import { verifyAccessToken, verifyRefreshToken } from "../../src/Domains/Common/utils";
-import { IUser } from "../../src/Schema/user.schema";
+import { IUser, verifiedEnum, verifiedSupportedEnum } from "../../src/Schema/user.schema";
 
 const app = makeServer();
 
@@ -27,8 +27,8 @@ const ValidUserLogin: IUserLogInFrom = {
     email: "test@test.com",
     password: "abcd12345",
 };
-const VerifyUserKeys = ['email', 'phone', 'Both'];
-const VerifyUserKeysSupported = ['email', 'phone'];
+const VerifyUserKeys = Object.values(verifiedEnum);
+const VerifyUserKeysSupported = Object.values(verifiedSupportedEnum);
 
 const sighupUrl = (user: UserType) => `/Api/v1/public/authentication/${user}/signUp`;
 const loginUrl = (user: UserType, wallet: boolean = false) => `/Api/v1/public/authentication/${user}/login${wallet ? "/wallet" : ""}`;
@@ -498,7 +498,7 @@ describe('Authentication', () => {
 
             var user: IUser;
             var accessToken: string;
-            const validValue: any = { email: newValidUser.email, phone: newValidUser.phone }
+            const validValue: any = { email: newValidUser.email, phone: newValidUser.phone, both: newValidUser.email, wallet: newValidUser.walletAccounts[0] }
             const validNewPassword = "abcd123451"
 
             beforeEach(async () => {

@@ -1,7 +1,6 @@
 import { IUserLogInFrom, IUserLogInFromWithWallet, IUserSignUpFrom } from "./types";
 import { logInSchema, logInWithWalletSchema, newUserSchema, userChangePassword } from "./validation";
 import { UserType } from "../../Types";
-import commonAuthenticationController from "../Common/authentication";
 import { IChangePasswordFrom, IResponseType, IResponseWithHeaderType } from "../Common/types";
 import { Route, Tags, Get, Patch, Post, Delete, Body, Query, Path } from "tsoa";
 import User, { IUser, TVerified } from "../../Schema/user.schema";

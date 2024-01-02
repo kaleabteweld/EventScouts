@@ -4,7 +4,20 @@ import Joi from 'joi';
 import { mongooseErrorPlugin } from './Middleware/errors.middleware';
 
 export type TGender = 'Male' | 'Female' | 'Others' | 'none';
-export type TVerified = 'email' | 'phone' | 'Both' | 'none';
+export type TVerified = 'email' | 'phone' | 'wallet' | 'none';
+export const verifiedEnum: { [key in TVerified]: string } = {
+    email: 'email',
+    phone: 'phone',
+    none: 'none',
+    wallet: 'wallet'
+}
+
+export type TVerifiedSupported = 'email' | 'phone' | 'wallet';
+export const verifiedSupportedEnum: { [key in TVerifiedSupported]: string } = {
+    email: 'email',
+    phone: 'phone',
+    wallet: 'wallet',
+}
 export interface IUser extends mongoose.Document {
     email: string;
     name: string;
@@ -43,7 +56,7 @@ export const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
     phone: { type: String, unique: true },
     verified: {
         type: String,
-        enum: ['email', 'phone', 'Both', 'none'],
+        enum: Object.values(verifiedEnum),
         default: 'none'
     },
     dateOfBirth: { type: Date },
