@@ -1,7 +1,7 @@
 import Joi from "joi";
 import { IChangePasswordFrom } from "../Common/types";
 import { IUserLogInFrom, IUserLogInFromWithWallet, IUserSignUpFrom } from "./types";
-import { GenderEnum } from "../../Schema/types/user.schema.types";
+import { GenderEnum } from "../../Schema/Types/user.schema.types";
 
 
 export const newUserSchema = Joi.object<IUserSignUpFrom>({

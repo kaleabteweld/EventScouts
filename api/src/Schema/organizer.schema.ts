@@ -1,26 +1,43 @@
 import mongoose from 'mongoose'
+import { IOrganizer, IOrganizerMethods, IOrganizerModel, verifiedEnum } from './Types/organizer.schema.types';
+import { mongooseErrorPlugin } from './Middleware/errors.middleware';
+import { checkPassword, encryptPassword, validator, getByEmail, getById, getByVerifiedKey, applyVerify } from './ExtendedFunctions/organizer.extended'
 
-export interface IOrganizer extends Document {
-    email: string;
-    name?: string;
-    phone: string;
-    logoURL?: string;
-    verified: 'email' | 'phone' | 'EmailAndPhone' | 'Document' | 'all' | 'none';
-    password?: string;
-}
-
-export const organizerSchema = new mongoose.Schema<IOrganizer>({
+export const organizerSchema = new mongoose.Schema<IOrganizer, IOrganizerModel, IOrganizerMethods>({
     email: { type: String, unique: true },
     name: String,
     phone: { type: String, unique: true },
     logoURL: String,
     verified: {
         type: String,
-        enum: ['email', 'phone', 'EmailAndPhone', 'Document', 'all', 'none'],
+        enum: Object.values(verifiedEnum),
         default: 'none'
     },
     password: { type: String },
-}, { timestamps: true })
+}, {
+    timestamps: true,
+    methods: {
+        encryptPassword,
+        checkPassword,
+        applyVerify,
+    },
+    statics: {
+        validator,
+        getByEmail,
+        getById,
+        getByVerifiedKey,
+    }
+})
 
-const OrganizerModel: mongoose.Model<IOrganizer> = mongoose.model("Organizer", organizerSchema);
+organizerSchema.set('toJSON', {
+    transform: function (doc, ret, opt) {
+        delete ret['password']
+        ret['id'] = doc['_id']
+        delete ret['_id']
+        return ret
+    }
+})
+organizerSchema.plugin<any>(mongooseErrorPlugin)
+
+const OrganizerModel = mongoose.model<IOrganizer, IOrganizerModel>("Organizer", organizerSchema);
 export default OrganizerModel;

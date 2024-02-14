@@ -1,12 +1,12 @@
 import * as bcrypt from "bcrypt";
-import { ValidationErrorFactory, errorFactory } from "../../Util/Factories";
-import mongoose from "mongoose";
-import { MakeValidator } from "../../Domains/Common";
 import Joi from "joi";
-import { isValidationError } from "../../Types/error"
-import { IUser, TVerified, TVerifiedSupported, UserModel, verifiedEnum, verifiedSupportedEnum } from "../Types/user.schema.types";
+import { IOrganizer, TVerified, TVerifiedSupported, verifiedEnum, verifiedSupportedEnum } from "../Types/organizer.schema.types";
+import { ValidationErrorFactory, errorFactory } from "../../Util/Factories";
+import { isValidationError } from "../../Types/error";
+import { MakeValidator } from "../../Domains/Common";
+import mongoose from "mongoose";
 
-export async function encryptPassword(this: IUser, password?: string): Promise<string> {
+export async function encryptPassword(this: IOrganizer, password?: string): Promise<string> {
 
     const saltRounds: number = Number.parseInt(process.env.saltRounds || "11");
     try {
@@ -24,7 +24,7 @@ export async function encryptPassword(this: IUser, password?: string): Promise<s
     }
 }
 
-export async function checkPassword(this: IUser, password: string): Promise<boolean> {
+export async function checkPassword(this: IOrganizer, password: string): Promise<boolean> {
 
     try {
         const gate = await bcrypt.compare(password, this.password);
@@ -54,49 +54,76 @@ export function validator<T>(userInput: T, schema: Joi.ObjectSchema<T>) {
     return MakeValidator<T>(schema, userInput);
 }
 
-export async function getUserByEmail(this: mongoose.Model<IUser>, email: string): Promise<mongoose.Document<unknown, UserModel, IUser> & IUser & { _id: mongoose.Types.ObjectId; } | null> {
-    const user = await this.findOne({ email });
-    if (user == null) {
+export async function getByEmail(this: mongoose.Model<IOrganizer>, email: string): Promise<mongoose.Document<unknown, {}, IOrganizer> & IOrganizer & { _id: mongoose.Types.ObjectId; } | null> {
+    const organizer = await this.findOne({ email });
+    if (organizer == null) {
         throw ValidationErrorFactory({
             msg: "Invalid Email or Password",
             statusCode: 404,
             type: "Validation"
         }, "")
     }
-    return user;
+    return organizer;
 }
 
-export async function getUserByWalletAccounts(this: mongoose.Model<IUser>, walletAccounts: string[]): Promise<mongoose.Document<unknown, UserModel, IUser> & IUser & { _id: mongoose.Types.ObjectId; } | null> {
-
-    const user = await this.findOne({
-        walletAccounts: {
-            $in: walletAccounts
-        }
-    });
-    if (user == null) {
-        throw ValidationErrorFactory({
-            msg: "Invalid Wallet Address",
-            statusCode: 404,
-            type: "Validation"
-        }, "walletAccounts")
-    }
-    return user;
-}
-
-export async function getUserById(this: mongoose.Model<IUser>, _id: string): Promise<mongoose.Document<unknown, UserModel, IUser> & IUser & { _id: mongoose.Types.ObjectId; } | null> {
-    const user = await this.findById(new mongoose.Types.ObjectId(_id));
-    if (user == null) {
+export async function getById(this: mongoose.Model<IOrganizer>, _id: string): Promise<mongoose.Document<unknown, {}, IOrganizer> & IOrganizer & { _id: mongoose.Types.ObjectId; } | null> {
+    const organizer = await this.findById(new mongoose.Types.ObjectId(_id));
+    if (organizer == null) {
         throw ValidationErrorFactory({
             msg: "Invalid Id",
             statusCode: 404,
             type: "Validation"
         }, "_id")
     }
-    return user;
+    return organizer;
 
 }
 
-export async function applyUserVerify(this: IUser, key: TVerified): Promise<IUser> {
+export async function getByVerifiedKey(this: mongoose.Model<IOrganizer>, key: TVerifiedSupported, value: string): Promise<mongoose.Document<unknown, {}, IOrganizer> & IOrganizer & { _id: mongoose.Types.ObjectId; } | null> {
+
+    try {
+        var user;
+
+        if (key == 'email' || key == 'phone') {
+            user = await this.findOne({
+                $and: [{
+                    [key]: value,
+                    verified: key
+                }]
+
+            });
+        }
+        else {
+            throw ValidationErrorFactory({
+                msg: "Invalid Key for Verification",
+                statusCode: 404,
+                type: "Validation"
+            }, "key")
+        }
+
+        if (user == null) {
+            throw ValidationErrorFactory({
+                msg: "Invalid Key for Verification",
+                statusCode: 404,
+                type: "Validation"
+            }, "key")
+        }
+        return user;
+
+    } catch (error: any) {
+        if (isValidationError(error)) {
+            throw error;
+        }
+        console.log("[-] getByVerifiedKey", error);
+        throw errorFactory({
+            msg: "mongoose",
+            statusCode: 418,
+            type: "system"
+        });
+    }
+}
+
+export async function applyVerify(this: IOrganizer, key: TVerified): Promise<IOrganizer> {
     try {
         if (!Object.values(verifiedEnum).includes(key)) {
             throw ValidationErrorFactory({
@@ -122,54 +149,8 @@ export async function applyUserVerify(this: IUser, key: TVerified): Promise<IUse
 
     }
 }
-export async function getByVerifiedKey(this: mongoose.Model<IUser>, key: TVerifiedSupported, value: string): Promise<mongoose.Document<unknown, UserModel, IUser> & IUser & { _id: mongoose.Types.ObjectId; } | null> {
 
-    try {
-        var user;
-
-        if (key == 'email' || key == 'phone') {
-            user = await this.findOne({
-                $and: [{
-                    [key]: value,
-                    verified: key
-                }]
-
-            });
-        }
-        else if (key == 'wallet') {
-            user = await this.findOne({
-                $and: [{
-                    walletAccounts: {
-                        $in: [value]
-                    },
-                    verified: 'wallet'
-                }]
-
-            });
-        }
-
-        if (user == null) {
-            throw ValidationErrorFactory({
-                msg: "Invalid Key for Verification",
-                statusCode: 404,
-                type: "Validation"
-            }, "key")
-        }
-        return user;
-
-    } catch (error: any) {
-        if (isValidationError(error)) {
-            throw error;
-        }
-        console.log("[-] getByVerifiedKey", error);
-        throw errorFactory({
-            msg: "mongoose",
-            statusCode: 418,
-            type: "system"
-        });
-    }
-}
-export function checkVerifiedBy(this: IUser, key: TVerifiedSupported): boolean {
+export function checkVerifiedBy(this: IOrganizer, key: TVerifiedSupported): boolean {
     try {
 
         if (!Object.values(verifiedSupportedEnum).includes(key)) {

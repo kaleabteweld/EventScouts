@@ -1,23 +1,20 @@
 import express, { Request, Response } from "express";
 import { UserType } from "../../Types";
 import { MakeErrorHandler } from "../../Util/middlewares";
-// import { makeAuthHeaders } from "../Common/utils";
-// import { OrganizerController } from "../Organizer";
 import { UserController } from "../User";
 import { AuthenticationController } from "./authentication.controller";
 import { makeAuthHeaders } from "../Common/utils";
+import { OrganizerController } from "../Organizer";
 
 const publicAuthenticationRouter = express.Router();
 const privateAuthenticationRouter = express.Router();
 
-function ClassMap(userType: string): UserController {
+function ClassMap(userType: string): UserController | OrganizerController {
     const classmap = new Map<string, any>();
     classmap.set(UserType.user, UserController);
-    // classmap.set(UserType.organizer, OrganizerController);
+    classmap.set(UserType.organizer, OrganizerController);
     return classmap.get(userType);
 }
-
-
 
 publicAuthenticationRouter.post('/:userType/signUp', MakeErrorHandler(
     async (req: Request, res: Response) => {

@@ -1,39 +1,11 @@
 import express, { Request, Response } from "express";
 import { MakeErrorHandler } from "../../Util/middlewares";
 import UserController from "./controller";
-import { IUser } from "../../Schema/types/user.schema.types";
+import { IUser } from "../../Schema/Types/user.schema.types";
 
 
 const publicUserRouter = express.Router();
 const privateUserRouter = express.Router();
-
-// privateUserRouter.all("/\/user/", MakeErrorHandler(
-//     async (req: any, res: Response, next: any) => {
-
-//         const _user: User = req['user'];
-//         console.log("_user ", _user);
-
-//         if (_user === undefined || _user === null) {
-
-//             const error = errorFactory({
-//                 msg: "Token mismatch",
-//                 statusCode: 404,
-//                 type: "token"
-//             })
-//             throw error;
-//         }
-//         next();
-//     }
-// ))
-
-// privateUserRouter.get("/", MakeErrorHandler(
-//     async (req: any, res: Response) => {
-
-//         const _user: User = req['user'];
-//         const user = await UserController.getUserById(_user.id);
-//         res.json(user.body);
-//     }
-// ));
 
 privateUserRouter.patch("/VerifyUser/:key", MakeErrorHandler(
     async (req: any, res: Response) => {
@@ -44,15 +16,6 @@ privateUserRouter.patch("/VerifyUser/:key", MakeErrorHandler(
         res.json(user.body);
     }
 ));
-
-// publicUserRouter.get("/:id", MakeErrorHandler(
-//     async (req: Request, res: Response) => {
-
-//         const user = await UserController.getUserById(req.params.id);
-//         res.json(user.body);
-//     }
-// ));
-
 
 
 publicUserRouter.use("/user", publicUserRouter);

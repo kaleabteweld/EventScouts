@@ -6,7 +6,7 @@ import { Route, Tags, Get, Patch, Post, Delete, Body, Query, Path } from "tsoa";
 import User from "../../Schema/user.schema";
 import { MakeTokens, MakeValidator, verifyAccessToken, verifyRefreshToken } from "../Common/utils";
 import Cache from "../../Util/cache";
-import { IUser, TVerified } from "../../Schema/types/user.schema.types";
+import { IUser, TVerified } from "../../Schema/Types/user.schema.types";
 
 @Route("/user")
 @Tags("User")
@@ -93,64 +93,5 @@ export default class UserController {
 
         return { body: user!.toJSON() }
     }
-
-    // @Get("/boughtTickets/{offset}/{amount}")
-    // static async getBoughtTickets(offset?: number, amount?: number, @Query() userId?: string, @Query() ticketDetailID?: string) {
-
-
-    //     return CommonController.getAll<Prisma.UserWhereInput, Prisma.UserInclude, any>({
-
-    //         boughtTransaction: {
-    //             some: {
-    //                 boughtByUserID: {
-    //                     equals: userId
-    //                 },
-    //             }
-    //         }
-    //     }, {
-    //         prismaClient: UserController.domainPrisma,
-    //         pagination: { offset, amount },
-    //         include: {
-    //             boughtTransaction: true
-    //         }
-    //     })
-    // };
-
-    // static async getUserBoughtTicketsByticketDetailID(ticketDetailID: string, userId?: string,) {
-    //     return CommonController.getAll<Prisma.UserWhereInput, Prisma.UserInclude, any>({
-    //         AND: [
-    //             { id: userId },
-    //             {
-    //                 boughtTransaction: {
-    //                     some: {
-    //                         AND: [
-    //                             { ticketDetail: { id: ticketDetailID } },
-    //                             { boughtByUserID: userId },
-    //                             { transactionStatus: TransactionStatus.Active }]
-    //                     }
-    //                 }
-    //             }
-    //         ]
-    //     }, {
-    //         prismaClient: UserController.domainPrisma,
-    //         pagination: { offset: 0, amount: 1 },
-    //         include: {
-    //             boughtTransaction: true
-    //         }
-    //     },
-    //     )
-    // };
-
-    // static async removeById(id: string) {
-    //     return CommonController.removeByAttr<Prisma.UserWhereUniqueInput>({ id }, {
-    //         prismaClient: UserController.domainPrisma
-    //     })
-    // }
-
-    // static async getByAttr(attr: Prisma.UserWhereUniqueInput) {
-    //     return CommonController.getByAttr<Prisma.UserWhereUniqueInput, Prisma.UserInclude>(attr, {
-    //         prismaClient: UserController.domainPrisma
-    //     })
-    // }
 
 }
