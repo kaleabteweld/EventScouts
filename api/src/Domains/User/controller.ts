@@ -3,9 +3,10 @@ import { logInSchema, logInWithWalletSchema, newUserSchema, userChangePassword }
 import { UserType } from "../../Types";
 import { IChangePasswordFrom, IResponseType, IResponseWithHeaderType } from "../Common/types";
 import { Route, Tags, Get, Patch, Post, Delete, Body, Query, Path } from "tsoa";
-import User, { IUser, TVerified } from "../../Schema/user.schema";
+import User from "../../Schema/user.schema";
 import { MakeTokens, MakeValidator, verifyAccessToken, verifyRefreshToken } from "../Common/utils";
 import Cache from "../../Util/cache";
+import { IUser, TVerified } from "../../Schema/types/user.schema.types";
 
 @Route("/user")
 @Tags("User")

@@ -6,14 +6,14 @@ import { connectDB, dropCollections, dropDB, getAdjacentKey } from "./util";
 import request from "supertest";
 import { describe, expect, beforeEach, afterEach, beforeAll, afterAll, it } from '@jest/globals';
 import { verifyAccessToken, verifyRefreshToken } from "../../src/Domains/Common/utils";
-import { IUser, verifiedEnum, verifiedSupportedEnum } from "../../src/Schema/user.schema";
+import { IUser, verifiedEnum, verifiedSupportedEnum } from "../../src/Schema/types/user.schema.types";
 
 const app = makeServer();
 
 const newValidUser: IUserSignUpFrom = {
     dateOfBirth: new Date(),
     email: "test@test.com",
-    gender: 'Male',
+    gender: 'male',
     name: "test",
     password: "abcd12345",
     phone: "+251900000",

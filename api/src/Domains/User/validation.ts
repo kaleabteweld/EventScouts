@@ -1,6 +1,7 @@
 import Joi from "joi";
 import { IChangePasswordFrom } from "../Common/types";
 import { IUserLogInFrom, IUserLogInFromWithWallet, IUserSignUpFrom } from "./types";
+import { GenderEnum } from "../../Schema/types/user.schema.types";
 
 
 export const newUserSchema = Joi.object<IUserSignUpFrom>({
@@ -12,7 +13,7 @@ export const newUserSchema = Joi.object<IUserSignUpFrom>({
     phone: Joi.string().required(),
     dateOfBirth: Joi.date().required(),
     gender: Joi.custom((value, helper) => {
-        if (!['Male', 'Female', 'Others', 'none'].includes(value)) {
+        if (!Object.values(GenderEnum).includes(value)) {
             return helper.message({ custom: `\"gender\" ${value} is not a valid enum value` });
         } else {
             return value

@@ -1,10 +1,10 @@
 import * as bcrypt from "bcrypt";
 import { ValidationErrorFactory, errorFactory } from "../../Util/Factories";
-import { IUser, TVerified, TVerifiedSupported, UserModel, verifiedEnum, verifiedSupportedEnum } from "../user.schema";
 import mongoose from "mongoose";
 import { MakeValidator } from "../../Domains/Common";
 import Joi from "joi";
 import { isValidationError } from "../../Types/error"
+import { IUser, TVerified, TVerifiedSupported, UserModel, verifiedEnum, verifiedSupportedEnum } from "../types/user.schema.types";
 
 export async function encryptPassword(this: IUser, password?: string): Promise<string> {
 
@@ -52,7 +52,6 @@ export async function checkPassword(this: IUser, password: string): Promise<bool
 
 export function validator<T>(userInput: T, schema: Joi.ObjectSchema<T>) {
     return MakeValidator<T>(schema, userInput);
-
 }
 
 export async function getUserByEmail(this: mongoose.Model<IUser>, email: string): Promise<mongoose.Document<unknown, UserModel, IUser> & IUser & { _id: mongoose.Types.ObjectId; } | null> {

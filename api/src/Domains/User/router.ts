@@ -1,8 +1,7 @@
 import express, { Request, Response } from "express";
-import { errorFactory } from "../../Util/Factories";
 import { MakeErrorHandler } from "../../Util/middlewares";
 import UserController from "./controller";
-import { IUser } from "../../Schema/user.schema";
+import { IUser } from "../../Schema/types/user.schema.types";
 
 
 const publicUserRouter = express.Router();
