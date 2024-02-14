@@ -1,22 +1,10 @@
 import mongoose from 'mongoose'
-import { IOrganizer } from './organizer.schema'
-import { ICategory } from './category.schema'
-import { ITicketType } from './ticket.schema'
+import { IEvent, IEventMethods, IEventModel } from './Types/event.schema.types'
+import { IOrganizer } from './Types/organizer.schema.types'
+import { mongooseErrorPlugin } from './Middleware/errors.middleware'
+import { validator, getById } from './ExtendedFunctions/event.extended'
 
-export interface IEvent extends mongoose.Document {
-    name: string
-    posterURL: string
-    description: String
-    startDate: Date
-    endDate: Date
-    location: String
-    venue: String
-    organizer: mongoose.Types.ObjectId | IOrganizer
-    categorys: mongoose.Schema.Types.ObjectId[] | ICategory
-    ticketTypes: mongoose.Schema.Types.ObjectId[] | ITicketType
-}
-
-export const eventSchema = new mongoose.Schema<IEvent>({
+export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethods>({
     name: String,
     posterURL: String,
     description: String,
@@ -27,10 +15,29 @@ export const eventSchema = new mongoose.Schema<IEvent>({
     organizer: { type: mongoose.Schema.Types.ObjectId, ref: "Organizer" },
     categorys: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
     ticketTypes: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
-}, { timestamps: true })
+}, {
+    timestamps: true,
+    methods: {
 
-const Event: mongoose.Model<IEvent> = mongoose.model("Event", eventSchema);
-export default Event;
+    },
+    statics: {
+        validator,
+        getById,
+    }
+})
+
+eventSchema.set('toJSON', {
+    transform: function (doc, ret, opt) {
+        delete ret['password']
+        ret['id'] = doc['_id']
+        delete ret['_id']
+        return ret
+    }
+})
+eventSchema.plugin<any>(mongooseErrorPlugin)
+
+const EventModel = mongoose.model<IOrganizer, IEventModel>("Event", eventSchema);
+export default EventModel;
 
 
 

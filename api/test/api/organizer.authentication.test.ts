@@ -7,16 +7,11 @@ import request from "supertest";
 import { describe, expect, beforeEach, afterEach, beforeAll, afterAll, it } from '@jest/globals';
 import { verifyAccessToken, verifyRefreshToken } from "../../src/Domains/Common/utils";
 import { IOrganizer, verifiedEnum, verifiedSupportedEnum } from "../../src/Schema/Types/organizer.schema.types";
-import { forgotPasswordUrl, loginUrl, logoutUrl, refreshTokenUrl, sighupUrl, verifyUserUrl } from "./common";
+import { forgotPasswordUrl, loginUrl, logoutUrl, refreshTokenUrl, sighupUrl, verifyUserUrl, newValidOrganizer } from "./common";
 
 const app = makeServer();
 
-const newValidOrganizer: IOrganizerSignUpFrom = {
-    email: "test@test.com",
-    name: "test",
-    password: "abcd12345",
-    phone: "+251900000",
-};
+
 const newValidOrganizerWithOutPassword = { ...newValidOrganizer }
 delete (newValidOrganizerWithOutPassword as any).password;
 

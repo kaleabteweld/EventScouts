@@ -7,20 +7,10 @@ import request from "supertest";
 import { describe, expect, beforeEach, afterEach, beforeAll, afterAll, it } from '@jest/globals';
 import { verifyAccessToken, verifyRefreshToken } from "../../src/Domains/Common/utils";
 import { IUser, verifiedEnum, verifiedSupportedEnum } from "../../src/Schema/Types/user.schema.types";
-import { forgotPasswordUrl, loginUrl, logoutUrl, refreshTokenUrl, sighupUrl, verifyUserUrl } from "./common";
+import { forgotPasswordUrl, loginUrl, logoutUrl, refreshTokenUrl, sighupUrl, verifyUserUrl, newValidUser } from "./common";
 
 const app = makeServer();
 
-const newValidUser: IUserSignUpFrom = {
-    dateOfBirth: new Date(),
-    email: "test@test.com",
-    gender: 'male',
-    name: "test",
-    password: "abcd12345",
-    phone: "+251900000",
-    userName: "test",
-    walletAccounts: ["fdd3d4ad2a1c88bfa0e44e18bf4b04886d28dc7ecaa47a838b4f1dee8eb551afdd859c926ab9b8001bdc3fb758fd7253a56df6f61cb93d0178d063cf79e602f5", "07f153aae615da277f12fc6d891d143ece72cbb4d9c4d12170b6b7ac78d53f4acb177511c67cb95737247fd3edfc94d3b33bb49a7432dcc838ba7a8fed5e015b"]
-};
 const newValidUserWithOutPassword = { ...newValidUser }
 delete (newValidUserWithOutPassword as any).password;
 
