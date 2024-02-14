@@ -36,7 +36,7 @@ eventSchema.set('toJSON', {
 })
 eventSchema.plugin<any>(mongooseErrorPlugin)
 
-const EventModel = mongoose.model<IOrganizer, IEventModel>("Event", eventSchema);
+const EventModel = mongoose.model<IEvent, IEventModel>("Event", eventSchema);
 export default EventModel;
 
 

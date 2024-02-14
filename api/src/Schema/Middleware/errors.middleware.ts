@@ -8,7 +8,7 @@ export default function mongooseErrorMiddleware(error: any, doc: Document, next:
             Object.keys(error.errors).forEach((path) => {
                 _error = ValidationErrorFactory({
                     msg: error.errors[path].message,
-                    statusCode: 403,
+                    statusCode: 400,
                     type: "validation",
                 }, path)
             })
@@ -20,7 +20,7 @@ export default function mongooseErrorMiddleware(error: any, doc: Document, next:
 
             _error = ValidationErrorFactory({
                 msg: `${path} can not be duplicate`,
-                statusCode: 403,
+                statusCode: 400,
                 type: "validation",
             }, path);
         }

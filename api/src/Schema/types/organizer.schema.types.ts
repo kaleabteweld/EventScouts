@@ -33,7 +33,7 @@ export interface IOrganizerMethods {
 }
 
 // Extend the Document type with IUserMethods
-export interface IOrganizerDocument extends IOrganizer, IOrganizerMethods, Document {
+export interface IOrganizerDocument extends IOrganizer, IOrganizerMethods, mongoose.Document {
 }
 
 // statics methods

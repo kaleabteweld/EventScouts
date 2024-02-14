@@ -1,3 +1,4 @@
+import { INewCategoryFrom } from "../../src/Domains/Category/types";
 import { IOrganizerSignUpFrom } from "../../src/Domains/Organizer/types";
 import { IUserSignUpFrom } from "../../src/Domains/User/types";
 import { UserType } from "../../src/Types";
@@ -8,7 +9,11 @@ export const refreshTokenUrl = (user: UserType) => `/Api/v1/public/authenticatio
 export const logoutUrl = (user: UserType) => `/Api/v1/private/authentication/${user}/logOut`;
 export const verifyUserUrl = (key: string, user: UserType) => `/Api/v1/private/${user}/VerifyUser/${key}`;
 export const forgotPasswordUrl = (key: string, value: string, newPassword: string, user: UserType) => `/Api/v1/public/authentication/${user}/forgotPassword/${key}/${value}/${newPassword}`;
-export const eventUrl = () => `/Api/v1/private/event/`;
+export const eventPrivateUrl = () => `/Api/v1/private/event/`;
+export const eventPublicUrl = () => `/Api/v1/public/event/`;
+export const categoryPrivateUrl = () => `/Api/v1/private/category/`;
+export const categoryPublicUrl = () => `/Api/v1/public/category/`;
+
 
 
 export const newValidOrganizer: IOrganizerSignUpFrom = {
@@ -28,3 +33,7 @@ export const newValidUser: IUserSignUpFrom = {
     userName: "test",
     walletAccounts: ["fdd3d4ad2a1c88bfa0e44e18bf4b04886d28dc7ecaa47a838b4f1dee8eb551afdd859c926ab9b8001bdc3fb758fd7253a56df6f61cb93d0178d063cf79e602f5", "07f153aae615da277f12fc6d891d143ece72cbb4d9c4d12170b6b7ac78d53f4acb177511c67cb95737247fd3edfc94d3b33bb49a7432dcc838ba7a8fed5e015b"]
 };
+
+export const newValidCategory: INewCategoryFrom = {
+    name: "Category"
+}

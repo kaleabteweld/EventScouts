@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import Joi from 'joi';
 import { IOrganizer } from "./organizer.schema.types";
-import { ICategory } from "../category.schema";
 import { ITicketType } from "../ticket.schema";
+import { ICategory } from "./category.schema.types";
 
 export interface IEvent extends mongoose.Document {
     name: string
@@ -19,11 +19,10 @@ export interface IEvent extends mongoose.Document {
 
 //Dynamic methods
 export interface IEventMethods {
-
 }
 
 // Extend the Document type with IUserMethods
-export interface IEventDocument extends IOrganizer, IEventMethods, Document {
+export interface IEventDocument extends IEvent, IEventMethods, mongoose.Document {
 }
 
 // statics methods

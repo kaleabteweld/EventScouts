@@ -44,7 +44,7 @@ export interface IUserMethods {
 }
 
 // Extend the Document type with IUserMethods
-export interface IUserDocument extends IUser, IUserMethods, Document { }
+export interface IUserDocument extends IUser, IUserMethods, mongoose.Document { }
 
 // statics methods
 export interface UserModel extends mongoose.Model<IUserDocument> {

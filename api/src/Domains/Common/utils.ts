@@ -103,7 +103,7 @@ export async function MakeValidator<T>(validator: Joi.ObjectSchema<T>, obj: T, o
 
         const _error = ValidationErrorFactory({
             msg: validationError.error?.message,
-            statusCode: 418,
+            statusCode: 400,
             type: "validation",
         }, cleanAttr(validationError.error?.message))
         throw _error;

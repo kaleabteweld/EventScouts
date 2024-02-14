@@ -3,6 +3,7 @@ import Jwt from 'jsonwebtoken'
 import { TokenSecret } from ".";
 import { TokenType, UserType } from "../Types";
 import { errorResponse } from "../Types/error";
+import { errorFactory } from "./Factories";
 
 
 export const MakeErrorHandler = (fn: any) => (req: Request, res: Response, next: NextFunction) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -47,3 +48,18 @@ export function JWTMiddleWare(req: any, res: any, next: NextFunction) {
     }
 }
 
+export function organizerOnly(req: any, res: any, next: NextFunction) {
+
+    const userType = req["userType"];
+    if (userType === undefined || userType === null) throw Error("No Valid Token");
+
+    if (req["userType"] !== UserType.organizer) {
+        throw errorFactory({
+            msg: "Organizer Only",
+            statusCode: 401,
+            type: "Token"
+        })
+    }
+
+    next();
+}

@@ -108,7 +108,7 @@ describe('User Authentication', () => {
 
         describe("WHEN user enters invalid inputs THEN user Dose NOT sign up ", () => {
 
-            it("should return 418", async () => request(app).post(sighupUrl(UserType.user)).send({}).expect(418));
+            it("should return 400", async () => request(app).post(sighupUrl(UserType.user)).send({}).expect(400));
 
             it("should return Validation error message", async () => {
                 const response = await request(app).post(sighupUrl(UserType.user)).send({});
@@ -208,7 +208,7 @@ describe('User Authentication', () => {
 
         describe("WHEN user enters invalid inputs THEN user does't login ", () => {
 
-            it("should return 418", async () => request(app).post(loginUrl(UserType.user)).send({}).expect(418));
+            it("should return 400", async () => request(app).post(loginUrl(UserType.user)).send({}).expect(400));
 
             it("Should return Validation error message", async () => {
                 const response = await request(app).post(loginUrl(UserType.user)).send({});
@@ -265,7 +265,7 @@ describe('User Authentication', () => {
 
         describe("WHEN user enters invalid inputs THEN user login ", () => {
 
-            it("should return 418", async () => request(app).post(loginUrl(UserType.user, true)).send({}).expect(418));
+            it("should return 400", async () => request(app).post(loginUrl(UserType.user, true)).send({}).expect(400));
 
             it("Should return Validation error message", async () => {
                 const response = await request(app).post(loginUrl(UserType.user, true)).send({});

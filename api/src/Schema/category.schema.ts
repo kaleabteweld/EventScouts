@@ -1,16 +1,33 @@
 import mongoose from 'mongoose'
-import { IEvent } from './event.schema';
+import { ICategory, ICategoryMethods, ICategoryModel } from './Types/category.schema.types';
+import { mongooseErrorPlugin } from './Middleware/errors.middleware';
+import { validator, getById } from './ExtendedFunctions/category.extended'
 
-export interface ICategory extends Document {
-    name: string;
-    events: mongoose.Schema.Types.ObjectId | IEvent[];
-}
 
-export const categorySchema = new mongoose.Schema<ICategory>({
-    name: String,
+export const categorySchema = new mongoose.Schema<ICategory, ICategoryModel, ICategoryMethods>({
+    name: { type: String, unique: true },
     events: { type: mongoose.Schema.Types.ObjectId, ref: "Event" }
-}, { timestamps: true });
+}, {
+    timestamps: true,
+    methods: {
+
+    },
+    statics: {
+        validator,
+        getById,
+    }
+});
+
+categorySchema.set('toJSON', {
+    transform: function (doc, ret, opt) {
+        delete ret['password']
+        ret['id'] = doc['_id']
+        delete ret['_id']
+        return ret
+    }
+})
+categorySchema.plugin<any>(mongooseErrorPlugin)
 
 
-const Category: mongoose.Model<ICategory> = mongoose.model("Category", categorySchema);
-export default Category;
+const CategoryModel = mongoose.model<ICategory, ICategoryModel>("Category", categorySchema);
+export default CategoryModel;

@@ -108,7 +108,7 @@ describe('Organizer Authentication', () => {
 
         describe("WHEN Organizer enters invalid inputs THEN Organizer Dose NOT sign up ", () => {
 
-            it("should return 418", async () => request(app).post(sighupUrl(UserType.organizer)).send({}).expect(418));
+            it("should return 400", async () => request(app).post(sighupUrl(UserType.organizer)).send({}).expect(400));
 
             it("should return Validation error message", async () => {
                 const response = await request(app).post(sighupUrl(UserType.organizer)).send({});
@@ -207,7 +207,7 @@ describe('Organizer Authentication', () => {
 
         describe("WHEN Organizer enters invalid inputs THEN Organizer does't login ", () => {
 
-            it("should return 418", async () => request(app).post(loginUrl(UserType.organizer)).send({}).expect(418));
+            it("should return 400", async () => request(app).post(loginUrl(UserType.organizer)).send({}).expect(400));
 
             it("Should return Validation error message", async () => {
                 const response = await request(app).post(loginUrl(UserType.organizer)).send({});
