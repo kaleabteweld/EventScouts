@@ -3,8 +3,8 @@ export interface IChangePasswordFrom {
 }
 
 export interface IPagination {
-    offset?: number,
-    amount?: number,
+    skip?: number,
+    limit?: number,
 }
 
 export interface IResponseType<T> {

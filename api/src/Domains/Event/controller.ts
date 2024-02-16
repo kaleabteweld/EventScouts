@@ -1,7 +1,7 @@
 import { INewEventFrom } from "./types";
 import { newEventSchema } from "./validation";
-import { IResponseType } from "../Common/types";
-import { Route, Tags, Post, Path } from "tsoa";
+import { IPagination, IResponseType } from "../Common/types";
+import { Route, Tags, Post, Path, Get } from "tsoa";
 import { IEvent } from "../../Schema/Types/event.schema.types";
 import EventModel from "../../Schema/event.schema";
 import { IOrganizer } from "../../Schema/Types/organizer.schema.types";
@@ -22,6 +22,17 @@ export default class EventController {
         await event.populate("categorys")
 
         return { body: event.toJSON() }
+    }
+
+    @Get("/list/{skip}/{limit}")
+    static async list({ skip, limit }: IPagination): Promise<IResponseType<IEvent[]>> {
+        return {
+            body: await EventModel.find()
+                .populate("categorys")
+                .skip(skip ?? 0)
+                .limit(limit ?? 0)
+                .exec()
+        }
     }
 
 }

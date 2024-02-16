@@ -137,4 +137,44 @@ describe('Event', () => {
 
     });
 
+    describe("Get Events", () => {
+
+        describe("Get Event by Pagination {skip}/{limit}", () => {
+
+            var category: ICategory;
+            var event: IEvent[] = [];
+            var accessToken: string;
+
+
+            beforeAll(async () => {
+                const response = await request(app).post(sighupUrl(UserType.organizer)).send(newValidOrganizer);
+                accessToken = response.header.authorization.split(" ")[1];
+
+                const categoryResponse = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send(newValidCategory);
+                category = categoryResponse.body.body;
+
+                var _response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessToken}`)
+                    .send(newValidEvent({ categorys: [category.id], ticketTypes: newValidTicketTypes }));
+
+                event.push(_response.body.body)
+
+                _response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessToken}`)
+                    .send(newValidEvent({ name: "event 2", categorys: [category.id], ticketTypes: newValidTicketTypes }));
+
+                event.push(_response.body.body)
+            })
+
+            it("should return a list of events Bigger then 1 and less then 3", async () => {
+                const response = await request(app).get(`${eventPublicUrl()}list/0/3`).set("Authorization", `Bearer ${accessToken}`).send();
+                expect(response.status).toBe(200)
+
+                expect(response.body.body.length).toBeGreaterThan(0)
+                expect(response.body.body.length).toBeLessThan(3)
+            })
+
+        });
+
+
+    });
+
 });
