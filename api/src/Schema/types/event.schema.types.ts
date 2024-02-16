@@ -28,5 +28,5 @@ export interface IEventDocument extends IEvent, IEventMethods, mongoose.Document
 // statics methods
 export interface IEventModel extends mongoose.Model<IEventDocument> {
     validator<T>(userInput: T, schema: Joi.ObjectSchema<T>): Promise<any>
-    getById(_id: string): Promise<IEventDocument | null>
+    getById(_id: string, populatePath?: string | string[], select?: any, model?: string | mongoose.Model<any, {}, {}, {}, any, any> | undefined, match?: any): Promise<IEventDocument | null>
 }

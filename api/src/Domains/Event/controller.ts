@@ -35,4 +35,9 @@ export default class EventController {
         }
     }
 
+    @Get("/byId/{eventId}")
+    static async getById(eventId: string): Promise<IResponseType<IEvent | null>> {
+        return { body: await EventModel.getById(eventId, "categorys") }
+    }
+
 }

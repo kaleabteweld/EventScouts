@@ -26,6 +26,8 @@ describe('Event', () => {
     });
 
     afterEach(async () => {
+        console.log("afterEach");
+
         return await dropCollections();
     });
 
@@ -139,33 +141,35 @@ describe('Event', () => {
 
     describe("Get Events", () => {
 
-        describe("Get Event by Pagination {skip}/{limit}", () => {
-
-            var category: ICategory;
-            var event: IEvent[] = [];
-            var accessToken: string;
+        var category: ICategory;
+        var event: IEvent[] = [];
+        var accessToken: string;
 
 
-            beforeAll(async () => {
-                const response = await request(app).post(sighupUrl(UserType.organizer)).send(newValidOrganizer);
-                accessToken = response.header.authorization.split(" ")[1];
+        beforeEach(async () => {
+            console.log("beforeAll")
+            const response = await request(app).post(sighupUrl(UserType.organizer)).send(newValidOrganizer);
+            accessToken = response.header.authorization.split(" ")[1];
 
-                const categoryResponse = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send(newValidCategory);
-                category = categoryResponse.body.body;
+            const categoryResponse = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send(newValidCategory);
+            category = categoryResponse.body.body;
 
-                var _response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessToken}`)
-                    .send(newValidEvent({ categorys: [category.id], ticketTypes: newValidTicketTypes }));
+            event = [];
+            var _response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessToken}`)
+                .send(newValidEvent({ categorys: [category.id], ticketTypes: newValidTicketTypes }));
 
-                event.push(_response.body.body)
+            event.push(_response.body.body)
 
-                _response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessToken}`)
-                    .send(newValidEvent({ name: "event 2", categorys: [category.id], ticketTypes: newValidTicketTypes }));
+            _response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessToken}`)
+                .send(newValidEvent({ name: "event 2", categorys: [category.id], ticketTypes: newValidTicketTypes }));
 
-                event.push(_response.body.body)
-            })
+            event.push(_response.body.body)
+        })
 
-            it("should return a list of events Bigger then 1 and less then 3", async () => {
-                const response = await request(app).get(`${eventPublicUrl()}list/0/3`).set("Authorization", `Bearer ${accessToken}`).send();
+        describe("WHEN trying to get Event by Pagination {skip}/{limit}", () => {
+
+            it("SHOULD return a list of events Bigger then 1 and less then 3", async () => {
+                const response = await request(app).get(`${eventPublicUrl()}list/0/3`).send();
                 expect(response.status).toBe(200)
 
                 expect(response.body.body.length).toBeGreaterThan(0)
@@ -174,6 +178,49 @@ describe('Event', () => {
 
         });
 
+        describe("WHEN trying to get Event by event id", () => {
+
+            describe("WHEN trying to get Event by valid event id", () => {
+
+                it("SHOULD return the Event with that id", async () => {
+
+                    console.log("test");
+
+                    const response = await request(app).get(`${eventPublicUrl()}byId/${event[0].id}`).send();
+
+                    expect(response.status).toBe(200)
+
+                    const received = response.body.body.ticketTypes;
+                    newValidTicketTypes.map((newTicketType: any, index) => {
+                        const keys = Object.keys(newTicketType);
+                        keys.forEach((key: string) => {
+                            expect(newTicketType[key]).toEqual(received[index][key])
+                        })
+                    })
+
+                    expect(response.body.body).toMatchObject({
+                        ...newValidEvent({ categorys: [category.id], ticketTypes: newValidTicketTypes }),
+                        categorys: expect.arrayContaining([expect.objectContaining({ ...newValidCategory })]),
+                        // organizer: expect.objectContaining({ organizer: expect.any(String) }),
+                        organizer: expect.any(String),
+                        startDate: expect.any(String),
+                        endDate: expect.any(String),
+                    });
+
+                })
+            })
+
+            describe("WHEN trying to get Event by InValid event id", () => {
+                it("SHOULD return 404 with error obj", async () => {
+                    const response = await request(app).get(`${eventPublicUrl()}byId/75cfba229d3e6fb530a1d4d5`).send();
+
+                    expect(response.status).toBe(404)
+
+                    expect(response.body.body).toBeUndefined();
+                    expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+                });
+            })
+        })
 
     });
 

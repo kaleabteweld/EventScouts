@@ -15,6 +15,10 @@ publicEventRouter.get("/list/:skip/:limit", MakeErrorHandler(
     }
 ));
 
+publicEventRouter.get("/byId/:id", MakeErrorHandler(
+    async (req: Request, res: Response) => res.json(await EventController.getById(req.params.id))
+));
+
 privateEventRouter.post("/", organizerOnly, MakeErrorHandler(
     async (req: any, res: Response) => {
         const _eventOrganizer: IOrganizer = req['organizer'];
