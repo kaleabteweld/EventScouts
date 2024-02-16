@@ -5,6 +5,8 @@ import { ValidationErrorFactory, errorFactory } from "../../Util/Factories";
 import { isValidationError } from "../../Types/error";
 import { MakeValidator } from "../../Domains/Common";
 import mongoose from "mongoose";
+import { BSONError } from 'bson';
+
 
 export async function encryptPassword(this: IOrganizer, password?: string): Promise<string> {
 
@@ -67,15 +69,26 @@ export async function getByEmail(this: mongoose.Model<IOrganizer>, email: string
 }
 
 export async function getById(this: mongoose.Model<IOrganizer>, _id: string): Promise<mongoose.Document<unknown, {}, IOrganizer> & IOrganizer & { _id: mongoose.Types.ObjectId; } | null> {
-    const organizer = await this.findById(new mongoose.Types.ObjectId(_id));
-    if (organizer == null) {
-        throw ValidationErrorFactory({
-            msg: "Invalid Id",
-            statusCode: 404,
-            type: "Validation"
-        }, "_id")
+    try {
+        const organizer = await this.findById(new mongoose.Types.ObjectId(_id));
+        if (organizer == null) {
+            throw ValidationErrorFactory({
+                msg: "Invalid Id",
+                statusCode: 404,
+                type: "Validation"
+            }, "_id")
+        }
+        return organizer;
+    } catch (error) {
+        if (error instanceof BSONError) {
+            throw ValidationErrorFactory({
+                msg: "Input must be a 24 character hex string, 12 byte Uint8Array, or an integer",
+                statusCode: 400,
+                type: "validation",
+            }, "id");
+        }
+        throw error;
     }
-    return organizer;
 
 }
 

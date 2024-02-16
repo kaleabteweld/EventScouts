@@ -26,8 +26,6 @@ describe('Event', () => {
     });
 
     afterEach(async () => {
-        console.log("afterEach");
-
         return await dropCollections();
     });
 
@@ -147,7 +145,6 @@ describe('Event', () => {
 
 
         beforeEach(async () => {
-            console.log("beforeAll")
             const response = await request(app).post(sighupUrl(UserType.organizer)).send(newValidOrganizer);
             accessToken = response.header.authorization.split(" ")[1];
 
@@ -183,8 +180,6 @@ describe('Event', () => {
             describe("WHEN trying to get Event by valid event id", () => {
 
                 it("SHOULD return the Event with that id", async () => {
-
-                    console.log("test");
 
                     const response = await request(app).get(`${eventPublicUrl()}byId/${event[0].id}`).send();
 

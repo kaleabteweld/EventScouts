@@ -5,6 +5,8 @@ import { MakeValidator } from "../../Domains/Common";
 import Joi from "joi";
 import { isValidationError } from "../../Types/error"
 import { IUser, TVerified, TVerifiedSupported, UserModel, verifiedEnum, verifiedSupportedEnum } from "../Types/user.schema.types";
+import { BSONError } from 'bson';
+
 
 export async function encryptPassword(this: IUser, password?: string): Promise<string> {
 
@@ -84,15 +86,26 @@ export async function getUserByWalletAccounts(this: mongoose.Model<IUser>, walle
 }
 
 export async function getUserById(this: mongoose.Model<IUser>, _id: string): Promise<mongoose.Document<unknown, UserModel, IUser> & IUser & { _id: mongoose.Types.ObjectId; } | null> {
-    const user = await this.findById(new mongoose.Types.ObjectId(_id));
-    if (user == null) {
-        throw ValidationErrorFactory({
-            msg: "Invalid Id",
-            statusCode: 404,
-            type: "Validation"
-        }, "_id")
+    try {
+        const user = await this.findById(new mongoose.Types.ObjectId(_id));
+        if (user == null) {
+            throw ValidationErrorFactory({
+                msg: "Invalid Id",
+                statusCode: 404,
+                type: "Validation"
+            }, "_id")
+        }
+        return user;
+    } catch (error) {
+        if (error instanceof BSONError) {
+            throw ValidationErrorFactory({
+                msg: "Input must be a 24 character hex string, 12 byte Uint8Array, or an integer",
+                statusCode: 400,
+                type: "validation",
+            }, "id");
+        }
+        throw error;
     }
-    return user;
 
 }
 
