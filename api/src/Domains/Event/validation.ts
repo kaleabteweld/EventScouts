@@ -1,5 +1,6 @@
 import Joi from "joi";
 import { INewEventFrom } from "./types";
+import { newTicketTypesSchema } from "../TicketTypes/validation";
 
 export const newEventSchema = Joi.object<INewEventFrom>({
     name: Joi.string().min(1).required(),
@@ -16,5 +17,5 @@ export const newEventSchema = Joi.object<INewEventFrom>({
     venue: Joi.string().required(),
     organizer: Joi.string().min(24).required(),
     categorys: Joi.array().items(Joi.string().min(24)).min(1).required(),
-    ticketTypes: Joi.array().items(Joi.string().min(24)).min(1).required(),
+    ticketTypes: Joi.array().items(newTicketTypesSchema).min(1).required(),
 });

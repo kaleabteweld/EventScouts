@@ -3,10 +3,14 @@ import { connectDB, dropCollections, dropDB } from './util';
 import Cache from '../../src/Util/cache';
 import request from "supertest";
 import { makeServer } from '../../src/Util/Factories';
-import { eventPrivateUrl, eventPublicUrl, newValidOrganizer, newValidUser, sighupUrl } from './common';
+import { categoryPrivateUrl, eventPrivateUrl, eventPublicUrl, newInValidTicketTypes, newValidCategory, newValidEvent, newValidOrganizer, newValidTicketTypes, newValidUser, sighupUrl } from './common';
 import { IOrganizer } from '../../src/Schema/Types/organizer.schema.types';
 import { UserType } from '../../src/Types';
 import { IUser } from '../../src/Schema/Types/user.schema.types';
+import { ICategory } from '../../src/Schema/Types/category.schema.types';
+import { IEvent } from '../../src/Schema/Types/event.schema.types';
+import { ITicketTypes } from '../../src/Schema/Types/ticketTypes.schema.types';
+import { INewTicketTypesFrom } from '../../src/Domains/TicketTypes/types';
 
 const app = makeServer();
 
@@ -46,9 +50,9 @@ describe('Event', () => {
                     accessToken = response.header.authorization.split(" ")[1];
                 })
 
-                it("SHOULD return a 400 status code AND Error obj", async () => {
+                it("SHOULD return a 401 status code AND Error obj", async () => {
                     const response = await request(app).post(eventPrivateUrl()).set('authorization', `Bearer ${accessToken}`).send({});
-                    expect(response.status).toBe(400);
+                    expect(response.status).toBe(401);
                     expect(response.body.body).toBeUndefined();
                     expect(response.body.error).toMatchObject({ msg: expect.any(String) });
                 })
@@ -56,111 +60,80 @@ describe('Event', () => {
 
         });
 
-        // describe("WHEN Login in as a Organizer", () => {
-        //     var organizer: IOrganizer;
-        //     var accessToken: string;
+        describe("WHEN Login in as a Organizer", () => {
+            var organizer: IOrganizer;
+            var accessToken: string;
 
-        //     beforeEach(async () => {
-        //         const response = await request(app).post(sighupUrl(UserType.organizer)).send(newValidOrganizer);
-        //         organizer = response.body;
-        //         accessToken = response.header.authorization.split(" ")[1];
-        //     })
+            beforeAll(async () => {
+                const response = await request(app).post(sighupUrl(UserType.organizer)).send(newValidOrganizer);
+                organizer = response.body;
+                accessToken = response.header.authorization.split(" ")[1];
+            })
 
-        //     // describe.skip("AND the event is valid", () => {
+            describe("WHEN the Event is Valid and Valid category and ticket Types", () => {
 
-        //     //     describe("WHEN vlad category", () => {
-        //     //         let event: Event;
-        //     //         let category: Category;
+                var category: ICategory;
 
-        //     //         beforeAll(async () => {
-        //     //             const categoryResponse = await request(app).post(`/Api/v1/public/category/`).send({ name: "Test Category" });
-        //     //             category = categoryResponse.body.body;
-        //     //         });
+                beforeAll(async () => {
+                    const categoryResponse = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send(newValidCategory);
+                    category = categoryResponse.body.body;
+                });
 
-        //     //         it("SHOULD return a 200 status code AND event obj With category", async () => {
-        //     //             const response = await request(app).post(privateeventPrivateUrl).set("Authorization", `Bearer ${organizerToken}`).send(makeEvent({ category: [category.id] }));
-        //     //             expect(response.status).toBe(200);
-        //     //             expect(response.body.body).toMatchObject({
-        //     //                 ...makeEvent({}),
-        //     //                 category: expect.arrayContaining([expect.objectContaining({ name: "Test Category" })]),
-        //     //                 organizer: expect.objectContaining({ id: organizer.id }),
-        //     //                 startDate: expect.any(String),
-        //     //                 endDate: expect.any(String),
-        //     //             });
-        //     //             event = response.body.body;
-        //     //         });
+                it("SHOULD return a 200 status code AND event obj With category and ticket Types", async () => {
 
+                    const response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessToken}`)
+                        .send(newValidEvent({ categorys: [category.id], ticketTypes: newValidTicketTypes }));
 
-        //     //         afterAll(async () => {
-        //     //             await request(app).delete(`/Api/v1/public/category/${category.id}`);
-        //     //             await request(app).delete(privateeventPrivateUrl + organizer.id).set("Authorization", `Bearer ${organizerToken}`);
-        //     //         });
+                    expect(response.status).toBe(200);
 
+                    const received = response.body.body.ticketTypes;
+                    newValidTicketTypes.map((newTicketType: any, index) => {
+                        const keys = Object.keys(newTicketType);
+                        newTicketType["sellingStartDate"] = newTicketType["sellingStartDate"].toISOString();
+                        newTicketType["sellingEndDate"] = newTicketType["sellingEndDate"].toISOString();
+                        keys.forEach((key: string) => {
+                            expect(newTicketType[key]).toEqual(received[index][key])
+                        })
+                    })
 
-        //     //     });
+                    expect(response.body.body).toMatchObject({
+                        ...newValidEvent({ categorys: [category.id], ticketTypes: newValidTicketTypes }),
+                        categorys: expect.arrayContaining([expect.objectContaining({ ...newValidCategory })]),
+                        // organizer: expect.objectContaining({ organizer: expect.any(String) }),
+                        organizer: expect.any(String),
+                        startDate: expect.any(String),
+                        endDate: expect.any(String),
+                    });
 
-        //     //     describe("With invald category", () => {
-        //     //         it("SHOULD return a 400 status code AND Error obj", async () => {
-        //     //             const response = await request(app).post(privateeventPrivateUrl).set("Authorization", `Bearer ${organizerToken}`).send(makeEvent({ category: ["abc123"] }));
-        //     //             expect(response.status).toBe(400);
-        //     //             expect(response.body.body).toBeUndefined();
-        //     //             expect(response.body.error).toMatchObject({ msg: expect.any(String) });
-        //     //         });
-
-        //     //         it("No category SHOULD return a 200 status code AND event obj With [] category", async () => {
-        //     //             const response = await request(app).post(privateeventPrivateUrl).set("Authorization", `Bearer ${organizerToken}`).send(makeEvent({}));
-        //     //             expect(response.status).toBe(200);
-        //     //             expect(response.body.body).toMatchObject({
-        //     //                 ...makeEvent({}),
-        //     //                 category: expect.arrayContaining([]),
-        //     //                 organizer: expect.objectContaining({ id: organizer.id }),
-        //     //                 startDate: expect.any(String),
-        //     //                 endDate: expect.any(String),
-        //     //             });
-        //     //         });
-        //     //     });
-
-        //     // });
-
-        //     // describe("AND the event is invalid", () => {
-
-        //     //     describe("With vald category", () => {
-        //     //         let category: Category;
-
-        //     //         beforeAll(async () => {
-        //     //             const categoryResponse = await request(app).post(`/Api/v1/public/category/`).send({ name: "Test Category" });
-        //     //             category = categoryResponse.body.body;
-        //     //         });
-
-        //     //         it("SHOULD return a 418 status code AND Error Obj", async () => {
-        //     //             const response = await request(app).post(privateeventPrivateUrl).set("Authorization", `Bearer ${organizerToken}`).send({});
-        //     //             expect(response.status).toBe(418);
-        //     //             expect(response.body.body).toBeUndefined();
-        //     //             expect(response.body.error).toMatchObject({ msg: expect.any(String) });
-        //     //         });
+                });
 
 
-        //     //         afterAll(async () => {
-        //     //             await request(app).delete(`/Api/v1/public/category/${category.id}`);
-        //     //             await request(app).delete(privateeventPrivateUrl + organizer.id).set("Authorization", `Bearer ${organizerToken}`);
-        //     //         });
 
+            });
 
-        //     //     });
+            describe.each([...Object.keys(newInValidTicketTypes)])(`WHEN %s in ticket Types is NOT valid`, (key) => {
+                var category: ICategory;
 
-        //     //     describe("With invald category", () => {
-        //     //         it("SHOULD return a 418 status code AND Error obj", async () => {
-        //     //             const response = await request(app).post(privateeventPrivateUrl).set("Authorization", `Bearer ${organizerToken}`).send({});
-        //     //             expect(response.status).toBe(418);
-        //     //             expect(response.body.body).toBeUndefined();
-        //     //             expect(response.body.error).toMatchObject({ msg: expect.any(String) });
-        //     //         });
-        //     //     });
+                beforeAll(async () => {
+                    const categoryResponse = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send(newValidCategory);
+                    category = categoryResponse.body.body;
+                });
 
-        //     // });
+                it("SHOULD return a 400 status code AND error obj", async () => {
+                    const response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessToken}`)
+                        .send(newValidEvent({ categorys: [category.id], ticketTypes: [(newInValidTicketTypes[key] as any)] }));
 
+                    expect(response.status).toBe(400);
 
-        // });
+                    const error = response.body.error;
+                    expect(error).toBeTruthy();
+                    expect(error).toMatchObject({ msg: expect.any(String), type: "validation", attr: expect.any(String) });
+
+                })
+            });
+
+        });
+
 
     });
 

@@ -31,3 +31,12 @@ export async function apiCall(options: { url: string, method: string, data?: any
     }
 
 }
+
+export function copyObjectWithOnlyKeys(obj: any, keys: string[]) {
+    return keys.reduce((acc: any, key) => {
+        if (obj.hasOwnProperty(key)) {
+            acc[key] = obj[key];
+        }
+        return acc;
+    }, {});
+}

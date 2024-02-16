@@ -1,3 +1,5 @@
+import { INewTicketTypesFrom } from "../TicketTypes/types"
+
 export interface INewEventFrom {
     name: string
     posterURL: string
@@ -8,5 +10,5 @@ export interface INewEventFrom {
     venue: String
     organizer: string
     categorys: string[]
-    ticketTypes: string[]
+    ticketTypes: INewTicketTypesFrom[]
 }

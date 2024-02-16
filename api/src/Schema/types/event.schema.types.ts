@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import Joi from 'joi';
 import { IOrganizer } from "./organizer.schema.types";
-import { ITicketType } from "../ticket.schema";
 import { ICategory } from "./category.schema.types";
+import { ITicketTypes } from "./ticketTypes.schema.types";
 
 export interface IEvent extends mongoose.Document {
     name: string
@@ -14,7 +14,7 @@ export interface IEvent extends mongoose.Document {
     venue: String
     organizer: mongoose.Types.ObjectId | IOrganizer
     categorys: mongoose.Schema.Types.ObjectId[] | ICategory
-    ticketTypes: mongoose.Schema.Types.ObjectId[] | ITicketType
+    ticketTypes: mongoose.Schema.Types.ObjectId[] | ITicketTypes
 }
 
 //Dynamic methods

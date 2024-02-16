@@ -1,5 +1,7 @@
 import { INewCategoryFrom } from "../../src/Domains/Category/types";
+import { INewEventFrom } from "../../src/Domains/Event/types";
 import { IOrganizerSignUpFrom } from "../../src/Domains/Organizer/types";
+import { INewTicketTypesFrom } from "../../src/Domains/TicketTypes/types";
 import { IUserSignUpFrom } from "../../src/Domains/User/types";
 import { UserType } from "../../src/Types";
 
@@ -36,4 +38,104 @@ export const newValidUser: IUserSignUpFrom = {
 
 export const newValidCategory: INewCategoryFrom = {
     name: "Category"
+}
+
+type TNewValidEventArgs = { categorys?: string[], organizer?: string, ticketTypes?: INewTicketTypesFrom[], name?: string }
+
+export const newValidEvent = ({ categorys = [], organizer = "", ticketTypes = [], name = "Category" }: TNewValidEventArgs): INewEventFrom => ({
+    categorys,
+    organizer,
+    description: "Category description",
+    endDate: new Date(),
+    startDate: new Date(),
+    location: "category location",
+    name,
+    posterURL: "http://localhost/category/a.png",
+    venue: "category venue",
+    ticketTypes
+})
+
+export const newValidTicketTypes: INewTicketTypesFrom[] = [{
+    posterURl: "https://example.com/poster1.jpg",
+    type: "VIP",
+    price: 100,
+    sellingStartDate: new Date("2024-03-01"),
+    sellingEndDate: new Date("2024-03-31"),
+    description: "VIP ticket with special access.",
+    maxNumberOfTickets: 10,
+
+}, {
+    posterURl: "https://example.com/poster2.jpg",
+    type: "Standard",
+    price: 50,
+    sellingStartDate: new Date("2024-03-01"),
+    sellingEndDate: new Date("2024-03-15"),
+    description: "Standard ticket for general admission.",
+}]
+
+export const newInValidTicketTypes: { [keys: string]: INewTicketTypesFrom } = {
+    posterURlInvalid: {
+        posterURl: "http:///a/a",
+        type: "VIP",
+        price: 100,
+        sellingStartDate: new Date("2024-03-01"),
+        sellingEndDate: new Date("2024-03-31"),
+        description: "VIP ticket with special access.",
+        maxNumberOfTickets: 10,
+    },
+    type: {
+        posterURl: "https://example.com/poster1.jpg",
+        type: "",
+        price: -1,
+        sellingStartDate: new Date("2024-03-01"),
+        sellingEndDate: new Date("2024-03-31"),
+        description: "VIP ticket with special access.",
+        maxNumberOfTickets: 10,
+    },
+    description: {
+        posterURl: "https://example.com/poster1.jpg",
+        type: "",
+        price: -1,
+        sellingStartDate: new Date("2024-03-01"),
+        sellingEndDate: new Date("2024-03-31"),
+        description: "",
+        maxNumberOfTickets: 10,
+    },
+    price: {
+        posterURl: "https://example.com/poster1.jpg",
+        type: "VIP",
+        price: -1,
+        sellingStartDate: new Date("2024-03-01"),
+        sellingEndDate: new Date("2024-03-31"),
+        description: "VIP ticket with special access.",
+        maxNumberOfTickets: 10,
+    },
+    sellingEndDate: {
+        posterURl: "https://example.com/poster1.jpg",
+        type: "VIP",
+        price: 100,
+        sellingStartDate: new Date("2024-03-01"),
+        sellingEndDate: new Date("2024-02-01"),
+        description: "VIP ticket with special access.",
+        maxNumberOfTickets: 10,
+    },
+    maxNumberOfTickets: {
+        posterURl: "https://example.com/poster1.jpg",
+        type: "VIP",
+        price: 100,
+        sellingStartDate: new Date("2024-03-01"),
+        sellingEndDate: new Date("2024-03-31"),
+        description: "VIP ticket with special access.",
+        maxNumberOfTickets: -2,
+    },
+    onlineInvalid: {
+        posterURl: "https://example.com/poster1.jpg",
+        type: "VIP",
+        price: 100,
+        sellingStartDate: new Date("2024-03-01"),
+        sellingEndDate: new Date("2024-03-31"),
+        description: "VIP ticket with special access.",
+        maxNumberOfTickets: 10,
+        online: "http:///a/a"
+    },
 }

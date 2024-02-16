@@ -13,12 +13,13 @@ export default class EventController {
     @Post("/")
     static async createEvent(_event: INewEventFrom, organizer: IOrganizer): Promise<IResponseType<IEvent>> {
 
-        _event = { ..._event, organizer: organizer._id }
-        console.log({ event: _event, organizer })
+        _event = { ..._event, organizer: organizer.id };
 
         await EventModel.validator(_event, newEventSchema);
         const event = await new EventModel((_event));
         await event.save();
+
+        await event.populate("categorys")
 
         return { body: event.toJSON() }
     }
