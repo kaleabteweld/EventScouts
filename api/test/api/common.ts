@@ -1,5 +1,5 @@
 import { INewCategoryFrom } from "../../src/Domains/Category/types";
-import { INewEventFrom } from "../../src/Domains/Event/types";
+import { IEventUpdateFrom, INewEventFrom } from "../../src/Domains/Event/types";
 import { IOrganizerSignUpFrom } from "../../src/Domains/Organizer/types";
 import { INewTicketTypesFrom } from "../../src/Domains/TicketTypes/types";
 import { IUserSignUpFrom } from "../../src/Domains/User/types";
@@ -52,6 +52,18 @@ type TNewValidEventArgs = { categorys?: string[], organizer?: string, ticketType
 export const newValidEvent = ({ categorys = [], organizer = "", ticketTypes = [], name = "Category" }: TNewValidEventArgs): INewEventFrom => ({
     categorys,
     organizer,
+    description: "Category description",
+    endDate: new Date(),
+    startDate: new Date(),
+    location: "category location",
+    name,
+    posterURL: "http://localhost/category/a.png",
+    venue: "category venue",
+    ticketTypes
+})
+
+export const updateValidEvent = ({ categorys = [], ticketTypes = [], name = "Category" }: TNewValidEventArgs): IEventUpdateFrom => ({
+    categorys,
     description: "Category description",
     endDate: new Date(),
     startDate: new Date(),

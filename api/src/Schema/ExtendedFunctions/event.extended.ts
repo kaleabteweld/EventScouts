@@ -4,13 +4,14 @@ import mongoose from "mongoose";
 import { IEvent } from "../Types/event.schema.types";
 import { ValidationErrorFactory } from "../../Util/Factories";
 import { BSONError } from 'bson';
+import { IEventUpdateFrom } from "../../Domains/Event/types";
 
 
 export function validator<T>(userInput: T, schema: Joi.ObjectSchema<T>) {
     return MakeValidator<T>(schema, userInput);
 }
 
-export async function getById(this: mongoose.Model<IEvent>, _id: string, populatePath: string | string[], select?: any, model?: string | mongoose.Model<any, {}, {}, {}, any, any> | undefined, match?: any): Promise<mongoose.Document<unknown, {}, IEvent> & IEvent & { _id: mongoose.Types.ObjectId; } | null> {
+export async function getById(this: mongoose.Model<IEvent>, _id: string, populatePath: string | string[]): Promise<mongoose.Document<unknown, {}, IEvent> & IEvent & { _id: mongoose.Types.ObjectId; } | null> {
     try {
         const event = await this.findById(new mongoose.Types.ObjectId(_id)).populate(populatePath);
         if (event == null) {
@@ -36,6 +37,7 @@ export async function getById(this: mongoose.Model<IEvent>, _id: string, populat
 }
 
 export function checkIfOwnByOrganizer(this: IEvent, organizerID: string): boolean {
+
     try {
         if ((new mongoose.Types.ObjectId(organizerID)).equals(this.organizer._id)) {
             return true;
@@ -69,6 +71,18 @@ export async function removeByID(this: mongoose.Model<IEvent>, _id: string): Pro
                 type: "validation",
             }, "id");
         }
+        throw error;
+    }
+}
+
+export async function update(this: IEvent, newEvent: IEventUpdateFrom, populatePath: string | string[]): Promise<IEvent | null> {
+
+    try {
+        const newDoc = this.overwrite({ ...newEvent, organizer: this.organizer });
+        await this.save();
+        await newDoc.populate(populatePath)
+        return newDoc;
+    } catch (error) {
         throw error;
     }
 }

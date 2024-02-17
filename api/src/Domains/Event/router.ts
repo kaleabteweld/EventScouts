@@ -34,6 +34,12 @@ privateEventRouter.delete("/remove/:eventId", organizerOnly, MakeErrorHandler(
     }
 ));
 
+privateEventRouter.patch("/update/:eventId", organizerOnly, MakeErrorHandler(
+    async (req: any, res: Response) => {
+        const _eventOrganizer: IOrganizer = req['organizer'];
+        res.json(await EventController.update(req.body, req.params.eventId, _eventOrganizer));
+    }
+));
 
 
 

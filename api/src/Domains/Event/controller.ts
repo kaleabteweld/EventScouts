@@ -1,7 +1,7 @@
-import { INewEventFrom } from "./types";
-import { newEventSchema } from "./validation";
+import { IEventUpdateFrom, INewEventFrom } from "./types";
+import { newEventSchema, updateEventSchema } from "./validation";
 import { IPagination, IResponseType } from "../Common/types";
-import { Route, Tags, Post, Path, Get, Delete } from "tsoa";
+import { Route, Tags, Post, Path, Get, Delete, Patch } from "tsoa";
 import { IEvent } from "../../Schema/Types/event.schema.types";
 import EventModel from "../../Schema/event.schema";
 import { IOrganizer } from "../../Schema/Types/organizer.schema.types";
@@ -50,5 +50,14 @@ export default class EventController {
 
     }
 
+    @Patch("/update/{eventId}")
+    static async update(_from: IEventUpdateFrom, eventId: string, organizer: IOrganizer): Promise<IResponseType<IEvent | null>> {
+        const event = await EventModel.getById(eventId, "categorys");
+        event?.checkIfOwnByOrganizer(organizer.id);
+        await EventModel.validator(_from, updateEventSchema);
 
+        const newEvent = await event?.update(_from, "categorys");
+
+        return { body: (newEvent?.toJSON() as any) };
+    }
 }

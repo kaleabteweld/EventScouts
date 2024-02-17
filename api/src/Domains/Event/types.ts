@@ -12,3 +12,6 @@ export interface INewEventFrom {
     categorys: string[]
     ticketTypes: INewTicketTypesFrom[]
 }
+
+export interface IEventUpdateFrom extends Omit<Partial<INewEventFrom>, 'organizer'> {
+}

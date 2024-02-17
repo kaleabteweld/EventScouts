@@ -3,14 +3,12 @@ import { connectDB, dropCollections, dropDB } from './util';
 import Cache from '../../src/Util/cache';
 import request from "supertest";
 import { makeServer } from '../../src/Util/Factories';
-import { categoryPrivateUrl, eventPrivateUrl, eventPublicUrl, newInValidTicketTypes, newValidCategory, newValidEvent, newValidOrganizer, newValidTicketTypes, newValidUser, sighupUrl } from './common';
+import { categoryPrivateUrl, eventPrivateUrl, eventPublicUrl, newInValidTicketTypes, newValidCategory, newValidEvent, newValidOrganizer, newValidTicketTypes, newValidUser, sighupUrl, updateValidEvent } from './common';
 import { IOrganizer } from '../../src/Schema/Types/organizer.schema.types';
 import { UserType } from '../../src/Types';
 import { IUser } from '../../src/Schema/Types/user.schema.types';
 import { ICategory } from '../../src/Schema/Types/category.schema.types';
 import { IEvent } from '../../src/Schema/Types/event.schema.types';
-import { ITicketTypes } from '../../src/Schema/Types/ticketTypes.schema.types';
-import { INewTicketTypesFrom } from '../../src/Domains/TicketTypes/types';
 
 const app = makeServer();
 
@@ -298,6 +296,116 @@ describe('Event', () => {
 
                     response = await request(app).get(`${eventPublicUrl()}byId/${event[0].id}`).send();
                     expect(response.status).toBe(404)
+
+
+                });
+            });
+
+        });
+
+    })
+
+    describe("Update Events", () => {
+        var category: ICategory;
+        var event: IEvent[] = [];
+        var accessToken: string;
+
+
+        beforeEach(async () => {
+            const response = await request(app).post(sighupUrl(UserType.organizer)).send(newValidOrganizer);
+            accessToken = response.header.authorization.split(" ")[1];
+
+            const categoryResponse = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send(newValidCategory);
+            category = categoryResponse.body.body;
+
+            event = [];
+            var _response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessToken}`)
+                .send(newValidEvent({ categorys: [category.id], ticketTypes: newValidTicketTypes }));
+
+            event.push(_response.body.body)
+
+            _response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessToken}`)
+                .send(newValidEvent({ name: "event 2", categorys: [category.id], ticketTypes: newValidTicketTypes }));
+
+            event.push(_response.body.body)
+        })
+
+        describe("WHEN not Login in as a Organizer", () => {
+            it("SHOULD return a 401 status code AND Error obj", async () => {
+                const response = await request(app).patch(`${eventPrivateUrl()}update/${event[0].id}`).send({});
+                expect(response.status).toBe(401);
+                expect(response.body.body).toBeUndefined();
+                expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+            });
+
+            describe("WHEN Login in as a User", () => {
+
+                var user: IUser;
+                var accessToken: string;
+
+                beforeEach(async () => {
+                    const response = await request(app).post(sighupUrl(UserType.user)).send(newValidUser);
+                    user = response.body;
+                    accessToken = response.header.authorization.split(" ")[1];
+                })
+
+                it("SHOULD return a 401 status code AND Error obj", async () => {
+                    const response = await request(app).patch(`${eventPrivateUrl()}update/${event[0].id}`).set('authorization', `Bearer ${accessToken}`).send({});
+                    expect(response.status).toBe(401);
+                    expect(response.body.body).toBeUndefined();
+                    expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+                })
+            })
+
+        });
+
+        describe("WHEN Login in as a Organizer", () => {
+
+            describe("WHEN Organizer 2 try to update Organizer 1 event", () => {
+                var accessTokensSecond: string;
+
+                beforeEach(async () => {
+                    const response = await request(app).post(sighupUrl(UserType.organizer)).send(newValidOrganizer);
+                    accessTokensSecond = response.header.authorization.split(" ")[1];
+
+                })
+                it("SHOULD return 401 and error object", async () => {
+                    const response = await request(app).patch(`${eventPrivateUrl()}update/${event[0].id}`).set('authorization', `Bearer ${accessTokensSecond}`).send({});
+                    expect(response.status).toBe(401);
+                    expect(response.body.body).toBeUndefined();
+                    expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+                })
+            })
+
+            describe("WHEN Organizer try to update there event", () => {
+                it("SHOULD update only one Attributes Not the rest and return 200 with the event", async () => {
+                    let response = await request(app).patch(`${eventPrivateUrl()}update/${event[0].id}`).set('authorization', `Bearer ${accessToken}`).send({
+                        ...updateValidEvent({ categorys: [category.id], ticketTypes: newValidTicketTypes, name: "updated Event" })
+                    });
+                    expect(response.status).toBe(200);
+
+                    response = await request(app).get(`${eventPublicUrl()}byId/${event[0].id}`).send();
+                    expect(response.status).toBe(200)
+
+                    const received = response.body.body.ticketTypes;
+                    newValidTicketTypes.map((newTicketType: any, index) => {
+                        const keys = Object.keys(newTicketType);
+                        newTicketType["sellingStartDate"] = newTicketType["sellingStartDate"];
+                        newTicketType["sellingEndDate"] = newTicketType["sellingEndDate"];
+                        keys.forEach((key: string) => {
+                            expect(newTicketType[key]).toEqual(received[index][key])
+                        })
+                    })
+
+                    expect(response.body.body).toMatchObject({
+                        ...newValidEvent({ categorys: [category.id], ticketTypes: newValidTicketTypes }),
+                        categorys: expect.arrayContaining([expect.objectContaining({ ...newValidCategory })]),
+                        // organizer: expect.objectContaining({ organizer: expect.any(String) }),
+                        organizer: expect.any(String),
+                        startDate: expect.any(String),
+                        endDate: expect.any(String),
+                        name: "updated Event",
+                    });
 
 
                 });
