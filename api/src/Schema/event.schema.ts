@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import { IEvent, IEventMethods, IEventModel } from './Types/event.schema.types'
 import { IOrganizer } from './Types/organizer.schema.types'
 import { mongooseErrorPlugin } from './Middleware/errors.middleware'
-import { validator, getById } from './ExtendedFunctions/event.extended'
+import { validator, getById, checkIfOwnByOrganizer, removeByID } from './ExtendedFunctions/event.extended'
 import { ticketTypesSchema } from './ticketType.schema'
 
 export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethods>({
@@ -19,11 +19,12 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
 }, {
     timestamps: true,
     methods: {
-
+        checkIfOwnByOrganizer
     },
     statics: {
         validator,
         getById,
+        removeByID,
     }
 })
 

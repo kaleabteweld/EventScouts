@@ -1,7 +1,7 @@
 import { INewEventFrom } from "./types";
 import { newEventSchema } from "./validation";
 import { IPagination, IResponseType } from "../Common/types";
-import { Route, Tags, Post, Path, Get } from "tsoa";
+import { Route, Tags, Post, Path, Get, Delete } from "tsoa";
 import { IEvent } from "../../Schema/Types/event.schema.types";
 import EventModel from "../../Schema/event.schema";
 import { IOrganizer } from "../../Schema/Types/organizer.schema.types";
@@ -37,7 +37,18 @@ export default class EventController {
 
     @Get("/byId/{eventId}")
     static async getById(eventId: string): Promise<IResponseType<IEvent | null>> {
-        return { body: await EventModel.getById(eventId, "categorys") }
+        return { body: ((await EventModel.getById(eventId, "categorys"))?.toJSON() as any) };
     }
+
+    @Delete("/remove/{eventId}")
+    static async removeById(eventId: string, organizer: IOrganizer): Promise<IResponseType<IEvent | null>> {
+        const event = await EventModel.getById(eventId);
+        event?.checkIfOwnByOrganizer(organizer.id);
+        await EventModel.removeByID(event?.id)
+
+        return { body: (event?.toJSON() as any) };
+
+    }
+
 
 }

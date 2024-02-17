@@ -25,6 +25,13 @@ export const newValidOrganizer: IOrganizerSignUpFrom = {
     phone: "+251900000",
 };
 
+export const newValidOrganizer2: IOrganizerSignUpFrom = {
+    email: "test2@test.com",
+    name: "test2",
+    password: "abcd123452",
+    phone: "+2519000002",
+};
+
 export const newValidUser: IUserSignUpFrom = {
     dateOfBirth: new Date(),
     email: "test@test.com",

@@ -34,3 +34,41 @@ export async function getById(this: mongoose.Model<IEvent>, _id: string, populat
 
 
 }
+
+export function checkIfOwnByOrganizer(this: IEvent, organizerID: string): boolean {
+    try {
+        if ((new mongoose.Types.ObjectId(organizerID)).equals(this.organizer._id)) {
+            return true;
+        }
+        throw ValidationErrorFactory({
+            msg: "Invalid Organizer",
+            statusCode: 401,
+            type: "validation"
+        }, "id")
+        return false;
+    } catch (error) {
+        if (error instanceof BSONError) {
+            throw ValidationErrorFactory({
+                msg: "Input must be a 24 character hex string, 12 byte Uint8Array, or an integer",
+                statusCode: 400,
+                type: "validation",
+            }, "id");
+        }
+        throw error;
+    }
+}
+
+export async function removeByID(this: mongoose.Model<IEvent>, _id: string): Promise<void> {
+    try {
+        await this.deleteOne({ _id: new mongoose.Types.ObjectId(_id) })
+    } catch (error) {
+        if (error instanceof BSONError) {
+            throw ValidationErrorFactory({
+                msg: "Input must be a 24 character hex string, 12 byte Uint8Array, or an integer",
+                statusCode: 400,
+                type: "validation",
+            }, "id");
+        }
+        throw error;
+    }
+}

@@ -219,4 +219,92 @@ describe('Event', () => {
 
     });
 
+    describe("Remove Events", () => {
+        var category: ICategory;
+        var event: IEvent[] = [];
+        var accessToken: string;
+
+
+        beforeEach(async () => {
+            const response = await request(app).post(sighupUrl(UserType.organizer)).send(newValidOrganizer);
+            accessToken = response.header.authorization.split(" ")[1];
+
+            const categoryResponse = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send(newValidCategory);
+            category = categoryResponse.body.body;
+
+            event = [];
+            var _response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessToken}`)
+                .send(newValidEvent({ categorys: [category.id], ticketTypes: newValidTicketTypes }));
+
+            event.push(_response.body.body)
+
+            _response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessToken}`)
+                .send(newValidEvent({ name: "event 2", categorys: [category.id], ticketTypes: newValidTicketTypes }));
+
+            event.push(_response.body.body)
+        })
+
+        describe("WHEN not Login in as a Organizer", () => {
+            it("SHOULD return a 401 status code AND Error obj", async () => {
+                const response = await request(app).delete(`${eventPrivateUrl()}remove/${event[0].id}`).send({});
+                expect(response.status).toBe(401);
+                expect(response.body.body).toBeUndefined();
+                expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+            });
+
+            describe("WHEN Login in as a User", () => {
+
+                var user: IUser;
+                var accessToken: string;
+
+                beforeEach(async () => {
+                    const response = await request(app).post(sighupUrl(UserType.user)).send(newValidUser);
+                    user = response.body;
+                    accessToken = response.header.authorization.split(" ")[1];
+                })
+
+                it("SHOULD return a 401 status code AND Error obj", async () => {
+                    const response = await request(app).delete(`${eventPrivateUrl()}remove/${event[0].id}`).set('authorization', `Bearer ${accessToken}`).send({});
+                    expect(response.status).toBe(401);
+                    expect(response.body.body).toBeUndefined();
+                    expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+                })
+            })
+
+        });
+
+        describe("WHEN Login in as a Organizer", () => {
+
+            describe("WHEN Organizer 2 try to remove Organizer 1 event", () => {
+                var accessTokensSecond: string;
+
+                beforeEach(async () => {
+                    const response = await request(app).post(sighupUrl(UserType.organizer)).send(newValidOrganizer);
+                    accessTokensSecond = response.header.authorization.split(" ")[1];
+
+                })
+                it("SHOULD return 401 and error object", async () => {
+                    const response = await request(app).delete(`${eventPrivateUrl()}remove/${event[0].id}`).set('authorization', `Bearer ${accessTokensSecond}`).send({});
+                    expect(response.status).toBe(401);
+                    expect(response.body.body).toBeUndefined();
+                    expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+                })
+            })
+
+            describe("WHEN Organizer try to remove there event", () => {
+                it("SHOULD remove and return 200 with the event", async () => {
+                    let response = await request(app).delete(`${eventPrivateUrl()}remove/${event[0].id}`).set('authorization', `Bearer ${accessToken}`).send({});
+                    expect(response.status).toBe(200);
+
+                    response = await request(app).get(`${eventPublicUrl()}byId/${event[0].id}`).send();
+                    expect(response.status).toBe(404)
+
+
+                });
+            });
+
+        });
+
+    })
+
 });

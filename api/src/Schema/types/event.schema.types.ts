@@ -19,6 +19,8 @@ export interface IEvent extends mongoose.Document {
 
 //Dynamic methods
 export interface IEventMethods {
+    checkIfOwnByOrganizer(this: IEvent, organizerID: string): boolean
+
 }
 
 // Extend the Document type with IUserMethods
@@ -29,4 +31,5 @@ export interface IEventDocument extends IEvent, IEventMethods, mongoose.Document
 export interface IEventModel extends mongoose.Model<IEventDocument> {
     validator<T>(userInput: T, schema: Joi.ObjectSchema<T>): Promise<any>
     getById(_id: string, populatePath?: string | string[], select?: any, model?: string | mongoose.Model<any, {}, {}, {}, any, any> | undefined, match?: any): Promise<IEventDocument | null>
+    removeByID(_id: string): Promise<void>
 }

@@ -26,6 +26,15 @@ privateEventRouter.post("/", organizerOnly, MakeErrorHandler(
     }
 ));
 
+privateEventRouter.delete("/remove/:eventId", organizerOnly, MakeErrorHandler(
+    async (req: any, res: Response) => {
+
+        const _eventOrganizer: IOrganizer = req['organizer'];
+        res.json(await EventController.removeById(req.params.eventId, _eventOrganizer));
+    }
+));
+
+
 
 
 publicEventRouter.use("/event", publicEventRouter);
