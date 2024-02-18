@@ -1,8 +1,10 @@
+import { Response } from "supertest";
 import { INewCategoryFrom } from "../../src/Domains/Category/types";
 import { IEventUpdateFrom, INewEventFrom } from "../../src/Domains/Event/types";
 import { IOrganizerSignUpFrom } from "../../src/Domains/Organizer/types";
 import { INewTicketTypesFrom } from "../../src/Domains/TicketTypes/types";
 import { IUserSignUpFrom } from "../../src/Domains/User/types";
+import { IOrganizer } from "../../src/Schema/Types/organizer.schema.types";
 import { UserType } from "../../src/Types";
 
 export const sighupUrl = (user: UserType) => `/Api/v1/public/authentication/${user}/signUp`;
@@ -157,4 +159,23 @@ export const newInValidTicketTypes: { [keys: string]: INewTicketTypesFrom } = {
         maxNumberOfTickets: 10,
         online: "http:///a/a"
     },
+}
+
+export const createOrganizer = async (request: Function, app: any, newValidOrganizers: IOrganizerSignUpFrom[]): Promise<{ organizers: IOrganizer[], accessTokens: string[] }> => {
+
+    const organizers: IOrganizer[] = [];
+    const accessTokens: string[] = [];
+
+    for (let index = 0; index < newValidOrganizers.length; index++) {
+        const response = await request(app).post(sighupUrl(UserType.organizer)).send(newValidOrganizers[index]);
+        organizers.push(response.body);
+        accessTokens.push(response.header.authorization.split(" ")[1])
+    }
+
+    return { organizers, accessTokens }
+}
+
+export const expectValidCategory = async (expect: any, response: Response, ValidCategory: INewCategoryFrom) => {
+    expect(response.status).toBe(200);
+    expect(response.body.body).toMatchObject({ ...ValidCategory, id: expect.any(String) });
 }
