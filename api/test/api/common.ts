@@ -64,7 +64,7 @@ export const newValidEvent = ({ categorys = [], organizer = "", ticketTypes = []
 
 export const updateValidEvent = ({ categorys = [], ticketTypes = [], name = "Category" }: TNewValidEventArgs): IEventUpdateFrom => ({
     categorys,
-    description: "Category description",
+    description: "Event description",
     endDate: new Date(),
     startDate: new Date(),
     location: "category location",

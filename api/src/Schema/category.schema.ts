@@ -6,7 +6,7 @@ import { validator, getById } from './ExtendedFunctions/category.extended'
 
 export const categorySchema = new mongoose.Schema<ICategory, ICategoryModel, ICategoryMethods>({
     name: { type: String, unique: true },
-    events: { type: mongoose.Schema.Types.ObjectId, ref: "Event" }
+    events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }]
 }, {
     timestamps: true,
     methods: {
