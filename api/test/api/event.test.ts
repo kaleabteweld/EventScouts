@@ -61,21 +61,19 @@ describe('Event', () => {
         describe("WHEN Login in as a Organizer", () => {
             var organizer: IOrganizer;
             var accessToken: string;
+            var category: ICategory;
+
 
             beforeAll(async () => {
                 const response = await request(app).post(sighupUrl(UserType.organizer)).send(newValidOrganizer);
                 organizer = response.body;
                 accessToken = response.header.authorization.split(" ")[1];
+
+                const categoryResponse = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send(newValidCategory);
+                category = categoryResponse.body.body;
             })
 
             describe("WHEN the Event is Valid and Valid category and ticket Types", () => {
-
-                var category: ICategory;
-
-                beforeAll(async () => {
-                    const categoryResponse = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send(newValidCategory);
-                    category = categoryResponse.body.body;
-                });
 
                 it("SHOULD return a 200 status code AND event obj With category and ticket Types", async () => {
 
@@ -105,17 +103,9 @@ describe('Event', () => {
 
                 });
 
-
-
             });
 
             describe.each([...Object.keys(newInValidTicketTypes)])(`WHEN %s in ticket Types is NOT valid`, (key) => {
-                var category: ICategory;
-
-                beforeAll(async () => {
-                    const categoryResponse = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send(newValidCategory);
-                    category = categoryResponse.body.body;
-                });
 
                 it("SHOULD return a 400 status code AND error obj", async () => {
                     const response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessToken}`)
@@ -390,15 +380,13 @@ describe('Event', () => {
                     const received = response.body.body.ticketTypes;
                     newValidTicketTypes.map((newTicketType: any, index) => {
                         const keys = Object.keys(newTicketType);
-                        newTicketType["sellingStartDate"] = newTicketType["sellingStartDate"];
-                        newTicketType["sellingEndDate"] = newTicketType["sellingEndDate"];
                         keys.forEach((key: string) => {
                             expect(newTicketType[key]).toEqual(received[index][key])
                         })
                     })
 
                     expect(response.body.body).toMatchObject({
-                        ...newValidEvent({ categorys: [category.id], ticketTypes: newValidTicketTypes }),
+                        ...updateValidEvent({ categorys: [category.id], ticketTypes: newValidTicketTypes }),
                         categorys: expect.arrayContaining([expect.objectContaining({ ...newValidCategory })]),
                         // organizer: expect.objectContaining({ organizer: expect.any(String) }),
                         organizer: expect.any(String),
