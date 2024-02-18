@@ -1,19 +1,22 @@
 import { INewCategoryFrom } from "./types";
 import { newCategorySchema } from "./validation";
 import { IPagination, IResponseType } from "../Common/types";
-import { Route, Tags, Post, Path, Get } from "tsoa";
+import { Route, Tags, Post, Path, Get, Delete } from "tsoa";
 import { ICategory } from "../../Schema/Types/category.schema.types";
 import CategoryModel from "../../Schema/category.schema";
+import { IOrganizer } from "../../Schema/Types/organizer.schema.types";
+import OrganizerModel from "../../Schema/organizer.schema";
 
 
 @Route("/category")
 @Tags("Category")
 export default class CategoryController {
     @Post("/")
-    static async createCategory(_Category: INewCategoryFrom): Promise<IResponseType<ICategory>> {
+    static async createCategory(_Category: INewCategoryFrom, _organizer: IOrganizer): Promise<IResponseType<ICategory>> {
 
         await CategoryModel.validator(_Category, newCategorySchema);
-        const Category = await new CategoryModel((_Category));
+        const organizer = await OrganizerModel.getById(_organizer.id);
+        const Category = await new CategoryModel(({ ..._Category, organizer: organizer?.id }));
         await Category.save();
 
         return { body: Category.toJSON() }
@@ -32,6 +35,16 @@ export default class CategoryController {
     @Get("/byId/{categoryId}")
     static async getById(categoryId: string): Promise<IResponseType<ICategory | null>> {
         return { body: ((await CategoryModel.getById(categoryId))?.toJSON() as any) };
+    }
+
+    @Delete("/remove/{categoryId}")
+    static async removeById(categoryId: string, organizer: IOrganizer): Promise<IResponseType<ICategory | null>> {
+        const category = await CategoryModel.getById(categoryId);
+        category?.checkIfOwnByOrganizer(organizer.id);
+        await CategoryModel.removeByID(category?.id)
+
+        return { body: (category?.toJSON() as any) };
+
     }
 
 }

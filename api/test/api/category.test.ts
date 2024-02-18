@@ -3,7 +3,7 @@ import { connectDB, dropCollections, dropDB } from './util';
 import Cache from '../../src/Util/cache';
 import request from "supertest";
 import { makeServer } from '../../src/Util/Factories';
-import { eventPrivateUrl, categoryPrivateUrl, newValidOrganizer, newValidUser, sighupUrl, newValidCategory, categoryPublicUrl } from './common';
+import { categoryPrivateUrl, newValidOrganizer, newValidUser, sighupUrl, newValidCategory, categoryPublicUrl, newValidOrganizer2 } from './common';
 import { IOrganizer } from '../../src/Schema/Types/organizer.schema.types';
 import { UserType } from '../../src/Types';
 import { IUser } from '../../src/Schema/Types/user.schema.types';
@@ -167,4 +167,84 @@ describe('Category', () => {
         })
 
     });
+
+    describe("Remove Category", () => {
+        var categorys: ICategory[] = [];
+        var accessToken: string;
+
+        beforeEach(async () => {
+            const response = await request(app).post(sighupUrl(UserType.organizer)).send(newValidOrganizer);
+            accessToken = response.header.authorization.split(" ")[1];
+
+            categorys = [];
+            let categoryResponse = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send(newValidCategory);
+            categorys.push(categoryResponse.body.body);
+
+            categoryResponse = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send({ name: "Category 2" });
+            categorys.push(categoryResponse.body.body);
+        })
+
+        describe("WHEN Login in as a Organizer", () => {
+
+            describe("WHEN Organizer try to remove there category", () => {
+                it("SHOULD remove and return 200 with the category", async () => {
+                    let response = await request(app).delete(`${categoryPrivateUrl()}remove/${categorys[0].id}`).set('authorization', `Bearer ${accessToken}`).send({});
+                    console.log(categorys[0].id)
+                    expect(response.status).toBe(200);
+
+                    response = await request(app).get(`${categoryPublicUrl()}byId/${categorys[0].id}`).send();
+                    expect(response.status).toBe(404)
+
+
+                });
+            });
+
+            describe("WHEN Organizer 2 try to remove Organizer 1 category", () => {
+                var accessTokensSecond: string;
+
+                beforeEach(async () => {
+                    const response = await request(app).post(sighupUrl(UserType.organizer)).send(newValidOrganizer2);
+                    accessTokensSecond = response.header.authorization.split(" ")[1];
+
+                })
+                it("SHOULD return 401 and error object", async () => {
+                    const response = await request(app).delete(`${categoryPrivateUrl()}remove/${categorys[0].id}`).set('authorization', `Bearer ${accessTokensSecond}`).send({});
+                    expect(response.status).toBe(401);
+                    expect(response.body.body).toBeUndefined();
+                    expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+                })
+            })
+
+        });
+
+        describe("WHEN not Login in as a Organizer", () => {
+            it("SHOULD return a 401 status code AND Error obj", async () => {
+                const response = await request(app).delete(`${categoryPrivateUrl()}remove/${categorys[0].id}`).send({});
+                expect(response.status).toBe(401);
+                expect(response.body.body).toBeUndefined();
+                expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+            });
+
+            describe("WHEN Login in as a User", () => {
+
+                var user: IUser;
+                var accessToken: string;
+
+                beforeEach(async () => {
+                    const response = await request(app).post(sighupUrl(UserType.user)).send(newValidUser);
+                    user = response.body;
+                    accessToken = response.header.authorization.split(" ")[1];
+                })
+
+                it("SHOULD return a 401 status code AND Error obj", async () => {
+                    const response = await request(app).delete(`${categoryPrivateUrl()}remove/${categorys[0].id}`).set('authorization', `Bearer ${accessToken}`).send({});
+                    expect(response.status).toBe(401);
+                    expect(response.body.body).toBeUndefined();
+                    expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+                })
+            })
+
+        });
+
+    })
 });
