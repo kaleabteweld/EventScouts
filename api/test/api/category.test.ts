@@ -3,7 +3,7 @@ import { connectDB, dropCollections, dropDB } from './util';
 import Cache from '../../src/Util/cache';
 import request from "supertest";
 import { makeServer } from '../../src/Util/Factories';
-import { categoryPrivateUrl, newValidOrganizer, newValidUser, sighupUrl, newValidCategory, categoryPublicUrl, newValidOrganizer2, createOrganizer, expectValidCategory } from './common';
+import { categoryPrivateUrl, newValidOrganizer, newValidUser, sighupUrl, newValidCategory, categoryPublicUrl, newValidOrganizer2, createOrganizer, expectValidCategory, expectError } from './common';
 import { IOrganizer } from '../../src/Schema/Types/organizer.schema.types';
 import { UserType } from '../../src/Types';
 import { IUser } from '../../src/Schema/Types/user.schema.types';
@@ -47,9 +47,8 @@ describe('Category', () => {
                         await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send(newValidCategory);
                         const response = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send(newValidCategory);
 
-                        expect(response.status).toBe(400);
-                        expect(response.body.body).toBeUndefined();
-                        expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+                        expectError(expect, response, 400);
+
                     });
 
 
@@ -57,9 +56,8 @@ describe('Category', () => {
 
                 it("SHOULD return a 400 status code AND Error obj", async () => {
                     const response = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send({});
-                    expect(response.status).toBe(400);
-                    expect(response.body.body).toBeUndefined();
-                    expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+                    expectError(expect, response, 400);
+
                 });
 
             });
@@ -79,9 +77,7 @@ describe('Category', () => {
         describe("WHEN not Login in as a Organizer", () => {
             it("SHOULD return a 401 status code AND Error obj", async () => {
                 const response = await request(app).post(categoryPrivateUrl()).send({});
-                expect(response.status).toBe(401);
-                expect(response.body.body).toBeUndefined();
-                expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+                expectError(expect, response, 401);
             });
 
             describe("WHEN Login in as a User", () => {
@@ -97,9 +93,7 @@ describe('Category', () => {
 
                 it("SHOULD return a 401 status code AND Error obj", async () => {
                     const response = await request(app).post(categoryPrivateUrl()).set('authorization', `Bearer ${userAccessToken}`).send({});
-                    expect(response.status).toBe(401);
-                    expect(response.body.body).toBeUndefined();
-                    expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+                    expectError(expect, response, 401);
                 })
             })
 
@@ -153,11 +147,7 @@ describe('Category', () => {
             describe("WHEN trying to get Category by InValid category id", () => {
                 it("SHOULD return 404 with error obj", async () => {
                     const response = await request(app).get(`${categoryPublicUrl()}byId/75cfba229d3e6fb530a1d4d5`).send();
-
-                    expect(response.status).toBe(404)
-
-                    expect(response.body.body).toBeUndefined();
-                    expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+                    expectError(expect, response, 404);
                 });
             })
         })
@@ -198,9 +188,8 @@ describe('Category', () => {
 
                 it("SHOULD return 401 and error object", async () => {
                     const response = await request(app).delete(`${categoryPrivateUrl()}remove/${categorys[0].id}`).set('authorization', `Bearer ${accessTokens[1]}`).send({});
-                    expect(response.status).toBe(401);
-                    expect(response.body.body).toBeUndefined();
-                    expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+                    expectError(expect, response, 401);
+
                 })
             })
 
@@ -209,9 +198,8 @@ describe('Category', () => {
         describe("WHEN not Login in as a Organizer", () => {
             it("SHOULD return a 401 status code AND Error obj", async () => {
                 const response = await request(app).delete(`${categoryPrivateUrl()}remove/${categorys[0].id}`).send({});
-                expect(response.status).toBe(401);
-                expect(response.body.body).toBeUndefined();
-                expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+                expectError(expect, response, 401);
+
             });
 
             describe("WHEN Login in as a User", () => {
@@ -227,9 +215,7 @@ describe('Category', () => {
 
                 it("SHOULD return a 401 status code AND Error obj", async () => {
                     const response = await request(app).delete(`${categoryPrivateUrl()}remove/${categorys[0].id}`).set('authorization', `Bearer ${userAccessToken}`).send({});
-                    expect(response.status).toBe(401);
-                    expect(response.body.body).toBeUndefined();
-                    expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+                    expectError(expect, response, 401);
                 })
             })
 

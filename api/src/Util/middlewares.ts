@@ -37,8 +37,6 @@ export function JWTMiddleWare(req: any, res: any, next: NextFunction) {
         next();
 
     } catch (error: any) {
-
-        console.log("[-] JWTMiddleWare Error", error)
         const errorResponse: errorResponse = {
             msg: error.message ?? "No Valid Token",
             statusCode: 401,
