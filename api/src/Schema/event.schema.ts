@@ -3,6 +3,8 @@ import { IEvent, IEventMethods, IEventModel } from './Types/event.schema.types'
 import { mongooseErrorPlugin } from './Middleware/errors.middleware'
 import { validator, getById, checkIfOwnByOrganizer, removeByID, update } from './ExtendedFunctions/event.extended'
 import { ticketTypesSchema } from './ticketType.schema'
+import { PEGIRating } from '../Domains/Event/validation'
+
 
 export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethods>({
     name: { type: String, unique: true },
@@ -12,6 +14,7 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
     endDate: { type: Date },
     location: String,
     venue: String,
+    ageRating: { type: String, enum: PEGIRating },
     organizer: { type: mongoose.Schema.Types.ObjectId, ref: "Organizer" },
     categorys: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
     ticketTypes: [ticketTypesSchema]

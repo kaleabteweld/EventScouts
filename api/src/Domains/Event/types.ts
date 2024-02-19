@@ -8,6 +8,7 @@ export interface INewEventFrom {
     endDate: Date
     location: String
     venue: String
+    ageRating: String
     organizer: string
     categorys: string[]
     ticketTypes: INewTicketTypesFrom[]

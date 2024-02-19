@@ -25,7 +25,6 @@ export async function MakeTokens(user: any, userType: UserType) {
 
         return { accessToken, refreshToken }
     } catch (error: any) {
-        console.log("[-] MakeTokens error", error);
         throw {
             msg: error.message ?? "No Valid Token",
             statusCode: 400,
@@ -82,7 +81,6 @@ export async function verifyRefreshToken<T>(_refreshToken: string, usetType: Use
         const user = await Jwt.verify(refreshToken, refreshKey);
         return user as T;
     } catch (error: any) {
-        console.log("[-] verifyRefreshToken error", error);
         throw {
             msg: error.message ?? "No Valid Token",
             statusCode: 400,

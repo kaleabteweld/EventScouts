@@ -62,6 +62,7 @@ export const newValidEvent = ({ categorys = [], organizer = "", ticketTypes = []
     name,
     posterURL: "http://localhost/category/a.png",
     venue: "category venue",
+    ageRating: "PEGI 18",
     ticketTypes
 })
 

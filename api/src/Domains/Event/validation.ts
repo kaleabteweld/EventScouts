@@ -2,6 +2,8 @@ import Joi from "joi";
 import { IEventUpdateFrom, INewEventFrom } from "./types";
 import { newTicketTypesSchema } from "../TicketTypes/validation";
 
+export const PEGIRating = ["PEGI 7", "PEGI 12", "PEGI 16", "PEGI 18"]
+
 export const newEventSchema = Joi.object<INewEventFrom>({
     name: Joi.string().min(1).required(),
     posterURL: Joi.string().uri().required(),
@@ -15,11 +17,17 @@ export const newEventSchema = Joi.object<INewEventFrom>({
     }),
     location: Joi.string().required(),
     venue: Joi.string().required(),
+    ageRating: Joi.custom((value, helper) => {
+        if (!PEGIRating.includes(value)) {
+            return helper.message({ custom: `\"ageRating\" ${value} is not a valid enum value` });
+        } else {
+            return value
+        }
+    }).required(),
     organizer: Joi.string().min(24).required(),
     categorys: Joi.array().items(Joi.string().min(24)).min(1).required(),
     ticketTypes: Joi.array().items(newTicketTypesSchema).min(1).required(),
 });
-
 
 export const updateEventSchema = Joi.object<IEventUpdateFrom>({
     name: Joi.string().min(1).optional(),
@@ -34,6 +42,13 @@ export const updateEventSchema = Joi.object<IEventUpdateFrom>({
     }),
     location: Joi.string().optional(),
     venue: Joi.string().optional(),
+    ageRating: Joi.custom((value, helper) => {
+        if (!PEGIRating.includes(value)) {
+            return helper.message({ custom: `\"ageRating\" ${value} is not a valid enum value` });
+        } else {
+            return value
+        }
+    }).optional(),
     categorys: Joi.array().items(Joi.string().min(24)).min(1).optional(),
     ticketTypes: Joi.array().items(newTicketTypesSchema).min(1).optional(),
 });

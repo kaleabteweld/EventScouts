@@ -13,6 +13,7 @@ export interface IEvent extends mongoose.Document {
     endDate: Date
     location: String
     venue: String
+    ageRating: String
     organizer: mongoose.Types.ObjectId | IOrganizer
     categorys: mongoose.Schema.Types.ObjectId[] | ICategory
     ticketTypes: mongoose.Schema.Types.ObjectId[] | ITicketTypes
