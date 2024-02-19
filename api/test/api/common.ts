@@ -1,4 +1,6 @@
 import { Response } from "supertest";
+import { expect } from '@jest/globals';
+
 import { INewCategoryFrom } from "../../src/Domains/Category/types";
 import { IEventUpdateFrom, INewEventFrom } from "../../src/Domains/Event/types";
 import { IOrganizerSignUpFrom } from "../../src/Domains/Organizer/types";
@@ -96,6 +98,15 @@ export const newValidTicketTypes: INewTicketTypesFrom[] = [{
     description: "Standard ticket for general admission.",
 }]
 
+export const newValidTicketType: INewTicketTypesFrom = {
+    posterURl: "https://example.com/poster3.jpg",
+    type: "Standard",
+    price: 10,
+    sellingStartDate: new Date("2024-03-01"),
+    sellingEndDate: new Date("2024-03-15"),
+    description: "Standard ticket for general admission.",
+}
+
 export const newInValidTicketTypes: { [keys: string]: INewTicketTypesFrom } = {
     posterURlInvalid: {
         posterURl: "http:///a/a",
@@ -181,12 +192,12 @@ export const expectValidCategory = async (expect: any, response: Response, Valid
     expect(response.status).toBe(200);
     expect(response.body.body).toMatchObject({ ...ValidCategory, id: expect.any(String) });
 }
-
-export const expectValidEvent = async (expect: any, response: Response, categorys: ICategory[], matchers?: Record<string, unknown> | Record<string, unknown>[]) => {
+export async function expectValidEvent(response: Response, categorys: ICategory[], _newValidTicketTypes?: INewTicketTypesFrom[] | null, matchers?: Record<string, unknown> | Record<string, unknown>[]): Promise<void> {
     expect(response.status).toBe(200);
 
+    _newValidTicketTypes = _newValidTicketTypes ?? newValidTicketTypes
     const received = response.body.body.ticketTypes;
-    [...newValidTicketTypes].map((newTicketType: any, index) => {
+    [..._newValidTicketTypes].map((newTicketType: any, index) => {
         const keys = Object.keys(newTicketType);
         const _newTicketType = { ...newTicketType }
 
@@ -196,7 +207,7 @@ export const expectValidEvent = async (expect: any, response: Response, category
             expect(received[index][key]).toEqual(_newTicketType[key])
         })
     })
-    const validEvent = newValidEvent({ categorys: [...categorys.map((category => category.id))], ticketTypes: newValidTicketTypes });
+    const validEvent = newValidEvent({ categorys: [...categorys.map((category => category.id))], ticketTypes: _newValidTicketTypes });
     delete (validEvent as any)["ticketTypes"]
 
     expect(response.body.body).toMatchObject({
@@ -206,6 +217,7 @@ export const expectValidEvent = async (expect: any, response: Response, category
         organizer: expect.any(String),
         startDate: expect.any(String),
         endDate: expect.any(String),
+        minimumTicketPrice: Math.min(..._newValidTicketTypes.map(ticket => ticket.price)),
         ...matchers,
     });
 }

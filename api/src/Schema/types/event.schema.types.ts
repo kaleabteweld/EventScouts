@@ -14,9 +14,10 @@ export interface IEvent extends mongoose.Document {
     location: String
     venue: String
     ageRating: String
+    minimumTicketPrice: number
     organizer: mongoose.Types.ObjectId | IOrganizer
     categorys: mongoose.Schema.Types.ObjectId[] | ICategory
-    ticketTypes: mongoose.Schema.Types.ObjectId[] | ITicketTypes
+    ticketTypes: ITicketTypes[]
 }
 
 //Dynamic methods

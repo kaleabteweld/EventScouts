@@ -15,6 +15,7 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
     location: String,
     venue: String,
     ageRating: { type: String, enum: PEGIRating },
+    minimumTicketPrice: { type: Number, default: 0 }, // Aggregated field
     organizer: { type: mongoose.Schema.Types.ObjectId, ref: "Organizer" },
     categorys: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
     ticketTypes: [ticketTypesSchema]
@@ -38,6 +39,33 @@ eventSchema.set('toJSON', {
         return ret
     }
 })
+eventSchema.pre('save', async function (next) {
+    const event: IEvent = this;
+
+    // Populate the minimumTicketPrice
+    try {
+        if (event.ticketTypes.length > 0) {
+            const minimumPrice = Math.min(...event.ticketTypes.map(ticket => ticket.price));
+            event.minimumTicketPrice = minimumPrice;
+        }
+        next();
+    } catch (error: any) {
+        next(error);
+    }
+});
+eventSchema.post('findOneAndUpdate', async function () {
+    const event = this;
+    try {
+        const docToUpdate: IEvent | null = await event.model.findOne(event.getFilter());
+        if ((docToUpdate as IEvent).ticketTypes.length > 0) {
+            const minimumPrice = Math.min(...(docToUpdate as IEvent).ticketTypes.map((ticket: any) => ticket.price));
+            await event.model.updateOne({}, { $set: { minimumTicketPrice: minimumPrice } });
+        }
+
+    } catch (error: any) {
+        console.log({ error })
+    }
+});
 eventSchema.plugin<any>(mongooseErrorPlugin)
 
 const EventModel = mongoose.model<IEvent, IEventModel>("Event", eventSchema);

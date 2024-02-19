@@ -3,7 +3,7 @@ import { connectDB, dropCollections, dropDB } from './util';
 import Cache from '../../src/Util/cache';
 import request from "supertest";
 import { makeServer } from '../../src/Util/Factories';
-import { categoryPrivateUrl, createOrganizer, eventPrivateUrl, eventPublicUrl, expectError, expectValidEvent, newInValidTicketTypes, newValidCategory, newValidEvent, newValidOrganizer, newValidOrganizer2, newValidTicketTypes, newValidUser, sighupUrl, updateValidEvent } from './common';
+import { categoryPrivateUrl, createOrganizer, eventPrivateUrl, eventPublicUrl, expectError, expectValidEvent, newInValidTicketTypes, newValidCategory, newValidEvent, newValidOrganizer, newValidOrganizer2, newValidTicketType, newValidTicketTypes, newValidUser, sighupUrl, updateValidEvent } from './common';
 import { IOrganizer } from '../../src/Schema/Types/organizer.schema.types';
 import { UserType } from '../../src/Types';
 import { IUser } from '../../src/Schema/Types/user.schema.types';
@@ -69,7 +69,7 @@ describe('Event', () => {
                     const response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessTokens[0]}`)
                         .send(newValidEvent({ categorys: [categorys[0].id], ticketTypes: newValidTicketTypes }));
 
-                    expectValidEvent(expect, response, [categorys[0]]);
+                    expectValidEvent(response, [categorys[0]]);
 
                 });
 
@@ -83,7 +83,7 @@ describe('Event', () => {
                         const response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessTokens[0]}`)
                             .send(newValidEvent({ categorys: [categorys[1].id], ticketTypes: newValidTicketTypes }));
 
-                        expectValidEvent(expect, response, [categorys[1]]);
+                        expectValidEvent(response, [categorys[1]]);
 
                     });
                 })
@@ -164,7 +164,7 @@ describe('Event', () => {
                 it("SHOULD return the Event with that id", async () => {
 
                     const response = await request(app).get(`${eventPublicUrl()}byId/${events[0].id}`).send();
-                    expectValidEvent(expect, response, categorys);
+                    expectValidEvent(response, categorys);
                 })
             })
 
@@ -275,10 +275,27 @@ describe('Event', () => {
                     let response = await request(app).patch(`${eventPrivateUrl()}update/${events[0].id}`).set('authorization', `Bearer ${accessTokens[0]}`).send({
                         name: "updated Event"
                     });
+                    response = await request(app).get(`${eventPublicUrl()}byId/${events[0].id}`).send();
 
-                    expectValidEvent(expect, response, categorys, { name: "updated Event" });
-
+                    expectValidEvent(response, categorys, null, { name: "updated Event" });
                 });
+
+                describe("WHEN update TicketTypes the minimumTicketPrice must be recalculated", () => {
+
+                    it("SHOULD update only minimumTicketPrice Attributes to the new min and return 200 with the event", async () => {
+                        let response = await request(app).patch(`${eventPrivateUrl()}update/${events[0].id}`).set('authorization', `Bearer ${accessTokens[0]}`).send({
+                            name: "updated Event",
+                            ticketTypes: [...newValidTicketTypes, newValidTicketType]
+                        });
+
+                        response = await request(app).get(`${eventPublicUrl()}byId/${events[0].id}`).send();
+
+                        expectValidEvent(response, categorys, [...newValidTicketTypes, newValidTicketType], {
+                            name: "updated Event",
+                        });
+                    });
+
+                })
             });
 
         });
@@ -302,9 +319,7 @@ describe('Event', () => {
 
                 it("SHOULD return a 401 status code AND Error obj", async () => {
                     const response = await request(app).patch(`${eventPrivateUrl()}update/${events[0].id}`).set('authorization', `Bearer ${userAccessToken}`).send({});
-                    expect(response.status).toBe(401);
-                    expect(response.body.body).toBeUndefined();
-                    expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+                    expectError(expect, response, 401);
                 })
             })
 
