@@ -6,6 +6,7 @@ import { INewTicketTypesFrom } from "../../src/Domains/TicketTypes/types";
 import { IUserSignUpFrom } from "../../src/Domains/User/types";
 import { IOrganizer } from "../../src/Schema/Types/organizer.schema.types";
 import { UserType } from "../../src/Types";
+import { ICategory } from "../../src/Schema/Types/category.schema.types";
 
 export const sighupUrl = (user: UserType) => `/Api/v1/public/authentication/${user}/signUp`;
 export const loginUrl = (user: UserType, wallet: boolean = false) => `/Api/v1/public/authentication/${user}/login${wallet ? "/wallet" : ""}`;
@@ -178,4 +179,44 @@ export const createOrganizer = async (request: Function, app: any, newValidOrgan
 export const expectValidCategory = async (expect: any, response: Response, ValidCategory: INewCategoryFrom) => {
     expect(response.status).toBe(200);
     expect(response.body.body).toMatchObject({ ...ValidCategory, id: expect.any(String) });
+}
+
+export const expectValidEvent = async (expect: any, response: Response, categorys: ICategory[], matchers?: Record<string, unknown> | Record<string, unknown>[]) => {
+    expect(response.status).toBe(200);
+
+    const received = response.body.body.ticketTypes;
+    [...newValidTicketTypes].map((newTicketType: any, index) => {
+        const keys = Object.keys(newTicketType);
+        const _newTicketType = { ...newTicketType }
+
+        _newTicketType["sellingStartDate"] = (_newTicketType["sellingStartDate"] as Date).toISOString();
+        _newTicketType["sellingEndDate"] = (_newTicketType["sellingEndDate"] as Date).toISOString();
+        keys.forEach((key: string) => {
+            expect(received[index][key]).toEqual(_newTicketType[key])
+        })
+    })
+    const validEvent = newValidEvent({ categorys: [...categorys.map((category => category.id))], ticketTypes: newValidTicketTypes });
+    delete (validEvent as any)["ticketTypes"]
+
+    expect(response.body.body).toMatchObject({
+        ...validEvent,
+        categorys: expect.arrayContaining(categorys),
+        // organizer: expect.objectContaining({ organizer: expect.any(String) }),
+        organizer: expect.any(String),
+        startDate: expect.any(String),
+        endDate: expect.any(String),
+        ...matchers,
+    });
+}
+export const expectError = async (expect: any, response: Response, code: number) => {
+
+    if (code == 400) {
+        expect(response.status).toBe(code)
+        expect(response.body.body).toBeUndefined();
+        expect(response.body.error).toMatchObject({ msg: expect.any(String), type: "validation", attr: expect.any(String) });
+    } else {
+        expect(response.status).toBe(code)
+        expect(response.body.body).toBeUndefined();
+        expect(response.body.error).toMatchObject({ msg: expect.any(String) });
+    }
 }

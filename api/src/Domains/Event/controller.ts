@@ -52,11 +52,11 @@ export default class EventController {
 
     @Patch("/update/{eventId}")
     static async update(_from: IEventUpdateFrom, eventId: string, organizer: IOrganizer): Promise<IResponseType<IEvent | null>> {
-        const event = await EventModel.getById(eventId, "categorys");
+        const event = await EventModel.getById(eventId);
         event?.checkIfOwnByOrganizer(organizer.id);
         await EventModel.validator(_from, updateEventSchema);
+        const newEvent = await EventModel.update(event?.id, _from, "categorys")
 
-        const newEvent = await event?.update(_from, "categorys");
 
         return { body: (newEvent?.toJSON() as any) };
     }

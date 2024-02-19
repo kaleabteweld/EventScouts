@@ -19,13 +19,12 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
     timestamps: true,
     methods: {
         checkIfOwnByOrganizer,
-        update,
-
     },
     statics: {
         validator,
         getById,
         removeByID,
+        update,
     }
 })
 

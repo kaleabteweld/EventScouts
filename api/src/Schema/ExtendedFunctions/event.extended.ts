@@ -75,12 +75,11 @@ export async function removeByID(this: mongoose.Model<IEvent>, _id: string): Pro
     }
 }
 
-export async function update(this: IEvent, newEvent: IEventUpdateFrom, populatePath: string | string[]): Promise<IEvent | null> {
+export async function update(this: mongoose.Model<IEvent>, _id: string, newEvent: IEventUpdateFrom, populatePath: string | string[]): Promise<IEvent | null> {
 
     try {
-        const newDoc = this.overwrite({ ...newEvent, organizer: this.organizer });
-        await this.save();
-        await newDoc.populate(populatePath)
+        const newDoc = await this.findByIdAndUpdate(_id, newEvent, { new: true, overwrite: true });
+        await newDoc?.populate(populatePath)
         return newDoc;
     } catch (error) {
         throw error;
