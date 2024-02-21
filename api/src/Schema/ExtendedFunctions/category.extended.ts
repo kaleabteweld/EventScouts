@@ -15,7 +15,7 @@ export async function getById(this: mongoose.Model<ICategory>, _id: string): Pro
         const category = await this.findById(new mongoose.Types.ObjectId(_id));
         if (category == null) {
             throw ValidationErrorFactory({
-                msg: "Invalid Id",
+                msg: "Category not found",
                 statusCode: 404,
                 type: "Validation"
             }, "_id")

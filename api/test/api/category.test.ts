@@ -3,7 +3,7 @@ import { connectDB, dropCollections, dropDB } from './util';
 import Cache from '../../src/Util/cache';
 import request from "supertest";
 import { makeServer } from '../../src/Util/Factories';
-import { categoryPrivateUrl, newValidOrganizer, newValidUser, sighupUrl, newValidCategory, categoryPublicUrl, newValidOrganizer2, createOrganizer, expectValidCategory, expectError } from './common';
+import { categoryPrivateUrl, newValidOrganizer, newValidUser, sighupUrl, newValidCategory, categoryPublicUrl, newValidOrganizer2, createOrganizer, expectValidCategory, expectError, expectValidListCategory } from './common';
 import { IOrganizer } from '../../src/Schema/Types/organizer.schema.types';
 import { UserType } from '../../src/Types';
 import { IUser } from '../../src/Schema/Types/user.schema.types';
@@ -47,7 +47,7 @@ describe('Category', () => {
                         await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send(newValidCategory);
                         const response = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send(newValidCategory);
 
-                        expectError(expect, response, 400);
+                        expectError(response, 400);
 
                     });
 
@@ -56,7 +56,7 @@ describe('Category', () => {
 
                 it("SHOULD return a 400 status code AND Error obj", async () => {
                     const response = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send({});
-                    expectError(expect, response, 400);
+                    expectError(response, 400);
 
                 });
 
@@ -67,7 +67,7 @@ describe('Category', () => {
 
                 it("SHOULD return a 200 status code AND category obj", async () => {
                     const response = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send(newValidCategory);
-                    expectValidCategory(expect, response, newValidCategory);
+                    expectValidCategory(response, newValidCategory);
                 });
 
 
@@ -77,7 +77,7 @@ describe('Category', () => {
         describe("WHEN not Login in as a Organizer", () => {
             it("SHOULD return a 401 status code AND Error obj", async () => {
                 const response = await request(app).post(categoryPrivateUrl()).send({});
-                expectError(expect, response, 401);
+                expectError(response, 401);
             });
 
             describe("WHEN Login in as a User", () => {
@@ -93,7 +93,7 @@ describe('Category', () => {
 
                 it("SHOULD return a 401 status code AND Error obj", async () => {
                     const response = await request(app).post(categoryPrivateUrl()).set('authorization', `Bearer ${userAccessToken}`).send({});
-                    expectError(expect, response, 401);
+                    expectError(response, 401);
                 })
             })
 
@@ -124,30 +124,47 @@ describe('Category', () => {
 
             it("SHOULD return a list of Categorys Bigger then 1 and less then 3", async () => {
                 const response = await request(app).get(`${categoryPublicUrl()}list/0/3`).send();
-                expect(response.status).toBe(200)
+                expectValidListCategory(response, [newValidCategory, { name: "Category2" }], 0, 3,);
+            })
 
-                expect(response.body.body.length).toBeGreaterThan(0)
-                expect(response.body.body.length).toBeLessThan(3)
+            describe("WHEN trying to get Category by valid category id With ?withEventCount=true", () => {
+                it("SHOULD return the Categorys with that id and eventCount", async () => {
+
+                    const response = await request(app).get(`${categoryPublicUrl()}list/0/3?withEventCount=true`).send();
+                    expectValidListCategory(response, [newValidCategory, { name: "Category2" }], 0, 3, {
+                        eventCount: 0
+                    });
+                })
             })
 
         });
 
         describe("WHEN trying to get Categorys by category id", () => {
 
-            describe("WHEN trying to get Categorys by valid category id", () => {
+            describe("WHEN trying to get Category by valid category id", () => {
 
                 it("SHOULD return the Categorys with that id", async () => {
 
                     const response = await request(app).get(`${categoryPublicUrl()}byId/${categorys[0].id}`).send();
-                    expectValidCategory(expect, response, newValidCategory);
+                    expectValidCategory(response, newValidCategory);
+                })
 
+                describe("WHEN trying to get Category by valid category id With ?withEventCount=true", () => {
+                    it("SHOULD return the Categorys with that id and eventCount", async () => {
+
+                        const response = await request(app).get(`${categoryPublicUrl()}byId/${categorys[0].id}?withEventCount=true`).send();
+                        expectValidCategory(response, newValidCategory, {
+                            eventCount: 0
+                        });
+                    })
                 })
             })
 
             describe("WHEN trying to get Category by InValid category id", () => {
                 it("SHOULD return 404 with error obj", async () => {
                     const response = await request(app).get(`${categoryPublicUrl()}byId/75cfba229d3e6fb530a1d4d5`).send();
-                    expectError(expect, response, 404);
+                    console.log(response.body);
+                    expectError(response, 404);
                 });
             })
         })
@@ -188,7 +205,7 @@ describe('Category', () => {
 
                 it("SHOULD return 401 and error object", async () => {
                     const response = await request(app).delete(`${categoryPrivateUrl()}remove/${categorys[0].id}`).set('authorization', `Bearer ${accessTokens[1]}`).send({});
-                    expectError(expect, response, 401);
+                    expectError(response, 401);
 
                 })
             })
@@ -198,7 +215,7 @@ describe('Category', () => {
         describe("WHEN not Login in as a Organizer", () => {
             it("SHOULD return a 401 status code AND Error obj", async () => {
                 const response = await request(app).delete(`${categoryPrivateUrl()}remove/${categorys[0].id}`).send({});
-                expectError(expect, response, 401);
+                expectError(response, 401);
 
             });
 
@@ -215,7 +232,7 @@ describe('Category', () => {
 
                 it("SHOULD return a 401 status code AND Error obj", async () => {
                     const response = await request(app).delete(`${categoryPrivateUrl()}remove/${categorys[0].id}`).set('authorization', `Bearer ${userAccessToken}`).send({});
-                    expectError(expect, response, 401);
+                    expectError(response, 401);
                 })
             })
 

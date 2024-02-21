@@ -188,9 +188,20 @@ export const createOrganizer = async (request: Function, app: any, newValidOrgan
     return { organizers, accessTokens }
 }
 
-export const expectValidCategory = async (expect: any, response: Response, ValidCategory: INewCategoryFrom) => {
+export const expectValidCategory = async (response: Response, ValidCategory: INewCategoryFrom, matchers?: Record<string, unknown> | Record<string, unknown>[]) => {
+
     expect(response.status).toBe(200);
-    expect(response.body.body).toMatchObject({ ...ValidCategory, id: expect.any(String) });
+    expect(response.body.body).toMatchObject({ ...ValidCategory, id: expect.any(String), ...matchers });
+}
+export const expectValidListCategory = async (response: Response, categorys: INewCategoryFrom[], minLen: number, maxLen: number, matchers?: Record<string, unknown> | Record<string, unknown>[]) => {
+
+    expect(response.status).toBe(200)
+
+    expect(response.body.body.length).toBeGreaterThan(minLen)
+    expect(response.body.body.length).toBeLessThan(maxLen)
+    response.body.body.forEach((category: ICategory, index: number) => {
+        expect(category).toMatchObject(expect.objectContaining({ ...categorys[index], id: expect.any(String), ...matchers }));
+    });
 }
 export async function expectValidEvent(response: Response, categorys: ICategory[], _newValidTicketTypes?: INewTicketTypesFrom[] | null, matchers?: Record<string, unknown> | Record<string, unknown>[]): Promise<void> {
     expect(response.status).toBe(200);
@@ -207,12 +218,18 @@ export async function expectValidEvent(response: Response, categorys: ICategory[
             expect(received[index][key]).toEqual(_newTicketType[key])
         })
     })
+
+    response.body.body.categorys.forEach((category: ICategory, index: number) => {
+        expect(category).toMatchObject(expect.objectContaining({ name: categorys[index].name, id: expect.any(String) }));
+    });
+
     const validEvent = newValidEvent({ categorys: [...categorys.map((category => category.id))], ticketTypes: _newValidTicketTypes });
     delete (validEvent as any)["ticketTypes"]
+    delete (validEvent as any)["categorys"]
 
     expect(response.body.body).toMatchObject({
         ...validEvent,
-        categorys: expect.arrayContaining(categorys),
+        // categorys: expect.arrayContaining(categorys),
         // organizer: expect.objectContaining({ organizer: expect.any(String) }),
         organizer: expect.any(String),
         startDate: expect.any(String),
@@ -221,7 +238,7 @@ export async function expectValidEvent(response: Response, categorys: ICategory[
         ...matchers,
     });
 }
-export const expectError = async (expect: any, response: Response, code: number) => {
+export const expectError = async (response: Response, code: number) => {
 
     if (code == 400) {
         expect(response.status).toBe(code)

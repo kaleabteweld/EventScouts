@@ -90,7 +90,7 @@ export async function getUserById(this: mongoose.Model<IUser>, _id: string): Pro
         const user = await this.findById(new mongoose.Types.ObjectId(_id));
         if (user == null) {
             throw ValidationErrorFactory({
-                msg: "Invalid Id",
+                msg: "User not found",
                 statusCode: 404,
                 type: "Validation"
             }, "_id")

@@ -40,10 +40,11 @@ eventSchema.set('toJSON', {
     }
 })
 eventSchema.pre('save', async function (next) {
+
     const event: IEvent = this;
 
-    // Populate the minimumTicketPrice
     try {
+        // Populate the minimumTicketPrice
         if (event.ticketTypes.length > 0) {
             const minimumPrice = Math.min(...event.ticketTypes.map(ticket => ticket.price));
             event.minimumTicketPrice = minimumPrice;
@@ -53,12 +54,45 @@ eventSchema.pre('save', async function (next) {
         next(error);
     }
 });
+eventSchema.post('save', async function (doc) {
+    try {
+        for (const categoryId of doc.categorys) {
+            const category = await mongoose.model('Category').findById(categoryId);
+            if (category) {
+                if (!category.events.includes(doc._id)) {
+                    category.events.push(doc._id);
+                    await category.save();
+                }
+            }
+        }
+    } catch (error) {
+        console.error("Error updating categories:", error);
+    }
+});
+eventSchema.pre('findOneAndUpdate', async function () {
+    const docToUpdate: IEvent | null = await this.model.findOne(this.getFilter());
+
+    try {
+        for (const categoryId of (docToUpdate as IEvent).categorys) {
+            const category = await mongoose.model('Category').findByIdAndUpdate(categoryId,
+                { $pullAll: { events: [(docToUpdate as IEvent)._id] } },
+                { new: true }
+            );
+            if (category) {
+                await category.save();
+            }
+        }
+    } catch (error) {
+        console.error("Error updating categories:", error);
+    }
+});
+
 eventSchema.post('findOneAndUpdate', async function () {
     const event = this;
     try {
-        const docToUpdate: IEvent | null = await event.model.findOne(event.getFilter());
-        if ((docToUpdate as IEvent).ticketTypes.length > 0) {
-            const minimumPrice = Math.min(...(docToUpdate as IEvent).ticketTypes.map((ticket: any) => ticket.price));
+        const docUpdated: IEvent | null = await event.model.findOne(event.getFilter());
+        if ((docUpdated as IEvent).ticketTypes.length > 0) {
+            const minimumPrice = Math.min(...(docUpdated as IEvent).ticketTypes.map((ticket: any) => ticket.price));
             await event.model.updateOne({}, { $set: { minimumTicketPrice: minimumPrice } });
         }
 

@@ -23,18 +23,29 @@ export default class CategoryController {
     }
 
     @Get("/list/{skip}/{limit}")
-    static async list({ skip, limit }: IPagination): Promise<IResponseType<ICategory[]>> {
-        return {
-            body: await CategoryModel.find()
-                .skip(skip ?? 0)
-                .limit(limit ?? 0)
-                .exec()
+    static async list({ skip, limit }: IPagination, withEventCount?: boolean): Promise<IResponseType<ICategory[]>> {
+        if (withEventCount) {
+            return {
+                body: await CategoryModel.getCategorysWithEventCount({ skip, limit })
+            }
+        }
+        else {
+            return {
+                body: await CategoryModel.find()
+                    .skip(skip ?? 0)
+                    .limit(limit ?? 0)
+                    .exec()
+            }
         }
     }
 
     @Get("/byId/{categoryId}")
-    static async getById(categoryId: string): Promise<IResponseType<ICategory | null>> {
-        return { body: ((await CategoryModel.getById(categoryId))?.toJSON() as any) };
+    static async getById(categoryId: string, withEventCount?: boolean): Promise<IResponseType<ICategory | null>> {
+        if (withEventCount) {
+            return { body: ((await CategoryModel.getCategoryWithEventCount(categoryId)) as any) };
+        } else {
+            return { body: ((await CategoryModel.getById(categoryId)) as any) };
+        }
     }
 
     @Delete("/remove/{categoryId}")

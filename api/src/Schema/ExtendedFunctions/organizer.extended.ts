@@ -73,7 +73,7 @@ export async function getById(this: mongoose.Model<IOrganizer>, _id: string): Pr
         const organizer = await this.findById(new mongoose.Types.ObjectId(_id));
         if (organizer == null) {
             throw ValidationErrorFactory({
-                msg: "Invalid Id",
+                msg: "Organizer not found",
                 statusCode: 404,
                 type: "Validation"
             }, "_id")

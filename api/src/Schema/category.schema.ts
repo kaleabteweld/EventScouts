@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import { ICategory, ICategoryMethods, ICategoryModel } from './Types/category.schema.types';
 import { mongooseErrorPlugin } from './Middleware/errors.middleware';
 import { validator, getById, checkIfOwnByOrganizer, removeByID } from './ExtendedFunctions/category.extended'
+import { getCategoryWithEventCount, getCategorysWithEventCount } from './Aggregate/category.aggregate';
 
 
 export const categorySchema = new mongoose.Schema<ICategory, ICategoryModel, ICategoryMethods>({
@@ -17,6 +18,8 @@ export const categorySchema = new mongoose.Schema<ICategory, ICategoryModel, ICa
         validator,
         getById,
         removeByID,
+        getCategoryWithEventCount,
+        getCategorysWithEventCount,
     }
 });
 
@@ -27,7 +30,7 @@ categorySchema.set('toJSON', {
         delete ret['_id']
         return ret
     }
-})
+});
 categorySchema.plugin<any>(mongooseErrorPlugin)
 
 

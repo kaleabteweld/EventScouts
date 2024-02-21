@@ -3,7 +3,7 @@ import { connectDB, dropCollections, dropDB } from './util';
 import Cache from '../../src/Util/cache';
 import request from "supertest";
 import { makeServer } from '../../src/Util/Factories';
-import { categoryPrivateUrl, createOrganizer, eventPrivateUrl, eventPublicUrl, expectError, expectValidEvent, newInValidTicketTypes, newValidCategory, newValidEvent, newValidOrganizer, newValidOrganizer2, newValidTicketType, newValidTicketTypes, newValidUser, sighupUrl, updateValidEvent } from './common';
+import { categoryPrivateUrl, categoryPublicUrl, createOrganizer, eventPrivateUrl, eventPublicUrl, expectError, expectValidCategory, expectValidEvent, newInValidTicketTypes, newValidCategory, newValidEvent, newValidOrganizer, newValidOrganizer2, newValidTicketType, newValidTicketTypes, newValidUser, sighupUrl, updateValidEvent } from './common';
 import { IOrganizer } from '../../src/Schema/Types/organizer.schema.types';
 import { UserType } from '../../src/Types';
 import { IUser } from '../../src/Schema/Types/user.schema.types';
@@ -25,7 +25,7 @@ export const createEvents = async (request: Function, app: any, newValidCategory
 
     for (let index = 1; index < eventCount; index++) {
         var _response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessToken}`)
-            .send(newValidEvent({ categorys: [...categorys.map((category => category.id))], ticketTypes: newValidTicketTypes }));
+            .send(newValidEvent({ name: `event ${index}`, categorys: [...categorys.map((category => category.id))], ticketTypes: newValidTicketTypes }));
 
         events.push(_response.body.body)
     }
@@ -53,12 +53,12 @@ describe('Event', () => {
             var accessTokens: string[] = [];
             var categorys: ICategory[] = [];
 
-
             beforeEach(async () => {
                 const { accessTokens: ats } = await createOrganizer(request, app, [newValidOrganizer, newValidOrganizer2]);
                 accessTokens = ats;
 
                 const categoryResponse = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessTokens[0]}`).send(newValidCategory);
+                categorys = [];
                 categorys.push(categoryResponse.body.body);
             })
 
@@ -86,7 +86,24 @@ describe('Event', () => {
                         expectValidEvent(response, [categorys[1]]);
 
                     });
+
                 })
+
+                describe("WHEN the Event is Valid and Valid category, Then the category", () => {
+                    it("SHOULD return a 200 status code AND category obj With eventCount 1", async () => {
+
+                        const response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessTokens[0]}`)
+                            .send(newValidEvent({ categorys: [categorys[0].id], ticketTypes: newValidTicketTypes }));
+
+                        expectValidEvent(response, [categorys[0]]);
+
+                        const categoryResponse = await request(app).get(`${categoryPublicUrl()}byId/${categorys[0].id}?withEventCount=true`).send();
+                        expectValidCategory(categoryResponse, newValidCategory, {
+                            eventCount: 1
+                        });
+
+                    });
+                });
 
             });
 
@@ -96,7 +113,7 @@ describe('Event', () => {
                     const response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessTokens[0]}`)
                         .send(newValidEvent({ categorys: [categorys[0].id], ticketTypes: [(newInValidTicketTypes[key] as any)] }));
 
-                    expectError(expect, response, 400);
+                    expectError(response, 400);
                 })
             });
 
@@ -105,7 +122,7 @@ describe('Event', () => {
         describe("WHEN not Login in as a Organizer", () => {
             it("SHOULD return a 401 status code AND Error obj", async () => {
                 const response = await request(app).post(eventPrivateUrl()).send({});
-                expectError(expect, response, 401);
+                expectError(response, 401);
             });
 
             describe("WHEN Login in as a User", () => {
@@ -121,7 +138,7 @@ describe('Event', () => {
 
                 it("SHOULD return a 401 status code AND Error obj", async () => {
                     const response = await request(app).post(eventPrivateUrl()).set('authorization', `Bearer ${userAccessToken}`).send({});
-                    expectError(expect, response, 401);
+                    expectError(response, 401);
                 })
             })
 
@@ -164,14 +181,16 @@ describe('Event', () => {
                 it("SHOULD return the Event with that id", async () => {
 
                     const response = await request(app).get(`${eventPublicUrl()}byId/${events[0].id}`).send();
-                    expectValidEvent(response, categorys);
+                    expectValidEvent(response, categorys, undefined, {
+                        name: "event 1"
+                    });
                 })
             })
 
             describe("WHEN trying to get Event by InValid event id", () => {
                 it("SHOULD return 404 with error obj", async () => {
                     const response = await request(app).get(`${eventPublicUrl()}byId/75cfba229d3e6fb530a1d4d5`).send();
-                    expectError(expect, response, 404);
+                    expectError(response, 404);
                 });
             })
         })
@@ -200,7 +219,7 @@ describe('Event', () => {
 
                 it("SHOULD return 401 and error object", async () => {
                     const response = await request(app).delete(`${eventPrivateUrl()}remove/${events[0].id}`).set('authorization', `Bearer ${accessTokens[1]}`).send({});
-                    expectError(expect, response, 401);
+                    expectError(response, 401);
                 })
             })
 
@@ -221,7 +240,7 @@ describe('Event', () => {
         describe("WHEN not Login in as a Organizer", () => {
             it("SHOULD return a 401 status code AND Error obj", async () => {
                 const response = await request(app).delete(`${eventPrivateUrl()}remove/${events[0].id}`).send({});
-                expectError(expect, response, 401);
+                expectError(response, 401);
             });
 
             describe("WHEN Login in as a User", () => {
@@ -237,7 +256,7 @@ describe('Event', () => {
 
                 it("SHOULD return a 401 status code AND Error obj", async () => {
                     const response = await request(app).delete(`${eventPrivateUrl()}remove/${events[0].id}`).set('authorization', `Bearer ${userAccessToken}`).send({});
-                    expectError(expect, response, 401);
+                    expectError(response, 401);
                 })
             })
 
@@ -255,7 +274,7 @@ describe('Event', () => {
             const { accessTokens: ats } = await createOrganizer(request, app, [newValidOrganizer, newValidOrganizer2]);
             accessTokens = ats;
 
-            const { categorys: cats, events: eves } = await createEvents(request, app, [newValidCategory], 2, accessTokens[0])
+            const { categorys: cats, events: eves } = await createEvents(request, app, [newValidCategory, { name: "Category2" }], 2, accessTokens[0])
             categorys = cats;
             events = eves;
         })
@@ -266,7 +285,7 @@ describe('Event', () => {
 
                 it("SHOULD return 401 and error object", async () => {
                     const response = await request(app).patch(`${eventPrivateUrl()}update/${events[0].id}`).set('authorization', `Bearer ${accessTokens[1]}`).send({});
-                    expectError(expect, response, 401);
+                    expectError(response, 401);
                 })
             })
 
@@ -296,6 +315,34 @@ describe('Event', () => {
                     });
 
                 })
+
+                describe("WHEN update the Event to reset it's category, Then the category", () => {
+                    it("SHOULD return a 200 status code AND category obj With less events", async () => {
+
+
+                        var eventResponse = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessTokens[0]}`)
+                            .send(newValidEvent({ name: `temp`, categorys: [...categorys.map((category => category.id))], ticketTypes: newValidTicketTypes }));
+
+                        var categoryResponse0 = await request(app).get(`${categoryPublicUrl()}byId/${categorys[0].id}?withEventCount=true`).send();
+                        const initEvents = categoryResponse0.body.body.events.length;
+
+                        const response = await request(app).patch(`${eventPrivateUrl()}update/${eventResponse.body.body.id}`).set('authorization', `Bearer ${accessTokens[0]}`).send({
+                            name: "updated Event",
+                            ticketTypes: [...newValidTicketTypes, newValidTicketType],
+                            categorys: [categorys[1].id]
+                        });
+
+                        expectValidEvent(response, [categorys[1]], undefined, {
+                            name: "updated Event",
+                        });
+
+                        categoryResponse0 = await request(app).get(`${categoryPublicUrl()}byId/${categorys[0].id}?withEventCount=true`).send();
+                        const afterEvents = categoryResponse0.body.body.events.length;
+
+                        expect(initEvents).toBeGreaterThan(afterEvents)
+
+                    });
+                });
             });
 
         });
@@ -303,7 +350,7 @@ describe('Event', () => {
         describe("WHEN not Login in as a Organizer", () => {
             it("SHOULD return a 401 status code AND Error obj", async () => {
                 const response = await request(app).patch(`${eventPrivateUrl()}update/${events[0].id}`).send({});
-                expectError(expect, response, 401);
+                expectError(response, 401);
             });
 
             describe("WHEN Login in as a User", () => {
@@ -319,7 +366,7 @@ describe('Event', () => {
 
                 it("SHOULD return a 401 status code AND Error obj", async () => {
                     const response = await request(app).patch(`${eventPrivateUrl()}update/${events[0].id}`).set('authorization', `Bearer ${userAccessToken}`).send({});
-                    expectError(expect, response, 401);
+                    expectError(response, 401);
                 })
             })
 

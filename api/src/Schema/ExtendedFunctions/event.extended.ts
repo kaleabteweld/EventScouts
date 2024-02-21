@@ -16,7 +16,7 @@ export async function getById(this: mongoose.Model<IEvent>, _id: string, populat
         const event = await this.findById(new mongoose.Types.ObjectId(_id)).populate(populatePath);
         if (event == null) {
             throw ValidationErrorFactory({
-                msg: "Invalid Id",
+                msg: "Event not found",
                 statusCode: 404,
                 type: "Validation"
             }, "_id")
