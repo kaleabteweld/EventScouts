@@ -1,11 +1,19 @@
 import express, { Request, Response } from "express";
-import { MakeErrorHandler } from "../../Util/middlewares";
+import { MakeErrorHandler, organizerOnly } from "../../Util/middlewares";
 import OrganizerController from "./controller";
 import { IOrganizer } from "../../Schema/Types/organizer.schema.types";
 
 
 const publicOrganizerRouter = express.Router();
 const privateOrganizerRouter = express.Router();
+
+privateOrganizerRouter.get("/", organizerOnly, MakeErrorHandler(
+    async (req: any, res: Response) => {
+
+        const _organizer: IOrganizer = req['organizer'];
+        res.json(await OrganizerController.getById(_organizer));
+    }
+));
 
 privateOrganizerRouter.patch("/VerifyUser/:key", MakeErrorHandler(
     async (req: any, res: Response) => {

@@ -12,6 +12,10 @@ import { IOrganizer, TVerified } from "../../Schema/Types/organizer.schema.types
 @Tags("organizer")
 export default class OrganizerController {
 
+    @Get("/")
+    static async getById(organizer: IOrganizer): Promise<IResponseType<IOrganizer | null>> {
+        return { body: ((await OrganizerModel.getById(organizer.id ?? "", "categorys"))?.toJSON() as any) };
+    }
 
     @Path("/Authentication/organizer")
     @Tags("Auth")

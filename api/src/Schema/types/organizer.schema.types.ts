@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Joi from 'joi';
+import { ICategory } from "./category.schema.types";
 
 export type TVerified = 'email' | 'phone' | 'document' | 'none';
 export const verifiedEnum: { [key in TVerified]: string } = {
@@ -23,6 +24,7 @@ export interface IOrganizer extends mongoose.Document {
     logoURL?: string;
     verified: Object
     password: string;
+    categorys: mongoose.Schema.Types.ObjectId[] | ICategory[]
 }
 
 //Dynamic methods
@@ -40,6 +42,6 @@ export interface IOrganizerDocument extends IOrganizer, IOrganizerMethods, mongo
 export interface IOrganizerModel extends mongoose.Model<IOrganizerDocument> {
     validator<T>(userInput: T, schema: Joi.ObjectSchema<T>): Promise<any>
     getByEmail(email: string): Promise<IOrganizerDocument | null>
-    getById(_id: string): Promise<IOrganizerDocument | null>
+    getById(_id: string, populatePath?: string | string[]): Promise<IOrganizerDocument | null>
     getByVerifiedKey(key: TVerified, value: string): Promise<IOrganizerDocument | null>
 }

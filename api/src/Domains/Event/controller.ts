@@ -1,7 +1,7 @@
 import { IEventUpdateFrom, INewEventFrom } from "./types";
 import { newEventSchema, updateEventSchema } from "./validation";
 import { IPagination, IResponseType } from "../Common/types";
-import { Route, Tags, Post, Path, Get, Delete, Patch } from "tsoa";
+import { Route, Tags, Post, Get, Delete, Patch } from "tsoa";
 import { IEvent } from "../../Schema/Types/event.schema.types";
 import EventModel from "../../Schema/event.schema";
 import { IOrganizer } from "../../Schema/Types/organizer.schema.types";

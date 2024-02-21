@@ -3,6 +3,7 @@ import { ICategory, ICategoryMethods, ICategoryModel } from './Types/category.sc
 import { mongooseErrorPlugin } from './Middleware/errors.middleware';
 import { validator, getById, checkIfOwnByOrganizer, removeByID } from './ExtendedFunctions/category.extended'
 import { getCategoryWithEventCount, getCategorysWithEventCount } from './Aggregate/category.aggregate';
+import { IOrganizer } from './Types/organizer.schema.types';
 
 
 export const categorySchema = new mongoose.Schema<ICategory, ICategoryModel, ICategoryMethods>({
@@ -29,6 +30,19 @@ categorySchema.set('toJSON', {
         ret['id'] = doc['_id']
         delete ret['_id']
         return ret
+    }
+});
+categorySchema.post('save', async function (doc) {
+    try {
+        const organizer: IOrganizer | null = await mongoose.model('Organizer').findById(doc.organizer);
+        if (organizer) {
+            if (!organizer.categorys.includes(doc._id)) {
+                organizer.categorys.push(doc._id);
+                await organizer.save();
+            }
+        }
+    } catch (error) {
+        console.error("Error updating categories:", error);
     }
 });
 categorySchema.plugin<any>(mongooseErrorPlugin)

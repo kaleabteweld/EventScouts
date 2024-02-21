@@ -3,7 +3,7 @@ import { connectDB, dropCollections, dropDB } from './util';
 import Cache from '../../src/Util/cache';
 import request from "supertest";
 import { makeServer } from '../../src/Util/Factories';
-import { categoryPrivateUrl, newValidOrganizer, newValidUser, sighupUrl, newValidCategory, categoryPublicUrl, newValidOrganizer2, createOrganizer, expectValidCategory, expectError, expectValidListCategory } from './common';
+import { categoryPrivateUrl, newValidOrganizer, newValidUser, sighupUrl, newValidCategory, categoryPublicUrl, newValidOrganizer2, createOrganizer, expectValidCategory, expectError, expectValidListCategory, userPrivateUrl } from './common';
 import { IOrganizer } from '../../src/Schema/Types/organizer.schema.types';
 import { UserType } from '../../src/Types';
 import { IUser } from '../../src/Schema/Types/user.schema.types';
@@ -62,7 +62,6 @@ describe('Category', () => {
 
             });
 
-
             describe("WHEN the Category is Valid", () => {
 
                 it("SHOULD return a 200 status code AND category obj", async () => {
@@ -70,6 +69,20 @@ describe('Category', () => {
                     expectValidCategory(response, newValidCategory);
                 });
 
+                describe("WHEN the Category is created Organizer", () => {
+                    it("SHOULD Have a list of the category obj", async () => {
+                        const response = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send(newValidCategory);
+                        expectValidCategory(response, newValidCategory);
+
+                        const organizerResponse = await request(app).get(userPrivateUrl(UserType.organizer)).set("Authorization", `Bearer ${accessToken}`).send();
+
+                        const categorys = [newValidCategory];
+                        organizerResponse.body.body.categorys.forEach((category: ICategory, index: number) => {
+                            expect(category).toMatchObject(expect.objectContaining({ name: categorys[index].name, id: expect.any(String) }));
+                        });
+
+                    });
+                })
 
             });
 

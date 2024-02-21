@@ -68,9 +68,9 @@ export async function getByEmail(this: mongoose.Model<IOrganizer>, email: string
     return organizer;
 }
 
-export async function getById(this: mongoose.Model<IOrganizer>, _id: string): Promise<mongoose.Document<unknown, {}, IOrganizer> & IOrganizer & { _id: mongoose.Types.ObjectId; } | null> {
+export async function getById(this: mongoose.Model<IOrganizer>, _id: string, populatePath: string | string[]): Promise<mongoose.Document<unknown, {}, IOrganizer> & IOrganizer & { _id: mongoose.Types.ObjectId; } | null> {
     try {
-        const organizer = await this.findById(new mongoose.Types.ObjectId(_id));
+        const organizer = await this.findById(new mongoose.Types.ObjectId(_id)).populate(populatePath);
         if (organizer == null) {
             throw ValidationErrorFactory({
                 msg: "Organizer not found",
@@ -89,6 +89,7 @@ export async function getById(this: mongoose.Model<IOrganizer>, _id: string): Pr
         }
         throw error;
     }
+
 
 }
 

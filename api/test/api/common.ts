@@ -16,6 +16,8 @@ export const refreshTokenUrl = (user: UserType) => `/Api/v1/public/authenticatio
 export const logoutUrl = (user: UserType) => `/Api/v1/private/authentication/${user}/logOut`;
 export const verifyUserUrl = (key: string, user: UserType) => `/Api/v1/private/${user}/VerifyUser/${key}`;
 export const forgotPasswordUrl = (key: string, value: string, newPassword: string, user: UserType) => `/Api/v1/public/authentication/${user}/forgotPassword/${key}/${value}/${newPassword}`;
+export const userPrivateUrl = (user: UserType) => `/Api/v1/private/${user}/`;
+export const userPublicUrl = (user: UserType) => `/Api/v1/public/${user}/`;
 export const eventPrivateUrl = () => `/Api/v1/private/event/`;
 export const eventPublicUrl = () => `/Api/v1/public/event/`;
 export const categoryPrivateUrl = () => `/Api/v1/private/category/`;
