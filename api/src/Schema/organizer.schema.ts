@@ -15,6 +15,7 @@ export const organizerSchema = new mongoose.Schema<IOrganizer, IOrganizerModel, 
     },
     password: { type: String },
     categorys: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
+    events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
 }, {
     timestamps: true,
     methods: {

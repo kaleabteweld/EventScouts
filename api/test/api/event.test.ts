@@ -3,7 +3,7 @@ import { connectDB, dropCollections, dropDB } from './util';
 import Cache from '../../src/Util/cache';
 import request from "supertest";
 import { makeServer } from '../../src/Util/Factories';
-import { categoryPrivateUrl, categoryPublicUrl, createOrganizer, eventPrivateUrl, eventPublicUrl, expectError, expectValidCategory, expectValidEvent, newInValidTicketTypes, newValidCategory, newValidEvent, newValidOrganizer, newValidOrganizer2, newValidTicketType, newValidTicketTypes, newValidUser, sighupUrl } from './common';
+import { categoryPrivateUrl, categoryPublicUrl, createOrganizer, eventPrivateUrl, eventPublicUrl, expectError, expectValidCategory, expectValidEvent, newInValidTicketTypes, newValidCategory, newValidEvent, newValidOrganizer, newValidOrganizer2, newValidTicketType, newValidTicketTypes, newValidUser, sighupUrl, userPrivateUrl } from './common';
 import { UserType } from '../../src/Types';
 import { IUser } from '../../src/Schema/Types/user.schema.types';
 import { ICategory } from '../../src/Schema/Types/category.schema.types';
@@ -100,6 +100,21 @@ describe('Event', () => {
                         expectValidCategory(categoryResponse, newValidCategory, {
                             eventCount: 1
                         });
+
+                    });
+                });
+
+                describe("WHEN the Event is Valid and Valid category, Organizer", () => {
+                    it("SHOULD  have events with new event in there", async () => {
+
+                        const response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessTokens[0]}`)
+                            .send(newValidEvent({ categorys: [categorys[0].id], ticketTypes: newValidTicketTypes }));
+                        expectValidEvent(response, [categorys[0]]);
+
+                        const organizerResponse = await request(app).get(userPrivateUrl(UserType.organizer)).set("Authorization", `Bearer ${accessTokens[0]}`).send();
+                        expect(organizerResponse.status).toBe(200);
+
+                        expect(organizerResponse.body.body.events.length).toBeGreaterThan(0)
 
                     });
                 });

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Joi from 'joi';
 import { ICategory } from "./category.schema.types";
+import { IEvent } from "./event.schema.types";
 
 export type TVerified = 'email' | 'phone' | 'document' | 'none';
 export const verifiedEnum: { [key in TVerified]: string } = {
@@ -25,6 +26,7 @@ export interface IOrganizer extends mongoose.Document {
     verified: Object
     password: string;
     categorys: mongoose.Schema.Types.ObjectId[] | ICategory[]
+    events: mongoose.Schema.Types.ObjectId | IEvent[];
 }
 
 //Dynamic methods

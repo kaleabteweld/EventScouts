@@ -4,6 +4,7 @@ import { mongooseErrorPlugin } from './Middleware/errors.middleware'
 import { validator, getById, checkIfOwnByOrganizer, removeByID, update } from './ExtendedFunctions/event.extended'
 import { ticketTypesSchema } from './ticketType.schema'
 import { PEGIRating } from '../Domains/Event/validation'
+import { IOrganizer } from './Types/organizer.schema.types'
 
 
 export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethods>({
@@ -56,6 +57,14 @@ eventSchema.pre('save', async function (next) {
 });
 eventSchema.post('save', async function (doc) {
     try {
+        const organizer = await mongoose.model('Organizer').findById(doc.organizer);
+        if (organizer) {
+            if (!organizer.events.includes(doc._id)) {
+                organizer.events.push(doc._id);
+                await organizer.save();
+            }
+        }
+
         for (const categoryId of doc.categorys) {
             const category = await mongoose.model('Category').findById(categoryId);
             if (category) {
