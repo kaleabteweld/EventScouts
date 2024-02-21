@@ -84,7 +84,7 @@ export const newValidTicketTypes: INewTicketTypesFrom[] = [{
     posterURl: "https://example.com/poster1.jpg",
     type: "VIP",
     price: 100,
-    sellingStartDate: new Date("2024-03-01"),
+    sellingStartDate: new Date(new Date().getTime() - (24 * 60 * 60 * 1000)),
     sellingEndDate: new Date("2024-03-31"),
     description: "VIP ticket with special access.",
     maxNumberOfTickets: 10,
@@ -93,7 +93,7 @@ export const newValidTicketTypes: INewTicketTypesFrom[] = [{
     posterURl: "https://example.com/poster2.jpg",
     type: "Standard",
     price: 50,
-    sellingStartDate: new Date("2024-03-01"),
+    sellingStartDate: new Date(new Date().getTime() - (24 * 60 * 60 * 1000)),
     sellingEndDate: new Date("2024-03-15"),
     description: "Standard ticket for general admission.",
 }]
@@ -102,7 +102,7 @@ export const newValidTicketType: INewTicketTypesFrom = {
     posterURl: "https://example.com/poster3.jpg",
     type: "Standard",
     price: 10,
-    sellingStartDate: new Date("2024-03-01"),
+    sellingStartDate: new Date(new Date().getTime() - (24 * 60 * 60 * 1000)),
     sellingEndDate: new Date("2024-03-15"),
     description: "Standard ticket for general admission.",
 }

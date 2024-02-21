@@ -9,3 +9,6 @@ export interface INewTicketTypesFrom {
     refundable?: boolean,
     online?: string,
 }
+
+export interface ITicketTypesUpdateFrom extends Partial<INewTicketTypesFrom> {
+}

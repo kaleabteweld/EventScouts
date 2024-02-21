@@ -5,6 +5,7 @@ import { Route, Tags, Post, Path, Get, Delete, Patch } from "tsoa";
 import { IEvent } from "../../Schema/Types/event.schema.types";
 import EventModel from "../../Schema/event.schema";
 import { IOrganizer } from "../../Schema/Types/organizer.schema.types";
+import { copyObjectWithout } from "../../Util";
 
 
 @Route("/event")
@@ -54,7 +55,14 @@ export default class EventController {
     static async update(_from: IEventUpdateFrom, eventId: string, organizer: IOrganizer): Promise<IResponseType<IEvent | null>> {
         const event = await EventModel.getById(eventId);
         event?.checkIfOwnByOrganizer(organizer.id);
-        await EventModel.validator(_from, updateEventSchema);
+
+        const validationCheckTicketType: any = event?.ticketTypes.map((ticketType) => copyObjectWithout(ticketType.toJSON(), ["createdAt", "updatedAt", "id"]))
+        await EventModel.validator({
+            endDate: event?.endDate,
+            ticketTypes: validationCheckTicketType,
+            ..._from
+        }, updateEventSchema);
+
         const newEvent = await EventModel.update(event?.id, _from, "categorys")
 
 

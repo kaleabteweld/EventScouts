@@ -40,3 +40,9 @@ export function copyObjectWithOnlyKeys(obj: any, keys: string[]) {
         return acc;
     }, {});
 }
+
+
+export function copyObjectWithout(obj: any, keysToRemove: string[]) {
+    const keysToKeep = Object.keys(obj).filter(key => !keysToRemove.includes(key));
+    return copyObjectWithOnlyKeys(obj, keysToKeep);
+}

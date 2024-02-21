@@ -1,6 +1,6 @@
 import Joi from "joi";
 import { IEventUpdateFrom, INewEventFrom } from "./types";
-import { newTicketTypesSchema } from "../TicketTypes/validation";
+import { newTicketTypesSchema, updateTicketTypesSchema } from "../TicketTypes/validation";
 
 export const PEGIRating = ["PEGI 7", "PEGI 12", "PEGI 16", "PEGI 18"]
 
@@ -50,5 +50,5 @@ export const updateEventSchema = Joi.object<IEventUpdateFrom>({
         }
     }).optional(),
     categorys: Joi.array().items(Joi.string().min(24)).min(1).optional(),
-    ticketTypes: Joi.array().items(newTicketTypesSchema).min(1).optional(),
+    ticketTypes: Joi.array().items(updateTicketTypesSchema).min(1).optional(),
 });

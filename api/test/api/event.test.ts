@@ -3,8 +3,7 @@ import { connectDB, dropCollections, dropDB } from './util';
 import Cache from '../../src/Util/cache';
 import request from "supertest";
 import { makeServer } from '../../src/Util/Factories';
-import { categoryPrivateUrl, categoryPublicUrl, createOrganizer, eventPrivateUrl, eventPublicUrl, expectError, expectValidCategory, expectValidEvent, newInValidTicketTypes, newValidCategory, newValidEvent, newValidOrganizer, newValidOrganizer2, newValidTicketType, newValidTicketTypes, newValidUser, sighupUrl, updateValidEvent } from './common';
-import { IOrganizer } from '../../src/Schema/Types/organizer.schema.types';
+import { categoryPrivateUrl, categoryPublicUrl, createOrganizer, eventPrivateUrl, eventPublicUrl, expectError, expectValidCategory, expectValidEvent, newInValidTicketTypes, newValidCategory, newValidEvent, newValidOrganizer, newValidOrganizer2, newValidTicketType, newValidTicketTypes, newValidUser, sighupUrl } from './common';
 import { UserType } from '../../src/Types';
 import { IUser } from '../../src/Schema/Types/user.schema.types';
 import { ICategory } from '../../src/Schema/Types/category.schema.types';
@@ -116,6 +115,16 @@ describe('Event', () => {
                     expectError(response, 400);
                 })
             });
+
+            describe("WHEN the Event is Valid and Valid category and sellingStartDate > event endDate", () => {
+                it("SHOULD return a 400 status code AND error obj", async () => {
+
+                    const response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessTokens[0]}`)
+                        .send(newValidEvent({ categorys: [categorys[0].id], ticketTypes: [{ ...newValidTicketType, sellingStartDate: new Date(new Date().getTime() + (24 * 60 * 60 * 1000)) }] }));
+
+                    expectError(response, 400);
+                });
+            })
 
         });
 
@@ -319,7 +328,6 @@ describe('Event', () => {
                 describe("WHEN update the Event to reset it's category, Then the category", () => {
                     it("SHOULD return a 200 status code AND category obj With less events", async () => {
 
-
                         var eventResponse = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessTokens[0]}`)
                             .send(newValidEvent({ name: `temp`, categorys: [...categorys.map((category => category.id))], ticketTypes: newValidTicketTypes }));
 
@@ -343,6 +351,27 @@ describe('Event', () => {
 
                     });
                 });
+
+                describe("WHEN update the Event TicketTypes sellingStartDate with sellingStartDate > event endDate", () => {
+                    it("SHOULD return a 400 status code AND error obj", async () => {
+
+                        const response = await request(app).patch(`${eventPrivateUrl()}update/${events[0].id}`).set('authorization', `Bearer ${accessTokens[0]}`).send({
+                            ticketTypes: [{ ...newValidTicketType, sellingStartDate: new Date(new Date().getTime() + (24 * 60 * 60 * 1000)) }],
+                        });
+                        expectError(response, 400);
+                    });
+                })
+
+                describe("WHEN update the Event endDate with sellingStartDate > event endDate", () => {
+                    it("SHOULD return a 400 status code AND error obj", async () => {
+
+                        const response = await request(app).patch(`${eventPrivateUrl()}update/${events[0].id}`).set('authorization', `Bearer ${accessTokens[0]}`).send({
+                            endDate: new Date(new Date().getTime() - 2 * (24 * 60 * 60 * 1000))
+                        });
+                        expectError(response, 400);
+                    });
+                })
+
             });
 
         });
