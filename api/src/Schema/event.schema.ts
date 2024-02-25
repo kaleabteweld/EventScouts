@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import { IEvent, IEventMethods, IEventModel } from './Types/event.schema.types'
 import { mongooseErrorPlugin } from './Middleware/errors.middleware'
 import { validator, getById, checkIfOwnByOrganizer, removeByID, update } from './ExtendedFunctions/event.extended'
+import { getEventWithReviews } from './Aggregate/event.aggregate'
 import { ticketTypesSchema } from './ticketType.schema'
 import { PEGIRating } from '../Domains/Event/validation'
 import { IOrganizer } from './Types/organizer.schema.types'
@@ -19,6 +20,7 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
     minimumTicketPrice: { type: Number, default: 0 }, // Aggregated field
     organizer: { type: mongoose.Schema.Types.ObjectId, ref: "Organizer" },
     categorys: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
+    reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],
     ticketTypes: [ticketTypesSchema]
 }, {
     timestamps: true,
@@ -30,6 +32,7 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
         getById,
         removeByID,
         update,
+        getEventWithReviews,
     }
 })
 

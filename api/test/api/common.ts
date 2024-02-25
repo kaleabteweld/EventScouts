@@ -9,6 +9,9 @@ import { IUserSignUpFrom } from "../../src/Domains/User/types";
 import { IOrganizer } from "../../src/Schema/Types/organizer.schema.types";
 import { UserType } from "../../src/Types";
 import { ICategory } from "../../src/Schema/Types/category.schema.types";
+import { IEvent } from "../../src/Schema/Types/event.schema.types";
+import { IUser } from "../../src/Schema/Types/user.schema.types";
+import { INewReviewFrom } from "../../src/Domains/Review/types";
 
 export const sighupUrl = (user: UserType) => `/Api/v1/public/authentication/${user}/signUp`;
 export const loginUrl = (user: UserType, wallet: boolean = false) => `/Api/v1/public/authentication/${user}/login${wallet ? "/wallet" : ""}`;
@@ -22,6 +25,8 @@ export const eventPrivateUrl = () => `/Api/v1/private/event/`;
 export const eventPublicUrl = () => `/Api/v1/public/event/`;
 export const categoryPrivateUrl = () => `/Api/v1/private/category/`;
 export const categoryPublicUrl = () => `/Api/v1/public/category/`;
+export const reviewPrivateUrl = () => `/Api/v1/private/review/`;
+export const reviewPublicUrl = () => `/Api/v1/public/review/`;
 
 
 
@@ -44,6 +49,7 @@ export const newValidUser: IUserSignUpFrom = {
     email: "test@test.com",
     gender: 'male',
     name: "test",
+    profilePic: "http://localhost/category/a.png",
     password: "abcd12345",
     phone: "+251900000",
     userName: "test",
@@ -53,6 +59,12 @@ export const newValidUser: IUserSignUpFrom = {
 export const newValidCategory: INewCategoryFrom = {
     name: "Category"
 }
+
+export const newValidReview = (event: string, rating: number = 2, review = "good") => ({
+    event,
+    rating,
+    review
+}) as INewReviewFrom
 
 type TNewValidEventArgs = { categorys?: string[], organizer?: string, ticketTypes?: INewTicketTypesFrom[], name?: string }
 
@@ -189,6 +201,19 @@ export const createOrganizer = async (request: Function, app: any, newValidOrgan
 
     return { organizers, accessTokens }
 }
+export const createUser = async (request: Function, app: any, newValidUsers: IUserSignUpFrom[]): Promise<{ users: IUser[], accessTokens: string[] }> => {
+
+    const users: IUser[] = [];
+    const accessTokens: string[] = [];
+
+    for (let index = 0; index < newValidUsers.length; index++) {
+        const response = await request(app).post(sighupUrl(UserType.user)).send(newValidUsers[index]);
+        users.push(response.body);
+        accessTokens.push(response.header.authorization.split(" ")[1])
+    }
+
+    return { users, accessTokens }
+}
 
 export const expectValidCategory = async (response: Response, ValidCategory: INewCategoryFrom, matchers?: Record<string, unknown> | Record<string, unknown>[]) => {
 
@@ -251,4 +276,31 @@ export const expectError = async (response: Response, code: number) => {
         expect(response.body.body).toBeUndefined();
         expect(response.body.error).toMatchObject({ msg: expect.any(String) });
     }
+}
+
+export const createEvents = async (request: Function, app: any, newValidCategorys: INewCategoryFrom[], eventCount: number = 2, accessToken: string): Promise<{ categorys: ICategory[], events: IEvent[] }> => {
+
+    var categorys: ICategory[] = [];
+    var events: IEvent[] = [];
+
+    for (const validCategory of newValidCategorys) {
+        const categoryResponse = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send(validCategory);
+        categorys.push(categoryResponse.body.body)
+    }
+
+    for (let index = 1; index < eventCount; index++) {
+        var _response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessToken}`)
+            .send(newValidEvent({ name: `event ${index}`, categorys: [...categorys.map((category => category.id))], ticketTypes: newValidTicketTypes }));
+
+        events.push(_response.body.body)
+    }
+
+    return { events, categorys }
+
+}
+
+export const expectValidReview = async (response: Response, newValidReview: INewReviewFrom, matchers?: Record<string, unknown> | Record<string, unknown>[]) => {
+
+    expect(response.status).toBe(200);
+    expect(response.body.body).toMatchObject({ ...newValidReview, id: expect.any(String), ...matchers });
 }

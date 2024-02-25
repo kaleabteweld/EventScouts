@@ -9,6 +9,7 @@ export const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
     name: String,
     userName: { type: String, unique: true },
     phone: { type: String, unique: true },
+    profilePic: { type: String },
     verified: {
         type: String,
         enum: Object.values(verifiedEnum),

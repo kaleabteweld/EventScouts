@@ -1,4 +1,5 @@
-import { TGender } from "../../Schema/user.schema";
+import { TGender } from "../../Schema/Types/user.schema.types"
+
 
 export interface IUserLogInFrom {
     email: string,
@@ -14,6 +15,7 @@ export interface IUserSignUpFrom {
     name: string,
     userName: string,
     phone: string,
+    profilePic: string,
     dateOfBirth: Date,
     gender: TGender,
     password: string,

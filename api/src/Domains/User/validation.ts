@@ -9,8 +9,8 @@ export const newUserSchema = Joi.object<IUserSignUpFrom>({
     email: Joi.string().email().required(),
     name: Joi.string().max(30).required(),
     userName: Joi.string().max(20).required(),
-
     phone: Joi.string().required(),
+    profilePic: Joi.string().uri().required(),
     dateOfBirth: Joi.date().required(),
     gender: Joi.custom((value, helper) => {
         if (!Object.values(GenderEnum).includes(value)) {

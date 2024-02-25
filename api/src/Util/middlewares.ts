@@ -62,6 +62,22 @@ export function organizerOnly(req: any, res: any, next: NextFunction) {
     next();
 }
 
+export function userOnly(req: any, res: any, next: NextFunction) {
+
+    const userType = req["userType"];
+    if (userType === undefined || userType === null) throw Error("No Valid Token");
+
+    if (req["userType"] !== UserType.user) {
+        throw errorFactory({
+            msg: "User Only",
+            statusCode: 401,
+            type: "Token"
+        })
+    }
+
+    next();
+}
+
 export function adminOnly(req: any, res: any, next: NextFunction) {
 
     const userType = req["userType"];

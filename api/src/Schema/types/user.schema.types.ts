@@ -29,6 +29,7 @@ export interface IUser extends mongoose.Document {
     name: string;
     userName: string;
     phone: string;
+    profilePic: string;
     verified: TVerified;
     dateOfBirth?: Date;
     gender: TGender;

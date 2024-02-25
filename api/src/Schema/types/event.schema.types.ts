@@ -4,6 +4,8 @@ import { IOrganizer } from "./organizer.schema.types";
 import { ICategory } from "./category.schema.types";
 import { ITicketTypes } from "./ticketTypes.schema.types";
 import { IEventUpdateFrom } from "../../Domains/Event/types";
+import { IPagination } from "../../Domains/Common/types";
+import { IReview } from "./review.schema.types";
 
 export interface IEvent extends mongoose.Document {
     name: string
@@ -18,6 +20,7 @@ export interface IEvent extends mongoose.Document {
     organizer: mongoose.Types.ObjectId | IOrganizer
     categorys: mongoose.Schema.Types.ObjectId[] | ICategory[]
     ticketTypes: ITicketTypes[]
+    reviews: mongoose.Schema.Types.ObjectId[] | IReview[]
 }
 
 //Dynamic methods
@@ -35,4 +38,5 @@ export interface IEventModel extends mongoose.Model<IEventDocument> {
     getById(_id: string, populatePath?: string | string[]): Promise<IEventDocument | null>
     removeByID(_id: string): Promise<void>
     update(_id: string, newEvent: IEventUpdateFrom, populatePath: string | string[]): Promise<IEvent | null>
+    getEventWithReviews(pagination: IPagination, _id: string): Promise<IEvent>
 }
