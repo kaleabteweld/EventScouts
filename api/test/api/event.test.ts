@@ -257,6 +257,21 @@ describe('Event', () => {
 
                 });
 
+                describe("When Event is removed, in category event count", () => {
+                    it("SHOULD Decrement BY 1", async () => {
+
+                        const preCategoryResponse = await request(app).get(`${categoryPublicUrl()}byId/${categorys[0].id}?withEventCount=true`).send();
+
+                        let response = await request(app).delete(`${eventPrivateUrl()}remove/${events[0].id}`).set('authorization', `Bearer ${accessTokens[0]}`).send({});
+                        expect(response.status).toBe(200);
+
+                        const postCategoryResponse = await request(app).get(`${categoryPublicUrl()}byId/${categorys[0].id}?withEventCount=true`).send();
+
+                        expect(preCategoryResponse.body.body.eventCount).toBeGreaterThan(postCategoryResponse.body.body.eventCount)
+                        expect(preCategoryResponse.body.body.events.length).toBeGreaterThan(postCategoryResponse.body.body.events.length)
+                    })
+                })
+
             });
 
         });

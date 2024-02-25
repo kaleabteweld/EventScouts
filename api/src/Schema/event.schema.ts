@@ -95,7 +95,23 @@ eventSchema.pre('findOneAndUpdate', async function () {
         console.error("Error updating categories:", error);
     }
 });
+eventSchema.pre('deleteOne', async function () {
+    const docToDelete: IEvent | null = await this.model.findOne(this.getFilter());
 
+    try {
+        for (const categoryId of (docToDelete as IEvent).categorys) {
+            const category = await mongoose.model('Category').findByIdAndUpdate(categoryId,
+                { $pullAll: { events: [(docToDelete as IEvent)._id] } },
+                { new: true }
+            );
+            if (category) {
+                await category.save();
+            }
+        }
+    } catch (error) {
+        console.error("Error updating categories:", error);
+    }
+});
 eventSchema.post('findOneAndUpdate', async function () {
     const event = this;
     try {
