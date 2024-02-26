@@ -1,11 +1,12 @@
-import { IEventUpdateFrom, INewEventFrom } from "./types";
-import { newEventSchema, updateEventSchema } from "./validation";
+import { IEventSearchFrom, IEventUpdateFrom, INewEventFrom } from "./types";
+import { eventSearchSchema, newEventSchema, updateEventSchema } from "./validation";
 import { IPagination, IResponseType } from "../Common/types";
 import { Route, Tags, Post, Get, Delete, Patch } from "tsoa";
 import { IEvent } from "../../Schema/Types/event.schema.types";
 import EventModel from "../../Schema/event.schema";
 import { IOrganizer } from "../../Schema/Types/organizer.schema.types";
 import { copyObjectWithout } from "../../Util";
+import { EventSearchBuilder } from "../../Schema/ExtendedFunctions/event.extended";
 
 
 @Route("/event")
@@ -67,5 +68,14 @@ export default class EventController {
 
 
         return { body: (newEvent?.toJSON() as any) };
+    }
+
+    @Post("/search/{page}")
+    static async search(searchFrom: IEventSearchFrom, page: number): Promise<IResponseType<IEvent[] | null>> {
+        await EventModel.validator(searchFrom, eventSearchSchema);
+        const builder = EventSearchBuilder.fromJSON(EventModel, searchFrom);
+        builder.withPagination(page);
+
+        return { body: (await builder.execute() as any) };
     }
 }

@@ -2,7 +2,7 @@ import { Response } from "supertest";
 import { expect } from '@jest/globals';
 
 import { INewCategoryFrom } from "../../src/Domains/Category/types";
-import { IEventUpdateFrom, INewEventFrom } from "../../src/Domains/Event/types";
+import { IEventSearchFrom, IEventUpdateFrom, INewEventFrom } from "../../src/Domains/Event/types";
 import { IOrganizerSignUpFrom } from "../../src/Domains/Organizer/types";
 import { INewTicketTypesFrom } from "../../src/Domains/TicketTypes/types";
 import { IUserSignUpFrom } from "../../src/Domains/User/types";

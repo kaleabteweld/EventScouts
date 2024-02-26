@@ -3,35 +3,17 @@ import { connectDB, dropCollections, dropDB } from './util';
 import Cache from '../../src/Util/cache';
 import request from "supertest";
 import { makeServer } from '../../src/Util/Factories';
-import { categoryPrivateUrl, categoryPublicUrl, createOrganizer, eventPrivateUrl, eventPublicUrl, expectError, expectValidCategory, expectValidEvent, newInValidTicketTypes, newValidCategory, newValidEvent, newValidOrganizer, newValidOrganizer2, newValidTicketType, newValidTicketTypes, newValidUser, sighupUrl, userPrivateUrl } from './common';
+import { categoryPrivateUrl, categoryPublicUrl, createEvents, createOrganizer, eventPrivateUrl, eventPublicUrl, expectError, expectValidCategory, expectValidEvent, newInValidTicketTypes, newValidCategory, newValidEvent, newValidOrganizer, newValidOrganizer2, newValidTicketType, newValidTicketTypes, newValidUser, sighupUrl, userPrivateUrl } from './common';
 import { UserType } from '../../src/Types';
 import { IUser } from '../../src/Schema/Types/user.schema.types';
 import { ICategory } from '../../src/Schema/Types/category.schema.types';
 import { IEvent } from '../../src/Schema/Types/event.schema.types';
 import { INewCategoryFrom } from '../../src/Domains/Category/types';
+import { IEventSearchFrom } from '../../src/Domains/Event/types';
+import { IOrganizer } from '../../src/Schema/Types/organizer.schema.types';
 
 const app = makeServer();
 
-export const createEvents = async (request: Function, app: any, newValidCategorys: INewCategoryFrom[], eventCount: number = 2, accessToken: string): Promise<{ categorys: ICategory[], events: IEvent[] }> => {
-
-    var categorys: ICategory[] = [];
-    var events: IEvent[] = [];
-
-    for (const validCategory of newValidCategorys) {
-        const categoryResponse = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send(validCategory);
-        categorys.push(categoryResponse.body.body)
-    }
-
-    for (let index = 1; index < eventCount; index++) {
-        var _response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessToken}`)
-            .send(newValidEvent({ name: `event ${index}`, categorys: [...categorys.map((category => category.id))], ticketTypes: newValidTicketTypes }));
-
-        events.push(_response.body.body)
-    }
-
-    return { events, categorys }
-
-}
 describe('Event', () => {
 
     beforeAll(() => {
@@ -175,11 +157,13 @@ describe('Event', () => {
         var categorys: ICategory[] = [];
         var events: IEvent[] = [];
         var accessToken: string;
+        var organizers: IOrganizer[] = [];
 
 
         beforeEach(async () => {
-            const { accessTokens } = await createOrganizer(request, app, [newValidOrganizer]);
+            const { accessTokens, organizers: orgs } = await createOrganizer(request, app, [newValidOrganizer]);
             accessToken = accessTokens[0];
+            organizers = orgs;
 
             const { categorys: cats, events: eves } = await createEvents(request, app, [newValidCategory], 2, accessToken)
             categorys = cats;
@@ -217,6 +201,158 @@ describe('Event', () => {
                     expectError(response, 404);
                 });
             })
+        })
+
+        describe("WHEN trying to get Events by event search", () => {
+
+            describe("WHEN using unsupported inputs", () => {
+
+                describe("WHEN using page [must start with one]", () => {
+                    it("SHOULD 400 with error obj", async () => {
+                        const response = await request(app).post(`${eventPublicUrl()}search/0`).send({});
+                        expectError(response, 400);
+                    })
+                });
+
+                describe("WHEN using organizer [must a ObjectID ]", () => {
+
+                    it("SHOULD 400 with error obj", async () => {
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                            organizer: "3234"
+                        } as IEventSearchFrom);
+                        expectError(response, 400);
+                    })
+                });
+
+                describe("WHEN using categorys [must a ObjectID[] ]", () => {
+
+                    it("SHOULD 400 with error obj", async () => {
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                            categorys: ["as"]
+                        } as IEventSearchFrom);
+                        expectError(response, 400);
+                    })
+                });
+            })
+
+            describe("WHEN using supported inputs", () => {
+
+                describe("WHEN using categorys which has nothing to do with the event", () => {
+                    it("SHOULD []", async () => {
+                        const categoryResponse = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send({
+                            name: "kolo"
+                        });
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                            categorys: [categoryResponse.body.body.id],
+                        } as IEventSearchFrom);
+
+                        expect(response.body.body).toEqual([]);
+                    })
+                });
+
+                describe("WHEN using startDate", () => {
+                    it("SHOULD returns every Event starting after given Date", async () => {
+
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                            startDate: new Date(new Date().getTime() - (7 * 24 * 60 * 60 * 1000))
+                        } as IEventSearchFrom);
+
+                        expect(response.body.body.length).toBeGreaterThanOrEqual(1)
+                    })
+
+                    it("SHOULD returns [] if there events start before given Date", async () => {
+
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                            startDate: new Date(new Date().getTime() + (7 * 24 * 60 * 60 * 1000))
+                        } as IEventSearchFrom);
+
+                        expect(response.body.body).toEqual([]);
+                    })
+                });
+
+                describe("WHEN using endDate", () => {
+                    it("SHOULD returns every Event before the given Date", async () => {
+
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                            endDate: new Date(new Date().getTime() + (7 * 24 * 60 * 60 * 1000))
+                        } as IEventSearchFrom);
+
+                        expect(response.body.body.length).toBeGreaterThanOrEqual(1)
+                    })
+
+                    it("SHOULD returns [] if there events ends after given Date", async () => {
+
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                            endDate: new Date(new Date().getTime() - (7 * 24 * 60 * 60 * 1000))
+                        } as IEventSearchFrom);
+
+                        expect(response.body.body).toEqual([]);
+                    })
+                });
+
+                describe("WHEN using startDate and endDate", () => {
+                    it("SHOULD returns every Event with the given range Date", async () => {
+
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                            startDate: new Date(new Date().getTime() - (7 * 24 * 60 * 60 * 1000)),
+                            endDate: new Date(new Date().getTime() + (7 * 24 * 60 * 60 * 1000))
+                        } as IEventSearchFrom);
+
+                        expect(response.body.body.length).toBeGreaterThanOrEqual(1)
+                    })
+                });
+
+                describe("WHEN using minPrice", () => {
+                    it("SHOULD returns every Event having minimumTicketPrice > given price", async () => {
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                            minPrice: 1,
+                        } as IEventSearchFrom);
+                        expect(response.body.body.length).toBeGreaterThanOrEqual(1)
+                    })
+
+                    it("SHOULD returns [] if there events minimumTicketPrice < given price", async () => {
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                            minPrice: Number.MAX_SAFE_INTEGER,
+                        } as IEventSearchFrom);
+                        expect(response.body.body).toEqual([]);
+                    })
+                })
+
+                describe("WHEN using maxPrice", () => {
+                    it("SHOULD returns every Event having minimumTicketPrice < given price", async () => {
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                            maxPrice: Number.MAX_SAFE_INTEGER,
+                        } as IEventSearchFrom);
+                        expect(response.body.body.length).toBeGreaterThanOrEqual(1)
+                    })
+
+                    it("SHOULD returns [] if there events minimumTicketPrice > given price", async () => {
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                            maxPrice: 1,
+                        } as IEventSearchFrom);
+                        expect(response.body.body).toEqual([]);
+                    })
+                })
+
+                describe("WHEN using minPrice and maxPrice", () => {
+                    it("SHOULD returns every Event having minimumTicketPrice < given price", async () => {
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                            minPrice: 1,
+                            maxPrice: Number.MAX_SAFE_INTEGER,
+                        } as IEventSearchFrom);
+                        expect(response.body.body.length).toBeGreaterThanOrEqual(1)
+                    })
+
+                    it("SHOULD returns [] if there events minimumTicketPrice > given price", async () => {
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                            maxPrice: 1,
+                            minPrice: Number.MAX_SAFE_INTEGER,
+                        } as IEventSearchFrom);
+                        expect(response.body.body).toEqual([]);
+                    })
+                })
+
+            });
         })
 
     });

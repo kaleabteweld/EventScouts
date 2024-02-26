@@ -16,3 +16,16 @@ export interface INewEventFrom {
 
 export interface IEventUpdateFrom extends Omit<Partial<INewEventFrom>, 'organizer'> {
 }
+
+
+export interface IEventSearchFrom {
+    name?: string
+    startDate?: Date
+    endDate?: Date
+    location?: string
+    ageRating?: string
+    organizer?: string
+    categorys?: string[]
+    minPrice?: number
+    maxPrice?: number
+}

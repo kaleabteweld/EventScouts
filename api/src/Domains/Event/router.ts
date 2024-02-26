@@ -15,6 +15,13 @@ publicEventRouter.get("/list/:skip/:limit", MakeErrorHandler(
     }
 ));
 
+publicEventRouter.post("/search/:page", MakeErrorHandler(
+    async (req: any, res: Response) => {
+        const page = Number.parseInt(req.params.page);
+        res.json(await EventController.search(req.body, page));
+    }
+));
+
 publicEventRouter.get("/byId/:id", MakeErrorHandler(
     async (req: Request, res: Response) => res.json(await EventController.getById(req.params.id))
 ));

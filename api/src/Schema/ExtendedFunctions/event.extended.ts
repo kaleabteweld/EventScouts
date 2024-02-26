@@ -1,10 +1,11 @@
 import Joi from "joi";
 import { MakeValidator } from "../../Domains/Common";
 import mongoose from "mongoose";
-import { IEvent } from "../Types/event.schema.types";
+import { IEvent, IEventDocument } from "../Types/event.schema.types";
 import { ValidationErrorFactory } from "../../Util/Factories";
 import { BSONError } from 'bson';
-import { IEventUpdateFrom } from "../../Domains/Event/types";
+import { IEventSearchFrom, IEventUpdateFrom } from "../../Domains/Event/types";
+import EventModel from "../event.schema";
 
 
 export function validator<T>(userInput: T, schema: Joi.ObjectSchema<T>) {
@@ -83,5 +84,113 @@ export async function update(this: mongoose.Model<IEvent>, _id: string, newEvent
         return newDoc;
     } catch (error) {
         throw error;
+    }
+}
+
+export class EventSearchBuilder {
+    private query: mongoose.FilterQuery<IEventDocument> = {};
+    private page: number = 1;
+
+    constructor(private model: mongoose.Model<IEventDocument> = EventModel, private pageSize: number = 10) {
+    }
+
+    withName(name: string): this {
+        this.query.name = { $regex: new RegExp(name, 'i') };
+        return this;
+    }
+    withStartDate(startDate: Date): this {
+        this.query.startDate = { $gte: startDate };
+        return this;
+    }
+
+    withEndDate(endDate: Date): this {
+        this.query.endDate = { $lte: endDate };
+        return this;
+    }
+    withLocation(location: string): this {
+        this.query.location = location;
+        return this;
+    }
+
+    withAgeRating(ageRating: string): this {
+        this.query.ageRating = ageRating;
+        return this;
+    }
+
+    withOrganizer(organizerId: string): this {
+        this.query.organizer = organizerId;
+        return this;
+    }
+    withMinPrice(minPrice: number): this {
+        this.query.minimumTicketPrice = { $gte: minPrice };
+        return this;
+    }
+    withMaxPrice(maxPrice: number): this {
+        this.query.minimumTicketPrice = { $lte: maxPrice };
+        return this;
+    }
+    withCategory(categoryIds: string[]): this {
+        if (!this.query.categorys) {
+            this.query.categorys = [];
+        }
+        this.query.categorys = categoryIds;
+        return this;
+    }
+
+    withPagination(page: number = 1): this {
+        if (page < 1) throw ValidationErrorFactory({
+            msg: 'page must be greater than 1',
+            statusCode: 400,
+            type: "validation"
+        }, "page")
+        this.page = page;
+        return this;
+    }
+    static fromJSON(model: mongoose.Model<IEventDocument>, json: IEventSearchFrom): EventSearchBuilder {
+        const builder = new EventSearchBuilder(model);
+        if (json.name) {
+            builder.withName(json.name);
+        }
+        if (json.location) {
+            builder.withLocation(json.location);
+        }
+        if (json.ageRating) {
+            builder.withAgeRating(json.ageRating);
+        }
+        if (json.organizer) {
+            builder.withOrganizer(json.organizer);
+        }
+        if (json.categorys && Array.isArray(json.categorys)) {
+            builder.withCategory(json.categorys);
+        }
+        if (json.startDate) {
+            builder.withStartDate(new Date(json.startDate));
+        }
+        if (json.endDate) {
+            builder.withEndDate(new Date(json.endDate));
+        }
+        if (json.minPrice) {
+            builder.withMinPrice(json.minPrice);
+        }
+        if (json.maxPrice) {
+            builder.withMaxPrice(json.maxPrice);
+        }
+        return builder;
+    }
+    async execute(): Promise<IEventDocument[] | void> {
+        try {
+            const skip = (this.page - 1) * this.pageSize;
+            const result = await this.model.find(this.query).skip(skip).limit(this.pageSize);
+            return result;
+        } catch (error) {
+
+            if (error instanceof BSONError || error instanceof mongoose.Error.CastError) {
+                throw ValidationErrorFactory({
+                    msg: "Input must be a 24 character hex string, 12 byte Uint8Array, or an integer",
+                    statusCode: 400,
+                    type: "validation",
+                }, "organizerId");
+            }
+        }
     }
 }
