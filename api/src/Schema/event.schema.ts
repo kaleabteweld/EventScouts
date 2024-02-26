@@ -16,6 +16,7 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
     endDate: { type: Date },
     location: String,
     venue: String,
+    rating: { avgRating: { type: Number, default: 0 }, ratingCount: { type: Number, default: 0 } },
     ageRating: { type: String, enum: PEGIRating },
     minimumTicketPrice: { type: Number, default: 0 }, // Aggregated field
     organizer: { type: mongoose.Schema.Types.ObjectId, ref: "Organizer" },

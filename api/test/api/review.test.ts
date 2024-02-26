@@ -57,7 +57,7 @@ describe('Review', () => {
                     expectValidReview(response, newValidReview(events[0].id))
                 });
 
-                describe("WHEN the Review is Valid", () => {
+                describe("WHEN Review is added to Events, Events", () => {
                     it("SHOULD set Events Review list", async () => {
 
                         const response = await request(app).post(reviewPrivateUrl()).set("Authorization", `Bearer ${accessTokens[0]}`)
@@ -72,8 +72,24 @@ describe('Review', () => {
                         expect(reviewResponse.body.body.reviews.length).toBeGreaterThan(0)
                         expect(reviewResponse.body.body.reviews.length).toBeLessThan(3)
                     });
+                    it("SHOULD update Event avgRating and ratingCount", async () => {
 
+                        var eventResponse = await request(app).get(`${eventPublicUrl()}byId/${events[0].id}`).send();
+                        const avgRating = eventResponse.body.body.rating.avgRating;
+                        const ratingCount = eventResponse.body.body.rating.ratingCount;
 
+                        const response = await request(app).post(reviewPrivateUrl()).set("Authorization", `Bearer ${accessTokens[0]}`)
+                            .send(newValidReview(events[0].id));
+
+                        expectValidReview(response, newValidReview(events[0].id))
+
+                        eventResponse = await request(app).get(`${eventPublicUrl()}byId/${events[0].id}`).send();
+
+                        expect(eventResponse.body.body.rating.ratingCount).toBeGreaterThan(ratingCount);
+                        expect(eventResponse.body.body.rating.avgRating).toBe(
+                            (avgRating * ratingCount + newValidReview(events[0].id).rating) / (ratingCount + 1)
+                        )
+                    });
                 });
             });
 

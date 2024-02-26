@@ -32,6 +32,19 @@ reviewSchema.set('toJSON', {
         return ret
     }
 })
+reviewSchema.post('save', async function (doc, next) {
+    try {
+        const event = (await mongoose.model('Event').findById(doc.event) as IEvent);
+        if (event) {
+            event.rating.avgRating = ((event.rating.avgRating || 0) * (event.rating.ratingCount || 0) + (doc.rating)) / (event.rating.ratingCount + 1);
+            event.rating.ratingCount += 1;
+            event.save();
+        }
+        next();
+    } catch (error) {
+        next();
+    }
+});
 reviewSchema.post('save', async function (doc) {
     try {
         const event = await mongoose.model('Event').findById<IEvent>(doc.event);
