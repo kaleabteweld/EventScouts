@@ -1,7 +1,8 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { expect } from "chai";
 import { BigNumber, Contract } from "ethers";
 import { ethers } from "hardhat";
+import { describe, beforeEach, afterEach, beforeAll, afterAll, it, expect } from '@jest/globals';
+
 
 describe("TicketToken", () => {
     const name = "TicketToken";
@@ -28,17 +29,17 @@ describe("TicketToken", () => {
 
         it("Should set the right name", async function () {
             const _name = await contract.name();
-            expect(_name).to.equal(name);
+            expect(_name).toEqual(name);
         });
 
         it("Should set the right symbol", async function () {
             const _symbol = await contract.symbol();
-            expect(_symbol).to.equal(symbol);
+            expect(_symbol).toEqual(symbol);
         });
 
         it("Should set the right owner", async function () {
             const _owner = await contract.owner();
-            expect(_owner).to.equal(owner.address);
+            expect(_owner).toEqual(owner.address);
         });
     })
 
@@ -67,7 +68,7 @@ describe("TicketToken", () => {
             try {
                 await await contract.getEventCost(" ")
             } catch (error: any) {
-                expect(error.reason).to.equals("eventId does not exist");
+                expect(error.reason).toEqual("eventId does not exist");
             }
         });
 
@@ -97,7 +98,7 @@ describe("TicketToken", () => {
             try {
                 await contract.connect(buyer).mint(events[0].id, 1, { value: events[0].cost.sub(BigNumber.from(100)) })
             } catch (error: any) {
-                expect(error.toString()).to.equals(`Error: VM Exception while processing transaction: reverted with reason string 'Not enough funds'`);
+                expect(error.toString()).toEqual(`Error: VM Exception while processing transaction: reverted with reason string 'Not enough funds'`);
             }
         });
 
@@ -105,7 +106,7 @@ describe("TicketToken", () => {
             try {
                 await contract.connect(buyer).mint(events[0].id, 1, { value: events[0].cost.add(BigNumber.from(100)) })
             } catch (error: any) {
-                expect(error.toString()).to.equals(`Error: VM Exception while processing transaction: reverted with reason string 'Overpayment'`);
+                expect(error.toString()).toEqual(`Error: VM Exception while processing transaction: reverted with reason string 'Overpayment'`);
             }
         });
 
@@ -113,7 +114,7 @@ describe("TicketToken", () => {
             try {
                 await contract.connect(buyer).mint(events[0].id, 0, { value: events[0].cost })
             } catch (error: any) {
-                expect(error.toString()).to.equals(`Error: VM Exception while processing transaction: reverted with reason string 'amount must be 1 to 5'`);
+                expect(error.toString()).toEqual(`Error: VM Exception while processing transaction: reverted with reason string 'amount must be 1 to 5'`);
 
             }
         });
@@ -122,7 +123,7 @@ describe("TicketToken", () => {
             try {
                 await contract.connect(buyer).mint(events[0].id, 6, { value: events[0].cost })
             } catch (error: any) {
-                expect(error.toString()).to.equals(`Error: VM Exception while processing transaction: reverted with reason string 'amount must be 1 to 5'`);
+                expect(error.toString()).toEqual(`Error: VM Exception while processing transaction: reverted with reason string 'amount must be 1 to 5'`);
 
             }
         });
@@ -183,7 +184,7 @@ describe("TicketToken", () => {
                 console.log({ balanceBefore, balanceAfter })
 
             } catch (error: any) {
-                expect(error.toString()).to.equals(`Error: VM Exception while processing transaction: reverted with reason string 'ownership is required'`);
+                expect(error.toString()).toEqual(`Error: VM Exception while processing transaction: reverted with reason string 'ownership is required'`);
             }
         })
     })
