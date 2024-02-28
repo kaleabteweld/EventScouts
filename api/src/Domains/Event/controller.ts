@@ -23,7 +23,7 @@ export default class EventController {
 
         await event.populate("categorys")
 
-        return { body: event.toJSON() }
+        return { body: (event.toJSON() as any) }
     }
 
     @Get("/list/{skip}/{limit}")

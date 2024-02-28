@@ -28,7 +28,7 @@ export default class OrganizerController {
         await organizer.save();
         const { accessToken, refreshToken } = await MakeTokens(organizer.toJSON(), UserType.organizer);
 
-        return { body: organizer.toJSON(), header: { accessToken, refreshToken } }
+        return { body: (organizer.toJSON() as any), header: { accessToken, refreshToken } }
     }
 
     @Path("/Authentication/organizer")
@@ -40,7 +40,7 @@ export default class OrganizerController {
         await organizer!.checkPassword(from.password);
 
         const { accessToken, refreshToken } = await MakeTokens(organizer!.toJSON(), UserType.organizer);
-        return { body: organizer!.toJSON(), header: { accessToken, refreshToken } }
+        return { body: (organizer!.toJSON() as any), header: { accessToken, refreshToken } }
 
     }
 
@@ -84,7 +84,7 @@ export default class OrganizerController {
         const organizer = await OrganizerModel.getById(_organizer.id);
         await organizer!.applyVerify(key);
 
-        return { body: organizer!.toJSON() }
+        return { body: (organizer!.toJSON() as any) }
     }
 
 }

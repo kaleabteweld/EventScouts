@@ -16,10 +16,10 @@ export default class CategoryController {
 
         await CategoryModel.validator(_Category, newCategorySchema);
         const organizer = await OrganizerModel.getById(_organizer.id);
-        const Category = await new CategoryModel(({ ..._Category, organizer: organizer?.id }));
-        await Category.save();
+        const category = await new CategoryModel(({ ..._Category, organizer: organizer?.id }));
+        await category.save();
 
-        return { body: Category.toJSON() }
+        return { body: (category.toJSON() as any) }
     }
 
     @Get("/list/{skip}/{limit}")

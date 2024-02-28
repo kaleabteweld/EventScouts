@@ -165,14 +165,14 @@ describe('Review', () => {
         describe("WHEN trying to get Reviews by reviews id", () => {
 
             describe("WHEN trying to get Reviews by valid event id", () => {
-                it("SHOULD return the Event with that id", async () => {
+                it("SHOULD return the Review with that id", async () => {
 
                     const response = await request(app).get(`${reviewPublicUrl()}byId/${reviews[0].id}`).send();
                     expectValidReview(response, newValidReview(events[0].id))
                 })
             })
 
-            describe("WHEN trying to get Event by InValid event id", () => {
+            describe("WHEN trying to get Review by InValid Review id", () => {
                 it("SHOULD return 404 with error obj", async () => {
                     const response = await request(app).get(`${reviewPublicUrl()}byId/75cfba229d3e6fb530a1d4d5`).send();
                     expectError(response, 404);

@@ -27,7 +27,7 @@ export default class ReviewController {
         const review = await new ReviewModel((_review));
         await review.save();
 
-        return { body: review.toJSON() }
+        return { body: (review.toJSON() as any) }
     }
 
     @Get("/list/{eventId}/{skip}/{limit}")
