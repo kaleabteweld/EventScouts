@@ -5,7 +5,7 @@ import { validator, getById, checkIfOwnByOrganizer, removeByID, update } from '.
 import { getEventWithReviews } from './Aggregate/event.aggregate'
 import { ticketTypesSchema } from './ticketType.schema'
 import { PEGIRating } from '../Domains/Event/validation'
-import { IOrganizer } from './Types/organizer.schema.types'
+import CohereAI from '../Util/cohere'
 
 
 export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethods>({
@@ -16,6 +16,7 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
     endDate: { type: Date },
     location: String,
     venue: String,
+    descriptionEmbedding: [{ type: Number }],
     rating: { avgRating: { type: Number, default: 0 }, ratingCount: { type: Number, default: 0 } },
     ageRating: { type: String, enum: PEGIRating },
     minimumTicketPrice: { type: Number, default: 0 }, // Aggregated field
@@ -34,13 +35,23 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
         removeByID,
         update,
         getEventWithReviews,
+    },
+    virtuals: {
+        fullDescription: {
+            get(): string {
+                return `${(this as any).name}\n ${(this as any).description}`
+            }
+        }
     }
 })
+
+eventSchema.index({ descriptionEmbedding: '2dsphere' });
 
 eventSchema.set('toJSON', {
     transform: function (doc, ret, opt) {
         ret['id'] = doc['_id']
         delete ret['_id']
+        delete ret['descriptionEmbedding']
         return ret
     }
 })
@@ -54,6 +65,9 @@ eventSchema.pre('save', async function (next) {
             const minimumPrice = Math.min(...event.ticketTypes.map(ticket => ticket.price));
             event.minimumTicketPrice = minimumPrice;
         }
+
+        const cohere = new CohereAI(process.env.COHERE_API_KEY);
+        event.descriptionEmbedding = await cohere.embed(event.fullDescription);
         next();
     } catch (error: any) {
         next(error);

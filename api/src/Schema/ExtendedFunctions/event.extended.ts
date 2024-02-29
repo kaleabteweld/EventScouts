@@ -6,6 +6,7 @@ import { ValidationErrorFactory } from "../../Util/Factories";
 import { BSONError } from 'bson';
 import { IEventSearchFrom, IEventUpdateFrom } from "../../Domains/Event/types";
 import EventModel from "../event.schema";
+import CohereAI from "../../Util/cohere";
 
 
 export function validator<T>(userInput: T, schema: Joi.ObjectSchema<T>) {
@@ -89,6 +90,7 @@ export async function update(this: mongoose.Model<IEvent>, _id: string, newEvent
 
 export class EventSearchBuilder {
     private query: mongoose.FilterQuery<IEventDocument> = {};
+    private aggregateQuery: mongoose.PipelineStage[] = []
     private page: number = 1;
 
     constructor(private model: mongoose.Model<IEventDocument> = EventModel, private pageSize: number = 10) {
@@ -102,7 +104,6 @@ export class EventSearchBuilder {
         this.query.startDate = { $gte: startDate };
         return this;
     }
-
     withEndDate(endDate: Date): this {
         this.query.endDate = { $lte: endDate };
         return this;
@@ -111,12 +112,10 @@ export class EventSearchBuilder {
         this.query.location = location;
         return this;
     }
-
     withAgeRating(ageRating: string): this {
         this.query.ageRating = ageRating;
         return this;
     }
-
     withOrganizer(organizerId: string): this {
         this.query.organizer = organizerId;
         return this;
@@ -136,7 +135,20 @@ export class EventSearchBuilder {
         this.query.categorys = categoryIds;
         return this;
     }
+    async withEmbedding(search: string): Promise<this> {
 
+        const cohere = new CohereAI(process.env.COHERE_API_KEY);
+        const _search = await cohere.embed(search);
+        (this.aggregateQuery as any[]).push({
+            $vectorSearch: {
+                index: "descriptionEmbeddingIndex",
+                path: "descriptionEmbedding",
+                queryVector: _search[0],
+                numCandidates: 1024,
+            }
+        })
+        return this
+    }
     withPagination(page: number = 1): this {
         if (page < 1) throw ValidationErrorFactory({
             msg: 'page must be greater than 1',
@@ -151,6 +163,9 @@ export class EventSearchBuilder {
         if (json.name) {
             builder.withName(json.name);
         }
+        // if (json.search) {
+        //     builder.withEmbedding(json.search);
+        // }
         if (json.location) {
             builder.withLocation(json.location);
         }
@@ -191,6 +206,35 @@ export class EventSearchBuilder {
                     type: "validation",
                 }, "organizerId");
             }
+        }
+    }
+
+    async aggregateExecute(): Promise<IEventDocument[] | void> {
+        try {
+            const skip = (this.page - 1) * this.pageSize;
+            this.aggregateQuery.push({ $match: this.query })
+            this.aggregateQuery.push({ $skip: skip });
+            this.aggregateQuery.push({ $limit: this.pageSize });
+
+            const result = await this.model.aggregate<IEventDocument>(this.aggregateQuery)
+
+            return result;
+        } catch (error) {
+            if (error instanceof BSONError || error instanceof mongoose.Error.CastError) {
+                throw ValidationErrorFactory({
+                    msg: "Input must be a 24 character hex string, 12 byte Uint8Array, or an integer",
+                    statusCode: 400,
+                    type: "validation",
+                }, "organizerId");
+            }
+            if ((error as any).code === 40324) {
+                throw ValidationErrorFactory({
+                    msg: "you want to perform vector search. Then, create a search index and specify the fields you want to index for vector search.",
+                    statusCode: 500,
+                    type: "mongoDb",
+                }, "search");
+            }
+            throw error;
         }
     }
 }

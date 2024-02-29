@@ -74,4 +74,5 @@ export const eventSearchSchema = Joi.object<IEventSearchFrom>({
     maxPrice: Joi.number().optional(),
     minPrice: Joi.number().min(0).optional(),
     organizer: Joi.string().optional(),
+    search: Joi.string().optional(),
 });

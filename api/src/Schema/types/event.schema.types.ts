@@ -11,6 +11,8 @@ export interface IEvent extends mongoose.Document {
     name: string
     posterURL: string
     description: String
+    descriptionEmbedding: number[]
+    fullDescription: string
     startDate: Date
     endDate: Date
     location: String

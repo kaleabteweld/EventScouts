@@ -22,6 +22,13 @@ publicEventRouter.post("/search/:page", MakeErrorHandler(
     }
 ));
 
+publicEventRouter.post("/search/vector/:page", MakeErrorHandler(
+    async (req: any, res: Response) => {
+        const page = Number.parseInt(req.params.page);
+        res.json(await EventController.vectorSearch(req.body, page));
+    }
+));
+
 publicEventRouter.get("/byId/:id", MakeErrorHandler(
     async (req: Request, res: Response) => res.json(await EventController.getById(req.params.id))
 ));

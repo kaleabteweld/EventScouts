@@ -28,4 +28,5 @@ export interface IEventSearchFrom {
     categorys?: string[]
     minPrice?: number
     maxPrice?: number
+    search?: string
 }

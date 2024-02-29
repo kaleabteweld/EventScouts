@@ -78,4 +78,13 @@ export default class EventController {
 
         return { body: (await builder.execute() as any) };
     }
+
+    @Post("/search/vector/{page}")
+    static async vectorSearch(searchFrom: IEventSearchFrom, page: number): Promise<IResponseType<IEvent[] | null>> {
+        await EventModel.validator(searchFrom, eventSearchSchema);
+        const builder = await EventSearchBuilder.fromJSON(EventModel, searchFrom).withEmbedding(searchFrom.search ?? "");
+        builder.withPagination(page);
+
+        return { body: (await builder.aggregateExecute() as any) };
+    }
 }
