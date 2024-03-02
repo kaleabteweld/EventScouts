@@ -240,6 +240,65 @@ describe('Organizer Authentication', () => {
         });
     });
 
+    describe("Login With Wallet Address", () => {
+
+        beforeEach(() => {
+            return request(app).post(sighupUrl(UserType.organizer)).send(newValidOrganizer)
+        });
+
+        describe("WHEN Organizer enters valid inputs THEN Organizer login ", () => {
+
+            it.each(newValidOrganizer.walletAccounts)("Should LogIn with any Wallet", async (wallet) =>
+                request(app).post(loginUrl(UserType.organizer, true)).send({
+                    walletAccounts: [wallet]
+                }).expect(200));
+
+            it.each(newValidOrganizer.walletAccounts)("Should return Organizer obj", async (wallet) => {
+                const response = await request(app).post(loginUrl(UserType.organizer, true)).send({
+                    walletAccounts: [wallet]
+                });
+                expect(response.body).toMatchObject({ ...newValidOrganizerWithOutPassword });
+            });
+
+        });
+
+        describe("WHEN Organizer enters invalid inputs THEN Organizer login ", () => {
+
+            it("should return 400", async () => request(app).post(loginUrl(UserType.organizer, true)).send({}).expect(400));
+
+            it("Should return Validation error message", async () => {
+                const response = await request(app).post(loginUrl(UserType.organizer, true)).send({});
+                expect(response.body.error).toBeDefined();
+
+                const error = response.body.error;
+                expect(error).toBeTruthy();
+                expect(error).toMatchObject({ msg: expect.any(String), type: "validation", attr: expect.any(String) });
+            });
+
+            it("Should return Invalid Wallet Address error message", async () => {
+                const response = await request(app).post(loginUrl(UserType.organizer, true)).send({ walletAccounts: ["86d28dc7ecaa47a838b4f1dee8eb551afdd859c926ab9b8001bdc3fb758d143ece72cbb4d9c4d12170b6b7ac78d53f4acb177511c67cb9573"] });
+                expect(response.body.error).toBeDefined();
+
+                const error = response.body.error;
+                expect(error).toBeTruthy();
+                expect(error).toMatchObject({ msg: "Invalid Wallet Address", type: expect.any(String) });
+            });
+
+            it("Should not set Authentication header", async () => {
+                const response = await request(app).post(loginUrl(UserType.organizer, true)).send({});
+                expect(response.header).not.toHaveProperty("authorization");
+            });
+
+            it("should not set Refresh token", async () => {
+                const response = await request(app).post(loginUrl(UserType.organizer, true)).send({});
+                expect(response.header).not.toHaveProperty("refreshtoken");
+            });
+
+        });
+
+
+    });
+
     describe("Refresh Token", () => {
 
         var Organizer: IOrganizer;

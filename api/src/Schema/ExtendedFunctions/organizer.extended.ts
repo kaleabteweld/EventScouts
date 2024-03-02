@@ -1,6 +1,6 @@
 import * as bcrypt from "bcrypt";
 import Joi from "joi";
-import { IOrganizer, TVerified, TVerifiedSupported, verifiedEnum, verifiedSupportedEnum } from "../Types/organizer.schema.types";
+import { IOrganizer, IOrganizerModel, TVerified, TVerifiedSupported, verifiedEnum, verifiedSupportedEnum } from "../Types/organizer.schema.types";
 import { ValidationErrorFactory, errorFactory } from "../../Util/Factories";
 import { isValidationError } from "../../Types/error";
 import { MakeValidator } from "../../Domains/Common";
@@ -182,4 +182,41 @@ export function checkVerifiedBy(this: IOrganizer, key: TVerifiedSupported): bool
         throw error
     }
 
+}
+
+export async function getByWalletAccounts(this: mongoose.Model<IOrganizer>, walletAccounts: string[]): Promise<mongoose.Document<unknown, IOrganizerModel, IOrganizer> & IOrganizer & { _id: mongoose.Types.ObjectId; } | null> {
+
+    const organizer = await this.findOne({
+        walletAccounts: {
+            $in: walletAccounts
+        }
+    });
+    if (organizer == null) {
+        throw ValidationErrorFactory({
+            msg: "Invalid Wallet Address",
+            statusCode: 404,
+            type: "Validation"
+        }, "walletAccounts")
+    }
+    return organizer;
+}
+
+export async function addWalletAccount(this: IOrganizer, wallet: string): Promise<IOrganizer> {
+    if (!this.walletAccounts.includes(wallet)) {
+        this.walletAccounts.push(wallet);
+        return await this.save();
+    }
+    return this;
+}
+
+export async function removeWalletAccount(this: IOrganizer, wallet: string): Promise<IOrganizer> {
+    if (!this.walletAccounts.includes(wallet)) {
+        throw ValidationErrorFactory({
+            msg: "Invalid Wallet Address",
+            statusCode: 404,
+            type: "Validation"
+        }, "wallet")
+    }
+    (this.walletAccounts as any).pull(wallet);
+    return await this.save();
 }

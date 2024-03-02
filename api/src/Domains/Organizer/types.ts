@@ -9,4 +9,9 @@ export interface IOrganizerSignUpFrom {
     phone: string,
     logoURL?: String,
     password: string,
+    walletAccounts: string[]
+}
+
+export interface IOrganizerLogInFromWithWallet {
+    walletAccounts: string[]
 }

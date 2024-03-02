@@ -20,12 +20,29 @@ privateOrganizerRouter.patch("/VerifyUser/:key", MakeErrorHandler(
 
         const _Organizer: IOrganizer = req['organizer'];
         const key = req.params.key
-
-        console.log({ key, _Organizer })
         const Organizer = await OrganizerController.verifyUser(_Organizer, key);
         res.json(Organizer.body);
     }
 ));
+
+privateOrganizerRouter.patch("/wallet/connect/:wallet", MakeErrorHandler(
+    async (req: any, res: Response) => {
+        const _Organizer: IOrganizer = req['organizer'];
+        const wallet = req.params.wallet
+        const Organizer = await OrganizerController.connectWallet(_Organizer, wallet);
+        res.json(Organizer.body);
+    }
+));
+
+privateOrganizerRouter.patch("/wallet/disconnect/:wallet", MakeErrorHandler(
+    async (req: any, res: Response) => {
+        const _Organizer: IOrganizer = req['organizer'];
+        const wallet = req.params.wallet
+        const Organizer = await OrganizerController.disconnectWallet(_Organizer, wallet);
+        res.json(Organizer.body);
+    }
+));
+
 
 publicOrganizerRouter.use("/organizer", publicOrganizerRouter);
 privateOrganizerRouter.use("/organizer", privateOrganizerRouter);

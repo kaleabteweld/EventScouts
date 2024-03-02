@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import { IOrganizer, IOrganizerMethods, IOrganizerModel, verifiedEnum } from './Types/organizer.schema.types';
 import { mongooseErrorPlugin } from './Middleware/errors.middleware';
-import { checkPassword, encryptPassword, validator, getByEmail, getById, getByVerifiedKey, applyVerify } from './ExtendedFunctions/organizer.extended'
+import { checkPassword, encryptPassword, validator, getByEmail, getById, getByVerifiedKey, applyVerify, getByWalletAccounts, addWalletAccount, removeWalletAccount } from './ExtendedFunctions/organizer.extended'
 
 export const organizerSchema = new mongoose.Schema<IOrganizer, IOrganizerModel, IOrganizerMethods>({
     email: { type: String, unique: true },
@@ -16,18 +16,22 @@ export const organizerSchema = new mongoose.Schema<IOrganizer, IOrganizerModel, 
     password: { type: String },
     categorys: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
     events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
+    walletAccounts: [String],
 }, {
     timestamps: true,
     methods: {
         encryptPassword,
         checkPassword,
         applyVerify,
+        addWalletAccount,
+        removeWalletAccount,
     },
     statics: {
         validator,
         getByEmail,
         getById,
         getByVerifiedKey,
+        getByWalletAccounts,
     }
 })
 

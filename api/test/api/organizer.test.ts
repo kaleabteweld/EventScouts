@@ -4,7 +4,7 @@ import { connectDB, dropCollections, dropDB } from './util';
 import Cache from "../../src/Util/cache";
 import request from "supertest";
 import { IOrganizer } from '../../src/Schema/Types/organizer.schema.types';
-import { createOrganizer, expectError, newValidOrganizer, newValidOrganizer2, userPrivateUrl } from './common';
+import { createOrganizer, expectError, loginUrl, newValidOrganizer, newValidOrganizer2, userPrivateUrl } from './common';
 import { UserType } from '../../src/Types';
 
 
@@ -37,7 +37,6 @@ describe('Organizer', () => {
             const { accessTokens: ats, organizers: ogs } = await createOrganizer(request, app, [newValidOrganizer, newValidOrganizer2]);
             accessTokens = ats;
             organizers = organizers;
-
         })
 
         describe("WHEN trying to get Organizer by there ID in JWT", () => {
@@ -77,4 +76,104 @@ describe('Organizer', () => {
 
     });
 
+    describe("Wallet", () => {
+        var organizers: IOrganizer[] = [];
+        var accessTokens: string[] = [];
+
+
+        beforeEach(async () => {
+            const { accessTokens: ats, organizers: ogs } = await createOrganizer(request, app, [newValidOrganizer, newValidOrganizer2]);
+            accessTokens = ats;
+            organizers = organizers;
+        })
+
+        describe("WHEN connecting a Wallet", () => {
+            it("SHOULD add it to the list", async () => {
+                const organizerResponse = await request(app).patch(`${userPrivateUrl(UserType.organizer)}wallet/connect/${"0xA32bd67037Dd8F3A0EAE8BcB2254AA300319cEa7"}`).set("Authorization", `Bearer ${accessTokens[0]}`).send();
+                const _organizerResponse = await request(app).get(userPrivateUrl(UserType.organizer)).set("Authorization", `Bearer ${accessTokens[0]}`).send();
+
+                expect(organizerResponse.status).toBe(200);
+                expect((_organizerResponse.body.body.walletAccounts as String[]).includes("0xA32bd67037Dd8F3A0EAE8BcB2254AA300319cEa7")).toBe(true);
+
+                const checkValidOrganizer = { ...newValidOrganizer }
+                delete (checkValidOrganizer as any)["password"]
+                delete (checkValidOrganizer as any)["walletAccounts"];
+
+                expect(_organizerResponse.body.body).toMatchObject({
+                    ...checkValidOrganizer,
+                    id: expect.any(String)
+                })
+            })
+
+            it("SHOULD be able to login with new wallet", async () => {
+                const organizerResponse = await request(app).patch(`${userPrivateUrl(UserType.organizer)}wallet/connect/${"0xA32bd67037Dd8F3A0EAE8BcB2254AA300319cEa7"}`).set("Authorization", `Bearer ${accessTokens[0]}`).send();
+                const _organizerResponse = await request(app).post(loginUrl(UserType.organizer, true)).send({
+                    walletAccounts: ["0xA32bd67037Dd8F3A0EAE8BcB2254AA300319cEa7"]
+                })
+                expect(organizerResponse.status).toBe(200);
+                expect(_organizerResponse.status).toBe(200);
+                expect((_organizerResponse.body.walletAccounts as String[]).includes("0xA32bd67037Dd8F3A0EAE8BcB2254AA300319cEa7")).toBe(true);
+
+                const checkValidOrganizer = { ...newValidOrganizer }
+                delete (checkValidOrganizer as any)["password"]
+                delete (checkValidOrganizer as any)["walletAccounts"];
+
+                expect(_organizerResponse.body).toMatchObject({
+                    ...checkValidOrganizer,
+                    id: expect.any(String)
+                })
+            })
+
+            describe("WHEN connecting a Wallet With out authentication", () => {
+                it("SHOULD return 401 with error obj", async () => {
+                    const organizerResponse = await request(app).patch(`${userPrivateUrl(UserType.organizer)}wallet/connect/${"0xA32bd67037Dd8F3A0EAE8BcB2254AA300319cEa7"}`).send();
+                    expectError(organizerResponse, 401);
+                });
+            })
+        })
+
+        describe("WHEN disconnecting a Wallet", () => {
+            const wallet = newValidOrganizer.walletAccounts[0];
+            it("SHOULD remove it to the list", async () => {
+                const organizerResponse = await request(app).patch(`${userPrivateUrl(UserType.organizer)}wallet/disconnect/${wallet}`).set("Authorization", `Bearer ${accessTokens[0]}`).send();
+                const _organizerResponse = await request(app).get(userPrivateUrl(UserType.organizer)).set("Authorization", `Bearer ${accessTokens[0]}`).send();
+
+                expect(organizerResponse.status).toBe(200);
+                expect((_organizerResponse.body.body.walletAccounts as String[]).includes(wallet)).toBe(false);
+
+                const checkValidOrganizer = { ...newValidOrganizer }
+                delete (checkValidOrganizer as any)["password"]
+                delete (checkValidOrganizer as any)["walletAccounts"];
+
+                expect(_organizerResponse.body.body).toMatchObject({
+                    ...checkValidOrganizer,
+                    id: expect.any(String)
+                })
+            })
+            it("SHOULD be Not able to login with new wallet", async () => {
+                const organizerResponse = await request(app).patch(`${userPrivateUrl(UserType.organizer)}wallet/disconnect/${wallet}`).set("Authorization", `Bearer ${accessTokens[0]}`).send();
+                const _organizerResponse = await request(app).post(loginUrl(UserType.organizer, true)).send({
+                    walletAccounts: [wallet]
+                })
+                expectError(_organizerResponse, 404);
+
+            })
+
+            describe("WHEN removing a Wallet With out authentication", () => {
+                it("SHOULD return 401 with error obj", async () => {
+                    const organizerResponse = await request(app).patch(`${userPrivateUrl(UserType.organizer)}wallet/disconnect/${wallet}`).send();
+                    expectError(organizerResponse, 401);
+                });
+            })
+            describe("WHEN removing a Wallet which dose not exist", () => {
+                it("SHOULD return 404 with error obj", async () => {
+                    const organizerResponse = await request(app).patch(`${userPrivateUrl(UserType.organizer)}wallet/disconnect/${"0xA32bd67037Dd8F3A0EAE8BcB2254AA300319cE7a"}`).set("Authorization", `Bearer ${accessTokens[0]}`).send();
+                    const _organizerResponse = await request(app).get(userPrivateUrl(UserType.organizer)).set("Authorization", `Bearer ${accessTokens[0]}`).send();
+
+                    expectError(organizerResponse, 404);
+                    expect(_organizerResponse.body.body.walletAccounts.length).toBe(newValidOrganizer.walletAccounts.length)
+                });
+            })
+        })
+    })
 });

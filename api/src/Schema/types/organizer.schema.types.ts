@@ -27,13 +27,16 @@ export interface IOrganizer extends mongoose.Document {
     password: string;
     categorys: mongoose.Schema.Types.ObjectId[] | ICategory[]
     events: mongoose.Schema.Types.ObjectId | IEvent[];
+    walletAccounts: string[];
 }
 
 //Dynamic methods
 export interface IOrganizerMethods {
     encryptPassword(password?: string): Promise<string>
     checkPassword(password: string): Promise<boolean>
-    applyVerify(this: IOrganizer, key: TVerified): Promise<IOrganizer>
+    applyVerify(key: TVerified): Promise<IOrganizer>
+    addWalletAccount(wallet: string): Promise<IOrganizer>
+    removeWalletAccount(wallet: string): Promise<IOrganizer>
 }
 
 // Extend the Document type with IUserMethods
@@ -46,4 +49,5 @@ export interface IOrganizerModel extends mongoose.Model<IOrganizerDocument> {
     getByEmail(email: string): Promise<IOrganizerDocument | null>
     getById(_id: string, populatePath?: string | string[]): Promise<IOrganizerDocument | null>
     getByVerifiedKey(key: TVerified, value: string): Promise<IOrganizerDocument | null>
+    getByWalletAccounts(walletAccounts: string[]): Promise<IOrganizerDocument | null>
 }

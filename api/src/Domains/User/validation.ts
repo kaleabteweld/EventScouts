@@ -5,7 +5,6 @@ import { GenderEnum } from "../../Schema/Types/user.schema.types";
 
 
 export const newUserSchema = Joi.object<IUserSignUpFrom>({
-
     email: Joi.string().email().required(),
     name: Joi.string().max(30).required(),
     userName: Joi.string().max(20).required(),
@@ -24,13 +23,11 @@ export const newUserSchema = Joi.object<IUserSignUpFrom>({
 });
 
 export const logInSchema = Joi.object<IUserLogInFrom>({
-
     email: newUserSchema.extract("email"),
     password: newUserSchema.extract("password"),
 });
 
 export const logInWithWalletSchema = Joi.object<IUserLogInFromWithWallet>({
-
     walletAccounts: Joi.array().min(1).items(Joi.string().min(8).max(254)).required(),
 });
 

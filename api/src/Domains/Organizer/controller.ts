@@ -1,5 +1,5 @@
-import { IOrganizerLogInFrom, IOrganizerSignUpFrom } from "./types";
-import { organizerIogInSchema, OrganizerChangePassword, newOrganizerSchema } from "./validation";
+import { IOrganizerLogInFrom, IOrganizerLogInFromWithWallet, IOrganizerSignUpFrom } from "./types";
+import { organizerIogInSchema, OrganizerChangePassword, newOrganizerSchema, logInWithWalletSchema } from "./validation";
 import { UserType } from "../../Types";
 import { IChangePasswordFrom, IResponseType, IResponseWithHeaderType } from "../Common/types";
 import { Route, Tags, Get, Patch, Post, Delete, Body, Query, Path } from "tsoa";
@@ -87,4 +87,29 @@ export default class OrganizerController {
         return { body: (organizer!.toJSON() as any) }
     }
 
+    @Path("/Authentication/organizer")
+    @Tags("Auth")
+    @Post("/logIn/wallet")
+    static async logInWithWallet(from: IOrganizerLogInFromWithWallet): Promise<IResponseWithHeaderType<IOrganizer>> {
+        await OrganizerModel.validator(from, logInWithWalletSchema);
+        const organizer = await OrganizerModel.getByWalletAccounts(from.walletAccounts);
+
+        const { accessToken, refreshToken } = await MakeTokens(organizer!.toJSON(), UserType.organizer);
+        return { body: organizer!.toJSON(), header: { accessToken, refreshToken } }
+
+    }
+
+    @Patch("wallet/connect/{wallet}")
+    static async connectWallet(_organizer: IOrganizer, wallet: string): Promise<IResponseType<IOrganizer>> {
+        const organizer = await OrganizerModel.getById(_organizer.id);
+        await organizer!.addWalletAccount(wallet);
+        return { body: (organizer!.toJSON() as any) }
+    }
+
+    @Patch("wallet/disconnect/{wallet}")
+    static async disconnectWallet(_organizer: IOrganizer, wallet: string): Promise<IResponseType<IOrganizer>> {
+        const organizer = await OrganizerModel.getById(_organizer.id);
+        await organizer!.removeWalletAccount(wallet);
+        return { body: (organizer!.toJSON() as any) }
+    }
 }
