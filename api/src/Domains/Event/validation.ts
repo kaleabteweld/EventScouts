@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { IEventSearchFrom, IEventUpdateFrom, INewEventFrom } from "./types";
+import { IEventSearchFrom, IEventSortFrom, IEventUpdateFrom, INewEventFrom } from "./types";
 import { newTicketTypesSchema, updateTicketTypesSchema } from "../TicketTypes/validation";
 
 export const PEGIRating = ["PEGI 7", "PEGI 12", "PEGI 16", "PEGI 18"]
@@ -74,4 +74,63 @@ export const eventSearchSchema = Joi.object<IEventSearchFrom>({
     minPrice: Joi.number().min(0).optional(),
     organizer: Joi.string().optional(),
     search: Joi.string().optional(),
+});
+
+export const eventSortSchema = Joi.object<IEventSortFrom>({
+    name: Joi.custom((value, helper) => {
+        if (!["asc", "desc"].includes(value)) {
+            return helper.message({ custom: `\"name\" ${value} is not a valid enum value` });
+        } else {
+            return value
+        }
+    }).optional(),
+    startDate: Joi.custom((value, helper) => {
+        if (!["asc", "desc"].includes(value)) {
+            return helper.message({ custom: `\"startDate\" ${value} is not a valid enum value` });
+        } else {
+            return value
+        }
+    }).optional(),
+    endDate: Joi.custom((value, helper) => {
+        if (!["asc", "desc"].includes(value)) {
+            return helper.message({ custom: `\"endDate\" ${value} is not a valid enum value` });
+        } else {
+            return value
+        }
+    }).optional(),
+    ageRating: Joi.custom((value, helper) => {
+        if (!["asc", "desc"].includes(value)) {
+            return helper.message({ custom: `\"ageRating\" ${value} is not a valid enum value` });
+        } else {
+            return value
+        }
+    }).optional(),
+    categorys: Joi.custom((value, helper) => {
+        if (!["asc", "desc"].includes(value)) {
+            return helper.message({ custom: `\"categorys\" ${value} is not a valid enum value` });
+        } else {
+            return value
+        }
+    }).optional(),
+    maxPrice: Joi.custom((value, helper) => {
+        if (!["asc", "desc"].includes(value)) {
+            return helper.message({ custom: `\"maxPrice\" ${value} is not a valid enum value` });
+        } else {
+            return value
+        }
+    }).optional(),
+    minPrice: Joi.custom((value, helper) => {
+        if (!["asc", "desc"].includes(value)) {
+            return helper.message({ custom: `\"minPrice\" ${value} is not a valid enum value` });
+        } else {
+            return value
+        }
+    }).optional(),
+    organizer: Joi.custom((value, helper) => {
+        if (!["asc", "desc"].includes(value)) {
+            return helper.message({ custom: `\"organizer\" ${value} is not a valid enum value` });
+        } else {
+            return value
+        }
+    }).optional(),
 });

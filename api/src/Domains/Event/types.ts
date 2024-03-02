@@ -29,3 +29,14 @@ export interface IEventSearchFrom {
     maxPrice?: number
     search?: string
 }
+
+export interface IEventSortFrom {
+    name?: 'asc' | 'desc'
+    startDate?: 'asc' | 'desc'
+    endDate?: 'asc' | 'desc'
+    ageRating?: 'asc' | 'desc'
+    organizer?: 'asc' | 'desc'
+    categorys?: 'asc' | 'desc'
+    minPrice?: 'asc' | 'desc'
+    maxPrice?: 'asc' | 'desc'
+}

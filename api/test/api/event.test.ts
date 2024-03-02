@@ -3,7 +3,7 @@ import { connectDB, dropCollections, dropDB } from './util';
 import Cache from '../../src/Util/cache';
 import request from "supertest";
 import { makeServer } from '../../src/Util/Factories';
-import { categoryPrivateUrl, categoryPublicUrl, createEvents, createOrganizer, eventPrivateUrl, eventPublicUrl, expectError, expectValidCategory, expectValidEvent, newInValidTicketTypes, newValidCategory, newValidEvent, newValidOrganizer, newValidOrganizer2, newValidTicketType, newValidTicketTypes, newValidUser, sighupUrl, userPrivateUrl } from './common';
+import { categoryPrivateUrl, categoryPublicUrl, createEvents, createOrganizer, eventPrivateUrl, eventPublicUrl, expectError, expectValidCategory, expectValidEvent, newInValidTicketTypes, newValidCategory, newValidEvent, newValidOrganizer, newValidOrganizer2, newValidTicketType, newValidTicketTypes, newValidUser, searchFactory, sighupUrl, userPrivateUrl } from './common';
 import { UserType } from '../../src/Types';
 import { IUser } from '../../src/Schema/Types/user.schema.types';
 import { ICategory } from '../../src/Schema/Types/category.schema.types';
@@ -165,7 +165,7 @@ describe('Event', () => {
             accessToken = accessTokens[0];
             organizers = orgs;
 
-            const { categorys: cats, events: eves } = await createEvents(request, app, [newValidCategory], 2, accessToken)
+            const { categorys: cats, events: eves } = await createEvents(request, app, [newValidCategory], 3, accessToken)
             categorys = cats;
             events = eves;
         })
@@ -209,7 +209,7 @@ describe('Event', () => {
 
                 describe("WHEN using page [must start with one]", () => {
                     it("SHOULD 400 with error obj", async () => {
-                        const response = await request(app).post(`${eventPublicUrl()}search/0`).send({});
+                        const response = await request(app).post(`${eventPublicUrl()}search/0`).send(searchFactory({}));
                         expectError(response, 400);
                     })
                 });
@@ -217,9 +217,9 @@ describe('Event', () => {
                 describe("WHEN using organizer [must a ObjectID ]", () => {
 
                     it("SHOULD 400 with error obj", async () => {
-                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
                             organizer: "abc"
-                        } as IEventSearchFrom);
+                        }));
                         expectError(response, 400);
                     })
                 });
@@ -227,9 +227,9 @@ describe('Event', () => {
                 describe("WHEN using categorys [must a ObjectID[] ]", () => {
 
                     it("SHOULD 400 with error obj", async () => {
-                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
                             categorys: ["as"]
-                        } as IEventSearchFrom);
+                        }));
                         expectError(response, 400);
                     })
                 });
@@ -242,10 +242,9 @@ describe('Event', () => {
                         const categoryResponse = await request(app).post(categoryPrivateUrl()).set("Authorization", `Bearer ${accessToken}`).send({
                             name: "kolo"
                         });
-                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
                             categorys: [categoryResponse.body.body.id],
-                        } as IEventSearchFrom);
-
+                        }));
                         expect(response.body.body).toEqual([]);
                     })
                 });
@@ -253,18 +252,17 @@ describe('Event', () => {
                 describe("WHEN using startDate", () => {
                     it("SHOULD returns every Event starting after given Date", async () => {
 
-                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
                             startDate: new Date(new Date().getTime() - (7 * 24 * 60 * 60 * 1000))
-                        } as IEventSearchFrom);
-
+                        }));
                         expect(response.body.body.length).toBeGreaterThanOrEqual(1)
                     })
 
                     it("SHOULD returns [] if there events start before given Date", async () => {
 
-                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
                             startDate: new Date(new Date().getTime() + (7 * 24 * 60 * 60 * 1000))
-                        } as IEventSearchFrom);
+                        }));
 
                         expect(response.body.body).toEqual([]);
                     })
@@ -273,18 +271,18 @@ describe('Event', () => {
                 describe("WHEN using endDate", () => {
                     it("SHOULD returns every Event before the given Date", async () => {
 
-                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
                             endDate: new Date(new Date().getTime() + (7 * 24 * 60 * 60 * 1000))
-                        } as IEventSearchFrom);
+                        }));
 
                         expect(response.body.body.length).toBeGreaterThanOrEqual(1)
                     })
 
                     it("SHOULD returns [] if there events ends after given Date", async () => {
 
-                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
                             endDate: new Date(new Date().getTime() - (7 * 24 * 60 * 60 * 1000))
-                        } as IEventSearchFrom);
+                        }));
 
                         expect(response.body.body).toEqual([]);
                     })
@@ -293,78 +291,101 @@ describe('Event', () => {
                 describe("WHEN using startDate and endDate", () => {
                     it("SHOULD returns every Event with the given range Date", async () => {
 
-                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
                             startDate: new Date(new Date().getTime() - (7 * 24 * 60 * 60 * 1000)),
                             endDate: new Date(new Date().getTime() + (7 * 24 * 60 * 60 * 1000))
-                        } as IEventSearchFrom);
-
+                        }));
                         expect(response.body.body.length).toBeGreaterThanOrEqual(1)
                     })
                 });
 
                 describe("WHEN using minPrice", () => {
                     it("SHOULD returns every Event having minimumTicketPrice > given price", async () => {
-                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
                             minPrice: 1,
-                        } as IEventSearchFrom);
+                        }));
                         expect(response.body.body.length).toBeGreaterThanOrEqual(1)
                     })
 
                     it("SHOULD returns [] if there events minimumTicketPrice < given price", async () => {
-                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
                             minPrice: Number.MAX_SAFE_INTEGER,
-                        } as IEventSearchFrom);
+                        }));
                         expect(response.body.body).toEqual([]);
                     })
                 })
 
                 describe("WHEN using maxPrice", () => {
                     it("SHOULD returns every Event having minimumTicketPrice < given price", async () => {
-                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
                             maxPrice: Number.MAX_SAFE_INTEGER,
-                        } as IEventSearchFrom);
+                        }));
                         expect(response.body.body.length).toBeGreaterThanOrEqual(1)
                     })
 
                     it("SHOULD returns [] if there events minimumTicketPrice > given price", async () => {
-                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
-                            maxPrice: 1,
-                        } as IEventSearchFrom);
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory(
+                            {
+                                maxPrice: 1,
+                            }));
                         expect(response.body.body).toEqual([]);
                     })
                 })
 
                 describe("WHEN using minPrice and maxPrice", () => {
                     it("SHOULD returns every Event having minimumTicketPrice < given price", async () => {
-                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
                             minPrice: 1,
                             maxPrice: Number.MAX_SAFE_INTEGER,
-                        } as IEventSearchFrom);
+                        }));
                         expect(response.body.body.length).toBeGreaterThanOrEqual(1)
                     })
 
                     it("SHOULD returns [] if there events minimumTicketPrice > given price", async () => {
                         const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
-                            maxPrice: 1,
-                            minPrice: Number.MAX_SAFE_INTEGER,
-                        } as IEventSearchFrom);
+                            search: {
+                                maxPrice: 1,
+                                minPrice: Number.MAX_SAFE_INTEGER,
+                            } as IEventSearchFrom
+                        });
                         expect(response.body.body).toEqual([]);
                     })
                 })
 
                 describe("WHEN using organizer", () => {
                     it("SHOULD returns every Event That's organized by the give Organizer", async () => {
-                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
                             organizer: organizers[0].id
-                        } as IEventSearchFrom);
+                        }));
                         expect(response.body.body.length).toBeGreaterThanOrEqual(1);
 
                         response.body.body.forEach((event: IEvent, index: number) => {
                             expect(event.organizer).toMatchObject({
-                                organizer: organizers[index].id,
-                                name: organizers[index].name,
+                                organizer: organizers[0].id,
+                                name: organizers[0].name,
                             })
                         })
+                    })
+                })
+
+                describe("WHEN using Sort", () => {
+                    it("SHOULD returns every Event Sorted by name in desc order", async () => {
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
+                        }, {
+                            name: "desc"
+                        }));
+                        expect(response.body.body.length).toBeGreaterThanOrEqual(1);
+                        response.body.body.forEach((event: IEvent, index: number) => {
+                            expect(event.organizer).toMatchObject({
+                                organizer: organizers[0].id,
+                                name: organizers[0].name,
+                            })
+                        })
+
+                        const firstName = response.body.body[0].name;
+                        const secondName = response.body.body[1].name;
+
+                        expect(firstName > secondName).toBeTruthy();
                     })
                 })
 

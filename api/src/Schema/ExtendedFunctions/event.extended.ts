@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import { IEvent, IEventDocument } from "../Types/event.schema.types";
 import { ValidationErrorFactory } from "../../Util/Factories";
 import { BSONError } from 'bson';
-import { IEventSearchFrom, IEventUpdateFrom } from "../../Domains/Event/types";
+import { IEventSearchFrom, IEventSortFrom, IEventUpdateFrom } from "../../Domains/Event/types";
 import EventModel from "../event.schema";
 import CohereAI from "../../Util/cohere";
 
@@ -90,6 +90,7 @@ export async function update(this: mongoose.Model<IEvent>, _id: string, newEvent
 
 export class EventSearchBuilder {
     private query: mongoose.FilterQuery<IEventDocument> = {};
+    private sortCriteria: Record<string, number> = {};
     private aggregateQuery: mongoose.PipelineStage[] = []
     private page: number = 1;
 
@@ -158,6 +159,11 @@ export class EventSearchBuilder {
         this.page = page;
         return this;
     }
+
+    WithSort(sortBuilder: EventSortBuilder): this {
+        this.sortCriteria = sortBuilder.getSortCriteria();
+        return this;
+    }
     static fromJSON(model: mongoose.Model<IEventDocument>, json: IEventSearchFrom): EventSearchBuilder {
         const builder = new EventSearchBuilder(model);
         if (json.name) {
@@ -195,7 +201,11 @@ export class EventSearchBuilder {
     async execute(): Promise<IEventDocument[] | void> {
         try {
             const skip = (this.page - 1) * this.pageSize;
-            const result = await this.model.find(this.query).skip(skip).limit(this.pageSize);
+            const result = await this.model
+                .find(this.query)
+                .sort(this.sortCriteria as any)
+                .skip(skip)
+                .limit(this.pageSize);
             return result;
         } catch (error) {
             if (error instanceof BSONError || error instanceof mongoose.Error.CastError) {
@@ -212,6 +222,7 @@ export class EventSearchBuilder {
         try {
             const skip = (this.page - 1) * this.pageSize;
             this.aggregateQuery.push({ $match: this.query })
+            this.aggregateQuery.push({ $sort: this.sortCriteria as any });
             this.aggregateQuery.push({ $skip: skip });
             this.aggregateQuery.push({ $limit: this.pageSize });
 
@@ -235,5 +246,28 @@ export class EventSearchBuilder {
             }
             throw error;
         }
+    }
+}
+
+export class EventSortBuilder {
+
+    private sortCriteria: Record<string, number> = {};
+
+    constructor() { }
+
+    static fromJSON(json: IEventSortFrom): EventSortBuilder {
+        const builder = new EventSortBuilder();
+        builder.withSort(json as any);
+        return builder;
+    }
+    withSort(sortCriteria: Record<string, 'asc' | 'desc'>): this {
+        Object.entries(sortCriteria).forEach(([field, order]) => {
+            this.sortCriteria[field] = order === 'asc' ? 1 : -1;
+        });
+        return this;
+    }
+
+    getSortCriteria() {
+        return this.sortCriteria;
     }
 }

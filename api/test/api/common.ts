@@ -2,7 +2,7 @@ import { Response } from "supertest";
 import { expect } from '@jest/globals';
 
 import { INewCategoryFrom } from "../../src/Domains/Category/types";
-import { IEventSearchFrom, IEventUpdateFrom, INewEventFrom } from "../../src/Domains/Event/types";
+import { IEventSearchFrom, IEventSortFrom, IEventUpdateFrom, INewEventFrom } from "../../src/Domains/Event/types";
 import { IOrganizerSignUpFrom } from "../../src/Domains/Organizer/types";
 import { INewTicketTypesFrom } from "../../src/Domains/TicketTypes/types";
 import { IUserSignUpFrom } from "../../src/Domains/User/types";
@@ -304,3 +304,8 @@ export const expectValidReview = async (response: Response, newValidReview: INew
     expect(response.status).toBe(200);
     expect(response.body.body).toMatchObject({ ...newValidReview, id: expect.any(String), ...matchers });
 }
+
+export const searchFactory = (search: IEventSearchFrom, sort?: IEventSortFrom) => ({
+    search,
+    sort
+})
