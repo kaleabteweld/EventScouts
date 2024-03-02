@@ -137,7 +137,7 @@ export class EventSearchBuilder {
     }
     async withEmbedding(search: string): Promise<this> {
 
-        const cohere = new CohereAI(process.env.COHERE_API_KEY);
+        const cohere = CohereAI.getInstance(process.env.COHERE_API_KEY);
         const _search = await cohere.embed(search);
         (this.aggregateQuery as any[]).push({
             $vectorSearch: {

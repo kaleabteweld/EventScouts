@@ -3,13 +3,20 @@ import { TModels } from "./type";
 import { EmbedInputType } from "cohere-ai/api";
 
 export default class CohereAI {
-
+    private static instance: CohereAI; // Static property to hold the single instance
     private _cohereClient: CohereClient | null = null;
 
-    constructor(token?: string) {
+    private constructor(token?: string) {
         this._cohereClient = new CohereClient({
             token: token || "",
         });
+    }
+    // Static method to access the single instance
+    public static getInstance(token?: string): CohereAI {
+        if (!CohereAI.instance) {
+            CohereAI.instance = new CohereAI(token);
+        }
+        return CohereAI.instance;
     }
 
     async embed(text: String | string[], model: TModels = "embed-english-v3.0", inputType: EmbedInputType | undefined = "classification"): Promise<number[]> {
@@ -26,6 +33,6 @@ export default class CohereAI {
             console.log("embedding error", error);
             throw error
         }
-
     }
 }
+

@@ -66,7 +66,7 @@ eventSchema.pre('save', async function (next) {
             event.minimumTicketPrice = minimumPrice;
         }
 
-        const cohere = new CohereAI(process.env.COHERE_API_KEY);
+        const cohere = CohereAI.getInstance(process.env.COHERE_API_KEY);
         event.descriptionEmbedding = await cohere.embed(event.fullDescription);
         next();
     } catch (error: any) {
