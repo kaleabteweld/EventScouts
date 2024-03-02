@@ -20,7 +20,11 @@ export interface IEvent extends mongoose.Document {
     ageRating: String
     minimumTicketPrice: number
     rating: { avgRating: number, ratingCount: number },
-    organizer: mongoose.Types.ObjectId | IOrganizer
+    organizer: {
+        name: string
+        logoURL: string
+        organizer: mongoose.Types.ObjectId | IOrganizer
+    },
     categorys: mongoose.Schema.Types.ObjectId[] | ICategory[]
     ticketTypes: ITicketTypes[]
     reviews: mongoose.Schema.Types.ObjectId[] | IReview[]

@@ -68,9 +68,8 @@ export const newValidReview = (event: string, rating: number = 2, review = "good
 
 type TNewValidEventArgs = { categorys?: string[], organizer?: string, ticketTypes?: INewTicketTypesFrom[], name?: string }
 
-export const newValidEvent = ({ categorys = [], organizer = "", ticketTypes = [], name = "Category" }: TNewValidEventArgs): INewEventFrom => ({
+export const newValidEvent = ({ categorys = [], ticketTypes = [], name = "Category" }: TNewValidEventArgs): INewEventFrom => ({
     categorys,
-    organizer,
     description: "Category description",
     endDate: new Date(),
     startDate: new Date(),
@@ -254,11 +253,12 @@ export async function expectValidEvent(response: Response, categorys: ICategory[
     delete (validEvent as any)["ticketTypes"]
     delete (validEvent as any)["categorys"]
 
+    console.log({ response: response.body.body })
     expect(response.body.body).toMatchObject({
         ...validEvent,
         // categorys: expect.arrayContaining(categorys),
-        // organizer: expect.objectContaining({ organizer: expect.any(String) }),
-        organizer: expect.any(String),
+        organizer: expect.objectContaining({ organizer: expect.any(String) }),
+        // organizer: expect.any(String),
         startDate: expect.any(String),
         endDate: expect.any(String),
         minimumTicketPrice: Math.min(..._newValidTicketTypes.map(ticket => ticket.price)),

@@ -9,12 +9,11 @@ export interface INewEventFrom {
     location: String
     venue: String
     ageRating: String
-    organizer: string
     categorys: string[]
     ticketTypes: INewTicketTypesFrom[]
 }
 
-export interface IEventUpdateFrom extends Omit<Partial<INewEventFrom>, 'organizer'> {
+export interface IEventUpdateFrom extends Partial<INewEventFrom> {
 }
 
 

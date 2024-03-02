@@ -24,7 +24,6 @@ export const newEventSchema = Joi.object<INewEventFrom>({
             return value
         }
     }).required(),
-    organizer: Joi.string().min(24).required(),
     categorys: Joi.array().items(Joi.string().min(24)).min(1).required(),
     ticketTypes: Joi.array().items(newTicketTypesSchema).min(1).required(),
 });

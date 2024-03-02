@@ -16,11 +16,15 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
     endDate: { type: Date },
     location: String,
     venue: String,
-    descriptionEmbedding: [{ type: Number }],
+    descriptionEmbedding: [{ type: Number, select: false }],
     rating: { avgRating: { type: Number, default: 0 }, ratingCount: { type: Number, default: 0 } },
     ageRating: { type: String, enum: PEGIRating },
     minimumTicketPrice: { type: Number, default: 0 }, // Aggregated field
-    organizer: { type: mongoose.Schema.Types.ObjectId, ref: "Organizer" },
+    organizer: {
+        name: { type: String },
+        logoURL: { type: String },
+        organizer: { type: mongoose.Schema.Types.ObjectId, ref: "Organizer" },
+    },
     categorys: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
     reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],
     ticketTypes: [ticketTypesSchema]
@@ -45,13 +49,12 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
     }
 })
 
-eventSchema.index({ descriptionEmbedding: '2dsphere' });
 
 eventSchema.set('toJSON', {
     transform: function (doc, ret, opt) {
         ret['id'] = doc['_id']
         delete ret['_id']
-        delete ret['descriptionEmbedding']
+        // delete ret['descriptionEmbedding']
         return ret
     }
 })
@@ -66,8 +69,13 @@ eventSchema.pre('save', async function (next) {
             event.minimumTicketPrice = minimumPrice;
         }
 
-        const cohere = CohereAI.getInstance(process.env.COHERE_API_KEY);
-        event.descriptionEmbedding = await cohere.embed(event.fullDescription);
+        const cohere = CohereAI.getInstance(process.env.COHERE_API_KEY, true);
+        try {
+            event.descriptionEmbedding = await cohere.embed(event.fullDescription);
+        } catch (error) {
+
+        }
+
         next();
     } catch (error: any) {
         next(error);
@@ -75,7 +83,7 @@ eventSchema.pre('save', async function (next) {
 });
 eventSchema.post('save', async function (doc) {
     try {
-        const organizer = await mongoose.model('Organizer').findById(doc.organizer);
+        const organizer = await mongoose.model('Organizer').findById(doc.organizer.organizer);
         if (organizer) {
             if (!organizer.events.includes(doc._id)) {
                 organizer.events.push(doc._id);

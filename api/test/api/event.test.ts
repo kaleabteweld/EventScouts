@@ -218,7 +218,7 @@ describe('Event', () => {
 
                     it("SHOULD 400 with error obj", async () => {
                         const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
-                            organizer: "3234"
+                            organizer: "abc"
                         } as IEventSearchFrom);
                         expectError(response, 400);
                     })
@@ -349,6 +349,22 @@ describe('Event', () => {
                             minPrice: Number.MAX_SAFE_INTEGER,
                         } as IEventSearchFrom);
                         expect(response.body.body).toEqual([]);
+                    })
+                })
+
+                describe("WHEN using organizer", () => {
+                    it("SHOULD returns every Event That's organized by the give Organizer", async () => {
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send({
+                            organizer: organizers[0].id
+                        } as IEventSearchFrom);
+                        expect(response.body.body.length).toBeGreaterThanOrEqual(1);
+
+                        response.body.body.forEach((event: IEvent, index: number) => {
+                            expect(event.organizer).toMatchObject({
+                                organizer: organizers[index].id,
+                                name: organizers[index].name,
+                            })
+                        })
                     })
                 })
 

@@ -41,7 +41,7 @@ export async function getById(this: mongoose.Model<IEvent>, _id: string, populat
 export function checkIfOwnByOrganizer(this: IEvent, organizerID: string): boolean {
 
     try {
-        if ((new mongoose.Types.ObjectId(organizerID)).equals(this.organizer._id)) {
+        if ((new mongoose.Types.ObjectId(organizerID)).equals(this.organizer.organizer._id)) {
             return true;
         }
         throw ValidationErrorFactory({
@@ -117,7 +117,7 @@ export class EventSearchBuilder {
         return this;
     }
     withOrganizer(organizerId: string): this {
-        this.query.organizer = organizerId;
+        this.query = { "organizer.organizer": organizerId }
         return this;
     }
     withMinPrice(minPrice: number): this {
@@ -198,7 +198,6 @@ export class EventSearchBuilder {
             const result = await this.model.find(this.query).skip(skip).limit(this.pageSize);
             return result;
         } catch (error) {
-
             if (error instanceof BSONError || error instanceof mongoose.Error.CastError) {
                 throw ValidationErrorFactory({
                     msg: "Input must be a 24 character hex string, 12 byte Uint8Array, or an integer",
@@ -206,9 +205,9 @@ export class EventSearchBuilder {
                     type: "validation",
                 }, "organizerId");
             }
+            throw error;
         }
     }
-
     async aggregateExecute(): Promise<IEventDocument[] | void> {
         try {
             const skip = (this.page - 1) * this.pageSize;

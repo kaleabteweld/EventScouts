@@ -7,6 +7,7 @@ import EventModel from "../../Schema/event.schema";
 import { IOrganizer } from "../../Schema/Types/organizer.schema.types";
 import { copyObjectWithout } from "../../Util";
 import { EventSearchBuilder } from "../../Schema/ExtendedFunctions/event.extended";
+import OrganizerModel from "../../Schema/organizer.schema";
 
 
 @Route("/event")
@@ -15,9 +16,18 @@ export default class EventController {
     @Post("/")
     static async createEvent(_event: INewEventFrom, organizer: IOrganizer): Promise<IResponseType<IEvent>> {
 
-        _event = { ..._event, organizer: organizer.id };
+        const _organizer = await OrganizerModel.getById(organizer.id)
 
         await EventModel.validator(_event, newEventSchema);
+
+        _event = {
+            ..._event, organizer: {
+                name: _organizer?.name,
+                logoURL: _organizer?.logoURL,
+                organizer: _organizer?.id
+            }
+        } as any;
+
         const event = await new EventModel((_event));
         await event.save();
 
