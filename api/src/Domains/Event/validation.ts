@@ -1,8 +1,10 @@
 import Joi from "joi";
 import { IEventSearchFrom, IEventSortFrom, IEventUpdateFrom, INewEventFrom } from "./types";
 import { newTicketTypesSchema, updateTicketTypesSchema } from "../TicketTypes/validation";
+import { ILocation } from "../../Schema/Types/event.schema.types";
 
 export const PEGIRating = ["PEGI 7", "PEGI 12", "PEGI 16", "PEGI 18"]
+export type TPEGIRating = "PEGI 7" | "PEGI 12" | "PEGI 16" | "PEGI 18";
 
 export const newEventSchema = Joi.object<INewEventFrom>({
     name: Joi.string().min(1).required(),
@@ -15,7 +17,10 @@ export const newEventSchema = Joi.object<INewEventFrom>({
         }
         return value;
     }),
-    location: Joi.string().required(),
+    location: Joi.object<ILocation>({
+        type: Joi.string().valid('Point').required(),
+        coordinates: Joi.array().items(Joi.number()).required()
+    }).required(),
     venue: Joi.string().required(),
     ageRating: Joi.custom((value, helper) => {
         if (!PEGIRating.includes(value)) {
@@ -61,7 +66,11 @@ export const eventSearchSchema = Joi.object<IEventSearchFrom>({
         }
         return value;
     }),
-    location: Joi.string().optional(),
+    location: Joi.object({
+        longitude: Joi.number().optional(),
+        latitude: Joi.number().optional(),
+    }).or('longitude', 'latitude').and('longitude', 'latitude'),
+
     ageRating: Joi.custom((value, helper) => {
         if (!PEGIRating.includes(value)) {
             return helper.message({ custom: `\"ageRating\" ${value} is not a valid enum value` });

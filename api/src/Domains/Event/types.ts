@@ -1,3 +1,4 @@
+import { ILocation } from "../../Schema/Types/event.schema.types"
 import { INewTicketTypesFrom } from "../TicketTypes/types"
 
 export interface INewEventFrom {
@@ -6,7 +7,7 @@ export interface INewEventFrom {
     description: String
     startDate: Date
     endDate: Date
-    location: String
+    location: ILocation
     venue: String
     ageRating: String
     categorys: string[]
@@ -21,7 +22,10 @@ export interface IEventSearchFrom {
     name?: string
     startDate?: Date
     endDate?: Date
-    location?: string
+    location?: {
+        longitude?: number
+        latitude?: number
+    }
     ageRating?: string
     organizer?: string
     categorys?: string[]

@@ -6,6 +6,7 @@ import Joi from "joi";
 import { isValidationError } from "../../Types/error"
 import { IUser, TVerified, TVerifiedSupported, UserModel, verifiedEnum, verifiedSupportedEnum } from "../Types/user.schema.types";
 import { BSONError } from 'bson';
+import { PEGIRating, TPEGIRating } from "../../Domains/Event/validation";
 
 
 export async function encryptPassword(this: IUser, password?: string): Promise<string> {
@@ -200,4 +201,18 @@ export function checkVerifiedBy(this: IUser, key: TVerifiedSupported): boolean {
         throw error
     }
 
+}
+export function getPEGIRating(this: IUser): TPEGIRating {
+
+    const currentDate = new Date();
+    const age = currentDate.getFullYear() - this.dateOfBirth.getFullYear();
+
+    for (const rating of PEGIRating.slice().reverse()) {
+        const ageRequirement = parseInt(rating.split(" ")[1]);
+        if (age >= ageRequirement) {
+            return rating as TPEGIRating;
+        }
+    }
+
+    return "PEGI 7";
 }

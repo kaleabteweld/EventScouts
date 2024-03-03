@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { getUserByEmail, checkPassword, encryptPassword, validator, getUserByWalletAccounts, getUserById, applyUserVerify, getByVerifiedKey } from './ExtendedFunctions/user.extended';
+import { getUserByEmail, checkPassword, encryptPassword, validator, getUserByWalletAccounts, getUserById, applyUserVerify, getByVerifiedKey, getPEGIRating } from './ExtendedFunctions/user.extended';
 import { mongooseErrorPlugin } from './Middleware/errors.middleware';
 import { GenderEnum, IUser, IUserMethods, UserModel, verifiedEnum } from './Types/user.schema.types';
 
@@ -29,6 +29,7 @@ export const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
         encryptPassword,
         checkPassword,
         applyUserVerify,
+        getPEGIRating,
     },
     statics: {
         validator,

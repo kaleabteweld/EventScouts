@@ -7,6 +7,11 @@ import { IEventUpdateFrom } from "../../Domains/Event/types";
 import { IPagination } from "../../Domains/Common/types";
 import { IReview } from "./review.schema.types";
 
+export interface ILocation {
+    type: "Point"
+    coordinates: number[]
+}
+
 export interface IEvent extends mongoose.Document {
     name: string
     posterURL: string
@@ -15,7 +20,7 @@ export interface IEvent extends mongoose.Document {
     fullDescription: string
     startDate: Date
     endDate: Date
-    location: String
+    location: ILocation
     venue: String
     ageRating: String
     minimumTicketPrice: number

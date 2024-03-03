@@ -9,7 +9,7 @@ import { IUserSignUpFrom } from "../../src/Domains/User/types";
 import { IOrganizer } from "../../src/Schema/Types/organizer.schema.types";
 import { UserType } from "../../src/Types";
 import { ICategory } from "../../src/Schema/Types/category.schema.types";
-import { IEvent } from "../../src/Schema/Types/event.schema.types";
+import { IEvent, ILocation } from "../../src/Schema/Types/event.schema.types";
 import { IUser } from "../../src/Schema/Types/user.schema.types";
 import { INewReviewFrom } from "../../src/Domains/Review/types";
 
@@ -69,14 +69,14 @@ export const newValidReview = (event: string, rating: number = 2, review = "good
     review
 }) as INewReviewFrom
 
-type TNewValidEventArgs = { categorys?: string[], organizer?: string, ticketTypes?: INewTicketTypesFrom[], name?: string }
+type TNewValidEventArgs = { categorys?: string[], organizer?: string, ticketTypes?: INewTicketTypesFrom[], name?: string, location?: ILocation }
 
-export const newValidEvent = ({ categorys = [], ticketTypes = [], name = "Category" }: TNewValidEventArgs): INewEventFrom => ({
+export const newValidEvent = ({ categorys = [], ticketTypes = [], name = "Category", location = { type: "Point", coordinates: [9.007544344601149, 38.798132727216654] } }: TNewValidEventArgs): INewEventFrom => ({
     categorys,
     description: "Category description",
     endDate: new Date(),
     startDate: new Date(),
-    location: "category location",
+    location,
     name,
     posterURL: "http://localhost/category/a.png",
     venue: "category venue",
@@ -84,12 +84,12 @@ export const newValidEvent = ({ categorys = [], ticketTypes = [], name = "Catego
     ticketTypes
 })
 
-export const updateValidEvent = ({ categorys = [], ticketTypes = [], name = "Category" }: TNewValidEventArgs): IEventUpdateFrom => ({
+export const updateValidEvent = ({ categorys = [], ticketTypes = [], name = "Category", location = { type: "Point", coordinates: [9.007544344601149, 38.798132727216654] } }: TNewValidEventArgs): IEventUpdateFrom => ({
     categorys,
     description: "Event description",
     endDate: new Date(),
     startDate: new Date(),
-    location: "category location",
+    location,
     name,
     posterURL: "http://localhost/category/a.png",
     venue: "category venue",
@@ -256,7 +256,6 @@ export async function expectValidEvent(response: Response, categorys: ICategory[
     delete (validEvent as any)["ticketTypes"]
     delete (validEvent as any)["categorys"]
 
-    console.log({ response: response.body.body })
     expect(response.body.body).toMatchObject({
         ...validEvent,
         // categorys: expect.arrayContaining(categorys),

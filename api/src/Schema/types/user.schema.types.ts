@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Joi from 'joi';
+import { TPEGIRating } from "../../Domains/Event/validation";
 
 
 export type TGender = 'male' | 'female' | 'others' | 'none';
@@ -31,7 +32,7 @@ export interface IUser extends mongoose.Document {
     phone: string;
     profilePic: string;
     verified: TVerified;
-    dateOfBirth?: Date;
+    dateOfBirth: Date;
     gender: TGender;
     password: string;
     walletAccounts: string[];
@@ -41,7 +42,8 @@ export interface IUser extends mongoose.Document {
 export interface IUserMethods {
     encryptPassword(password?: string): Promise<string>
     checkPassword(password: string): Promise<boolean>
-    applyUserVerify(this: IUser, key: TVerified): Promise<IUser>
+    applyUserVerify(key: TVerified): Promise<IUser>
+    getPEGIRating(): TPEGIRating
 }
 
 // Extend the Document type with IUserMethods

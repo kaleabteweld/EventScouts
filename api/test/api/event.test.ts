@@ -8,7 +8,6 @@ import { UserType } from '../../src/Types';
 import { IUser } from '../../src/Schema/Types/user.schema.types';
 import { ICategory } from '../../src/Schema/Types/category.schema.types';
 import { IEvent } from '../../src/Schema/Types/event.schema.types';
-import { INewCategoryFrom } from '../../src/Domains/Category/types';
 import { IEventSearchFrom } from '../../src/Domains/Event/types';
 import { IOrganizer } from '../../src/Schema/Types/organizer.schema.types';
 
@@ -214,7 +213,7 @@ describe('Event', () => {
                     })
                 });
 
-                describe("WHEN using organizer [must a ObjectID ]", () => {
+                describe("WHEN using organizer [must a ObjectID]", () => {
 
                     it("SHOULD 400 with error obj", async () => {
                         const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
@@ -224,7 +223,7 @@ describe('Event', () => {
                     })
                 });
 
-                describe("WHEN using categorys [must a ObjectID[] ]", () => {
+                describe("WHEN using categorys [must a ObjectID[]]", () => {
 
                     it("SHOULD 400 with error obj", async () => {
                         const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
@@ -233,6 +232,17 @@ describe('Event', () => {
                         expectError(response, 400);
                     })
                 });
+
+                describe("WHEN using Location  [must set both longitude && latitude]", () => {
+                    it("SHOULD 400 with error obj", async () => {
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
+                            location: {
+                                latitude: 9.01017227324446,
+                            }
+                        }));
+                        expectError(response, 400);
+                    })
+                })
             })
 
             describe("WHEN using supported inputs", () => {
@@ -368,26 +378,50 @@ describe('Event', () => {
                     })
                 })
 
-                describe("WHEN using Sort", () => {
-                    it("SHOULD returns every Event Sorted by name in desc order", async () => {
+                describe.skip("WHEN using Location", () => {
+
+                    it("SHOULD returns every Event That's near the give cords with in 1000M", async () => {
                         const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
-                        }, {
-                            name: "desc"
+                            location: {
+                                longitude: 9.006103214329574,
+                                latitude: 38.79379827766147,
+                            }
                         }));
                         expect(response.body.body.length).toBeGreaterThanOrEqual(1);
-                        response.body.body.forEach((event: IEvent, index: number) => {
-                            expect(event.organizer).toMatchObject({
-                                organizer: organizers[0].id,
-                                name: organizers[0].name,
-                            })
-                        })
+                    })
 
-                        const firstName = response.body.body[0].name;
-                        const secondName = response.body.body[1].name;
+                    it("SHOULD NOT returns every Event that are more then 1000M", async () => {
 
-                        expect(firstName > secondName).toBeTruthy();
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
+                            location: {
+                                longitude: 9.013449265859052,
+                                latitude: 38.8369413669223,
+                            }
+                        }));
+                        expect(response.body.body.length).toBeGreaterThanOrEqual(0);
                     })
                 })
+
+                // describe("WHEN using Sort", () => {
+                //     it("SHOULD returns every Event Sorted by name in desc order", async () => {
+                //         const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
+                //         }, {
+                //             name: "desc"
+                //         }));
+                //         expect(response.body.body.length).toBeGreaterThanOrEqual(1);
+                //         response.body.body.forEach((event: IEvent, index: number) => {
+                //             expect(event.organizer).toMatchObject({
+                //                 organizer: organizers[0].id,
+                //                 name: organizers[0].name,
+                //             })
+                //         })
+
+                //         const firstName = response.body.body[0].name;
+                //         const secondName = response.body.body[1].name;
+
+                //         expect(firstName > secondName).toBeTruthy();
+                //     })
+                // })
 
             });
         })

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { IEvent, IEventMethods, IEventModel } from './Types/event.schema.types'
+import { IEvent, IEventMethods, IEventModel, ILocation } from './Types/event.schema.types'
 import { mongooseErrorPlugin } from './Middleware/errors.middleware'
 import { validator, getById, checkIfOwnByOrganizer, removeByID, update } from './ExtendedFunctions/event.extended'
 import { getEventWithReviews } from './Aggregate/event.aggregate'
@@ -8,13 +8,28 @@ import { PEGIRating } from '../Domains/Event/validation'
 import CohereAI from '../Util/cohere'
 
 
+const pointSchema = new mongoose.Schema<ILocation>({
+    type: {
+        type: String,
+        enum: ['Point'],
+        required: true
+    },
+    coordinates: {
+        type: [Number],
+        required: true
+    }
+});
+
 export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethods>({
     name: { type: String, unique: true },
     posterURL: String,
     description: String,
     startDate: { type: Date },
     endDate: { type: Date },
-    location: String,
+    location: {
+        type: pointSchema,
+        index: '2dsphere'
+    },
     venue: String,
     descriptionEmbedding: [{ type: Number, select: false }],
     rating: { avgRating: { type: Number, default: 0 }, ratingCount: { type: Number, default: 0 } },
@@ -47,8 +62,7 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
             }
         }
     }
-})
-
+});
 
 eventSchema.set('toJSON', {
     transform: function (doc, ret, opt) {

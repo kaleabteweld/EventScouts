@@ -94,7 +94,8 @@ export class EventSearchBuilder {
     private aggregateQuery: mongoose.PipelineStage[] = []
     private page: number = 1;
 
-    constructor(private model: mongoose.Model<IEventDocument> = EventModel, private pageSize: number = 10) {
+
+    constructor(private model: mongoose.Model<IEventDocument> = EventModel, private pageSize: number = 10, private maxDistance: number = 1000) {
     }
 
     withName(name: string): this {
@@ -109,8 +110,16 @@ export class EventSearchBuilder {
         this.query.endDate = { $lte: endDate };
         return this;
     }
-    withLocation(location: string): this {
-        this.query.location = location;
+    withLocation(lon: number, lat: number): this {
+        this.query.location = {
+            $near: {
+                $maxDistance: this.maxDistance,
+                $geometry: {
+                    type: "Point",
+                    coordinates: [lon, lat],
+                },
+            },
+        };
         return this;
     }
     withAgeRating(ageRating: string): this {
@@ -173,7 +182,8 @@ export class EventSearchBuilder {
         //     builder.withEmbedding(json.search);
         // }
         if (json.location) {
-            builder.withLocation(json.location);
+            if (json.location.longitude && json.location.latitude)
+                builder.withLocation(json.location.longitude, json.location.latitude);
         }
         if (json.ageRating) {
             builder.withAgeRating(json.ageRating);
@@ -214,6 +224,13 @@ export class EventSearchBuilder {
                     statusCode: 400,
                     type: "validation",
                 }, "organizerId");
+            }
+            if ((error as any).code === 291) {
+                throw ValidationErrorFactory({
+                    msg: "unable to find index for $geoNear query",
+                    statusCode: 500,
+                    type: "mongoDb",
+                }, "location");
             }
             throw error;
         }
