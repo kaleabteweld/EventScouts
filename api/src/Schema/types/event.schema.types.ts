@@ -24,6 +24,7 @@ export interface IEvent extends mongoose.Document {
     venue: String
     ageRating: String
     minimumTicketPrice: number
+    shareableLink: string,
     rating: { avgRating: number, ratingCount: number },
     organizer: {
         name: string
@@ -38,6 +39,7 @@ export interface IEvent extends mongoose.Document {
 //Dynamic methods
 export interface IEventMethods {
     checkIfOwnByOrganizer(this: IEvent, organizerID: string): boolean
+    getShareableLink(): String
 }
 
 // Extend the Document type with IUserMethods
@@ -51,4 +53,5 @@ export interface IEventModel extends mongoose.Model<IEventDocument> {
     removeByID(_id: string): Promise<void>
     update(_id: string, newEvent: IEventUpdateFrom, populatePath: string | string[]): Promise<IEvent | null>
     getEventWithReviews(pagination: IPagination, _id: string): Promise<IEvent>
+    getEventByShareableLink(_eventId: string, populatePath: string | string[]): Promise<IEventDocument | null>
 }

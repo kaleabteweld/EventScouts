@@ -7,6 +7,7 @@ import { BSONError } from 'bson';
 import { IEventSearchFrom, IEventSortFrom, IEventUpdateFrom } from "../../Domains/Event/types";
 import EventModel from "../event.schema";
 import CohereAI from "../../Util/cohere";
+import { decryptId, encryptId, isEncrypted } from "../../Util";
 
 
 export function validator<T>(userInput: T, schema: Joi.ObjectSchema<T>) {
@@ -14,6 +15,9 @@ export function validator<T>(userInput: T, schema: Joi.ObjectSchema<T>) {
 }
 
 export async function getById(this: mongoose.Model<IEvent>, _id: string, populatePath: string | string[]): Promise<mongoose.Document<unknown, {}, IEvent> & IEvent & { _id: mongoose.Types.ObjectId; } | null> {
+    if (isEncrypted(_id)) {
+        _id = decryptId(_id);
+    }
     try {
         const event = await this.findById(new mongoose.Types.ObjectId(_id)).populate(populatePath);
         if (event == null) {
@@ -143,6 +147,7 @@ export class EventSearchBuilder {
             this.query.categorys = [];
         }
         this.query.categorys = categoryIds;
+        // this.query.categorys = { $in: categoryIds };
         return this;
     }
     async withEmbedding(search: string): Promise<this> {
@@ -287,4 +292,17 @@ export class EventSortBuilder {
     getSortCriteria() {
         return this.sortCriteria;
     }
+}
+
+export function getShareableLink(this: IEvent): String {
+    const baseUrl = process.env.SHAREABLE_LINK_BASE_URL ?? "";
+    return `${baseUrl}/event/${encryptId(this.id)}`;
+}
+
+export function getEventByShareableLink(this: mongoose.Model<IEvent>, _eventId: string, populatePath: string | string[]): Promise<mongoose.Document<unknown, {}, IEvent> & IEvent & { _id: mongoose.Types.ObjectId; } | null> {
+    var eventId = _eventId;
+    if (isEncrypted(eventId)) {
+        eventId = decryptId(eventId);
+    }
+    return getById.bind(this)(eventId, populatePath)
 }

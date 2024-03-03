@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import { IEvent, IEventMethods, IEventModel, ILocation } from './Types/event.schema.types'
 import { mongooseErrorPlugin } from './Middleware/errors.middleware'
-import { validator, getById, checkIfOwnByOrganizer, removeByID, update } from './ExtendedFunctions/event.extended'
+import { validator, getById, checkIfOwnByOrganizer, removeByID, update, getShareableLink, getEventByShareableLink } from './ExtendedFunctions/event.extended'
 import { getEventWithReviews } from './Aggregate/event.aggregate'
 import { ticketTypesSchema } from './ticketType.schema'
 import { PEGIRating } from '../Domains/Event/validation'
@@ -47,6 +47,7 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
     timestamps: true,
     methods: {
         checkIfOwnByOrganizer,
+        getShareableLink,
     },
     statics: {
         validator,
@@ -54,21 +55,29 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
         removeByID,
         update,
         getEventWithReviews,
+        getEventByShareableLink,
     },
     virtuals: {
         fullDescription: {
             get(): string {
                 return `${(this as any).name}\n ${(this as any).description}`
             }
-        }
-    }
+        },
+    },
 });
 
+eventSchema.virtual('shareableLink').get(function () {
+    return this.getShareableLink.bind(this)();
+})
+
 eventSchema.set('toJSON', {
+    virtuals: true,
+    versionKey: false,
     transform: function (doc, ret, opt) {
         ret['id'] = doc['_id']
         delete ret['_id']
-        // delete ret['descriptionEmbedding']
+        delete ret['descriptionEmbedding']
+        delete ret['fullDescription']
         return ret
     }
 })

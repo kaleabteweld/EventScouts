@@ -10,6 +10,7 @@ import { ICategory } from '../../src/Schema/Types/category.schema.types';
 import { IEvent } from '../../src/Schema/Types/event.schema.types';
 import { IEventSearchFrom } from '../../src/Domains/Event/types';
 import { IOrganizer } from '../../src/Schema/Types/organizer.schema.types';
+import { encryptId, getEncryptedIdFromUrl } from '../../src/Util';
 
 const app = makeServer();
 
@@ -48,7 +49,6 @@ describe('Event', () => {
 
                     const response = await request(app).post(eventPrivateUrl()).set("Authorization", `Bearer ${accessTokens[0]}`)
                         .send(newValidEvent({ categorys: [categorys[0].id], ticketTypes: newValidTicketTypes }));
-
                     expectValidEvent(response, [categorys[0]]);
 
                 });
@@ -639,5 +639,56 @@ describe('Event', () => {
         });
 
     })
+
+    describe("Events Shareable Link", () => {
+
+        var categorys: ICategory[] = [];
+        var events: IEvent[] = [];
+        var accessToken: string;
+        var organizers: IOrganizer[] = [];
+
+
+        beforeEach(async () => {
+            const { accessTokens, organizers: orgs } = await createOrganizer(request, app, [newValidOrganizer]);
+            accessToken = accessTokens[0];
+            organizers = orgs;
+
+            const { categorys: cats, events: eves } = await createEvents(request, app, [newValidCategory], 3, accessToken)
+            categorys = cats;
+            events = eves;
+        })
+
+        describe("WHEN event is returned", () => {
+            it("SHOULD return event object with shareableLink", async () => {
+                const response = await request(app).get(`${eventPublicUrl()}byId/${events[0].id}`).send();
+                expectValidEvent(response, categorys, undefined, {
+                    name: "event 1",
+                    shareableLink: `${process.env.SHAREABLE_LINK_BASE_URL ?? ""}/event/${encryptId(events[0].id)}`
+                });
+            })
+
+            describe("WHEN using valid shareable Link to get event", () => {
+                it("SHOULD return event object", async () => {
+                    const id = getEncryptedIdFromUrl(events[0].shareableLink);
+
+                    const response = await request(app).get(`${eventPublicUrl()}byId/${id}`).send();
+                    expectValidEvent(response, categorys, undefined, {
+                        name: "event 1",
+                    });
+                })
+            });
+
+            describe("WHEN using InValid shareable Link to get event", () => {
+                it("SHOULD return error object", async () => {
+                    const id = getEncryptedIdFromUrl("invalidUrl");
+                    const response = await request(app).get(`${eventPublicUrl()}byId/${id}`).send();
+                    expectError(response, 400);
+                })
+            });
+        })
+
+
+
+    });
 
 });
