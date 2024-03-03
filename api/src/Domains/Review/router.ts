@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import { MakeErrorHandler, userOnly } from "../../Util/middlewares";
 import ReviewController from "./controller";
 import { IUser } from "../../Schema/Types/user.schema.types";
+import { TReactionType } from "../../Schema/Types/review.schema.types";
 
 
 const publicReviewRouter = express.Router();
@@ -24,6 +25,15 @@ privateReviewRouter.post("/", userOnly, MakeErrorHandler(
     async (req: any, res: Response) => {
         const _user: IUser = req['user'];
         res.json(await ReviewController.createReview(req.body, _user));
+    }
+));
+
+privateReviewRouter.patch("/react/:id/:reaction", userOnly, MakeErrorHandler(
+    async (req: any, res: Response) => {
+        const _user: IUser = req['user'];
+        const _reaction: TReactionType = req.params.reaction;
+        const reviewId = req.params.id;
+        res.json(await ReviewController.toggleReact(reviewId, _reaction, _user));
     }
 ));
 

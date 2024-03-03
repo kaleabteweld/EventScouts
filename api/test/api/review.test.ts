@@ -182,4 +182,66 @@ describe('Review', () => {
 
     });
 
+    describe("Review Reaction", () => {
+
+        var categorys: ICategory[] = [];
+        var events: IEvent[] = [];
+        var organizerAccessTokens: string[];
+        var userAccessTokens: string[];
+        var reviews: IReview[] = [];
+
+
+        beforeEach(async () => {
+
+            const { accessTokens: ats } = await createUser(request, app, [newValidUser]);
+            userAccessTokens = ats;
+
+            const { accessTokens } = await createOrganizer(request, app, [newValidOrganizer]);
+            organizerAccessTokens = accessTokens;
+
+            const { categorys: cats, events: eves } = await createEvents(request, app, [newValidCategory], 2, organizerAccessTokens[0])
+            categorys = cats;
+            events = eves;
+
+            reviews = [];
+            const response = await request(app).post(reviewPrivateUrl()).set("Authorization", `Bearer ${userAccessTokens[0]}`)
+                .send(newValidReview(events[0].id));
+            reviews.push(response.body.body)
+        })
+
+        describe("WHEN trying to add a 👍 like Reaction", () => {
+
+            it("SHOULD Increment the like Reaction counter ", async () => {
+                const toggleReactResponse = await request(app).patch(`${reviewPrivateUrl()}react/${reviews[0].id}/like`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+                const response = await request(app).get(`${reviewPublicUrl()}byId/${reviews[0].id}`).send();
+
+                expectValidReview(response, newValidReview(events[0].id));
+                expect(response.body.body.reactions.like.count).toBe(1)
+            })
+
+            describe("WHEN trying to toggle", () => {
+
+                it("SHOULD decrement the like Reaction counter ", async () => {
+                    await request(app).patch(`${reviewPrivateUrl()}react/${reviews[0].id}/like`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+                    await request(app).patch(`${reviewPrivateUrl()}react/${reviews[0].id}/like`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+
+                    const response = await request(app).get(`${reviewPublicUrl()}byId/${reviews[0].id}`).send();
+
+                    expectValidReview(response, newValidReview(events[0].id));
+                    expect(response.body.body.reactions.like.count).toBe(0)
+                })
+                it("SHOULD remove user from the list", async () => {
+                    await request(app).patch(`${reviewPrivateUrl()}react/${reviews[0].id}/like`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+                    await request(app).patch(`${reviewPrivateUrl()}react/${reviews[0].id}/like`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+
+                    const response = await request(app).get(`${reviewPublicUrl()}byId/${reviews[0].id}`).send();
+
+                    expectValidReview(response, newValidReview(events[0].id));
+                    expect(response.body.body.reactedUsers.length).toBe(0);
+                })
+            });
+        });
+
+    });
+
 });

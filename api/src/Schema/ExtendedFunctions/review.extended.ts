@@ -1,9 +1,11 @@
 import Joi from "joi";
 import { MakeValidator } from "../../Domains/Common";
 import mongoose from "mongoose";
-import { IReview } from "../Types/review.schema.types";
+import { IReview, TReactionType } from "../Types/review.schema.types";
 import { ValidationErrorFactory } from "../../Util/Factories";
 import { BSONError } from 'bson';
+import { IUser } from "../Types/user.schema.types";
+import { reactions } from "../review.schema";
 
 
 export function validator<T>(userInput: T, schema: Joi.ObjectSchema<T>) {
@@ -47,4 +49,31 @@ export async function removeByID(this: mongoose.Model<IReview>, _id: string): Pr
         }
         throw error;
     }
+}
+
+export async function toggleReact(this: IReview, reaction: TReactionType, user: IUser): Promise<IReview> {
+    if (!reactions.includes(reaction)) {
+        throw ValidationErrorFactory({
+            msg: "Invalid reaction type",
+            statusCode: 400,
+            type: "Validation"
+        }, "reaction")
+    }
+
+    const index = this.reactedUsers.findIndex((obj) => obj.user == user.id)
+    if (index !== -1) {
+        (this.reactedUsers as any).pull({ user: user.id });
+        this.reactions[reaction].count--;
+    } else {
+        this.reactedUsers.push({
+            user: user.id,
+            username: user.userName,
+            profilePic: user.profilePic,
+            reaction: reaction,
+        });
+        this.reactions[reaction].count++;
+    }
+
+    await this.save();
+    return this;
 }

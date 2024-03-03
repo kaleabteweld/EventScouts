@@ -3,6 +3,14 @@ import Joi from 'joi';
 import { IEvent } from "./event.schema.types";
 import { IUser } from "./user.schema.types";
 
+export type TReactionType = "like" | "love" | "haha" | "wow" | "sad" | "angry";
+
+export interface IReviewReaction {
+    emoji: string;
+    count: number;
+    users: mongoose.Schema.Types.ObjectId[] | IUser[]
+}
+
 export interface IReview extends mongoose.Document {
     event: mongoose.Schema.Types.ObjectId | IEvent[]
     rating: number
@@ -10,12 +18,27 @@ export interface IReview extends mongoose.Document {
     user: {
         username: string
         profilePic: string
-        user: mongoose.Schema.Types.ObjectId | IUser[]
+        user: mongoose.Schema.Types.ObjectId | IUser
     },
+    reactedUsers: {
+        username: string
+        profilePic: string
+        reaction: TReactionType,
+        user: mongoose.Schema.Types.ObjectId | IUser
+    }[],
+    reactions: {
+        like: IReviewReaction;
+        love: IReviewReaction;
+        haha: IReviewReaction;
+        wow: IReviewReaction;
+        sad: IReviewReaction;
+        angry: IReviewReaction;
+    };
 }
 
 //Dynamic methods
 export interface IReviewMethods {
+    toggleReact(reaction: TReactionType, user: IUser): Promise<IReview>
 }
 
 // Extend the Document type with IUserMethods

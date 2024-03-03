@@ -1,9 +1,13 @@
 import mongoose from 'mongoose'
 import { mongooseErrorPlugin } from './Middleware/errors.middleware'
-import { validator, getById, removeByID } from './ExtendedFunctions/review.extended'
-import { IReview, IReviewMethods, IReviewModel } from './Types/review.schema.types'
+import { validator, getById, removeByID, toggleReact } from './ExtendedFunctions/review.extended'
+import { IReview, IReviewMethods, IReviewModel, IReviewReaction } from './Types/review.schema.types'
 import { IEvent } from './Types/event.schema.types'
 
+export const reactions = ["like", "love", "haha", "wow", "sad", "angry"];
+const reactionSchema = {
+    count: { type: Number, default: 0 },
+};
 
 export const reviewSchema = new mongoose.Schema<IReview, IReviewModel, IReviewMethods>({
     event: { type: mongoose.Schema.Types.ObjectId, ref: "Event" },
@@ -14,9 +18,25 @@ export const reviewSchema = new mongoose.Schema<IReview, IReviewModel, IReviewMe
         profilePic: { type: String },
         user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     },
+    reactedUsers: [{
+        username: { type: String },
+        profilePic: { type: String },
+        reaction: { type: String, enum: reactions },
+        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    }],
+    reactions: {
+        like: reactionSchema,
+        love: reactionSchema,
+        haha: reactionSchema,
+        wow: reactionSchema,
+        sad: reactionSchema,
+        angry: reactionSchema,
+    },
 }, {
+    minimize: false,
     timestamps: true,
     methods: {
+        toggleReact,
     },
     statics: {
         validator,
