@@ -7,7 +7,7 @@ export interface IOrganizerSignUpFrom {
     email: string,
     name: string,
     phone: string,
-    logoURL?: String,
+    logoURL: String,
     password: string,
     walletAccounts: string[]
 }

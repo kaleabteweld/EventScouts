@@ -35,6 +35,7 @@ export const newValidOrganizer: IOrganizerSignUpFrom = {
     name: "test",
     password: "abcd12345",
     phone: "+251900000",
+    logoURL: "http://localhost/organizer/b.png",
     walletAccounts: ["f0xA29D81C60A4840ed7f4ce55AE49190276721258B", "0xd0073923dc23eA1B04E84095576b62456053bB40"]
 };
 
@@ -43,6 +44,7 @@ export const newValidOrganizer2: IOrganizerSignUpFrom = {
     name: "test2",
     password: "abcd123452",
     phone: "+2519000002",
+    logoURL: "http://localhost/organizer/a.png",
     walletAccounts: ["0x591F2D5D72Ca5bB3de7590F017972191b5B15068", "0xf1E5a82e9Ed2FF6F34A12fa2C8171912D4736cd0"]
 
 };

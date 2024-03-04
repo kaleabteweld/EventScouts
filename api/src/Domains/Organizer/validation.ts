@@ -6,7 +6,7 @@ export const newOrganizerSchema = Joi.object<IOrganizerSignUpFrom>({
     email: Joi.string().email().required(),
     name: Joi.string().max(30).required(),
     phone: Joi.string().required(),
-    logoURL: Joi.string().uri().optional(),
+    logoURL: Joi.string().uri().required(),
     password: Joi.string().min(8).max(254).required(),
     walletAccounts: Joi.array().items(Joi.string().min(8).max(254)).optional(),
 });
