@@ -33,7 +33,7 @@ privateReviewRouter.patch("/react/:id/:reaction", userOnly, MakeErrorHandler(
         const _user: IUser = req['user'];
         const _reaction: TReactionType = req.params.reaction;
         const reviewId = req.params.id;
-        res.json(await ReviewController.toggleReact(reviewId, _reaction, _user));
+        res.json(await ReviewController.react(reviewId, _reaction, _user));
     }
 ));
 

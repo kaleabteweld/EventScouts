@@ -51,7 +51,7 @@ export async function removeByID(this: mongoose.Model<IReview>, _id: string): Pr
     }
 }
 
-export async function toggleReact(this: IReview, reaction: TReactionType, user: IUser): Promise<IReview> {
+export async function react(this: IReview, reaction: TReactionType, user: IUser): Promise<IReview> {
     if (!reactions.includes(reaction)) {
         throw ValidationErrorFactory({
             msg: "Invalid reaction type",
@@ -61,9 +61,14 @@ export async function toggleReact(this: IReview, reaction: TReactionType, user: 
     }
 
     const index = this.reactedUsers.findIndex((obj) => obj.user == user.id)
-    if (index !== -1) {
+    const reactedUser = this.reactedUsers[index];
+
+    if (index !== -1 && reactedUser.reaction == reaction) {
         (this.reactedUsers as any).pull({ user: user.id });
         this.reactions[reaction].count--;
+    } else if (index !== -1 && reactedUser.reaction != reaction) {
+        this.reactions[reactedUser.reaction].count--;
+        this.reactions[reaction].count++;
     } else {
         this.reactedUsers.push({
             user: user.id,

@@ -45,11 +45,11 @@ export default class ReviewController {
     }
 
     @Patch("/react/{reviewId}/{reaction}")
-    static async toggleReact(reviewId: string, reaction: TReactionType, _user: IUser): Promise<IResponseType<IReview | null>> {
+    static async react(reviewId: string, reaction: TReactionType, _user: IUser): Promise<IResponseType<IReview | null>> {
         const user = await User.getUserById(_user.id);
         const review = await ReviewModel.getById(reviewId);
 
-        return { body: ((await review?.toggleReact(reaction, (user as IUser)))?.toJSON() as any) };
+        return { body: ((await review?.react(reaction, (user as IUser)))?.toJSON() as any) };
     }
 
     // @Delete("/remove/{reviewId}")

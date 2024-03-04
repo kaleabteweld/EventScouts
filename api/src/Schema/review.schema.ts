@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import { mongooseErrorPlugin } from './Middleware/errors.middleware'
-import { validator, getById, removeByID, toggleReact } from './ExtendedFunctions/review.extended'
+import { validator, getById, removeByID, react } from './ExtendedFunctions/review.extended'
 import { IReview, IReviewMethods, IReviewModel, IReviewReaction } from './Types/review.schema.types'
 import { IEvent } from './Types/event.schema.types'
 
@@ -36,7 +36,7 @@ export const reviewSchema = new mongoose.Schema<IReview, IReviewModel, IReviewMe
     minimize: false,
     timestamps: true,
     methods: {
-        toggleReact,
+        react,
     },
     statics: {
         validator,

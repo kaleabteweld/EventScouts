@@ -38,7 +38,7 @@ export interface IReview extends mongoose.Document {
 
 //Dynamic methods
 export interface IReviewMethods {
-    toggleReact(reaction: TReactionType, user: IUser): Promise<IReview>
+    react(reaction: TReactionType, user: IUser): Promise<IReview>
 }
 
 // Extend the Document type with IUserMethods

@@ -219,6 +219,20 @@ describe('Review', () => {
                 expect(response.body.body.reactions.like.count).toBe(1)
             })
 
+            describe("WHEN trying switch from 👍 like Reaction to a ❤️ love Reaction", () => {
+
+                it("SHOULD decrement the 👍 like Reaction counter and Increment the ❤️ love Reaction counter", async () => {
+                    await request(app).patch(`${reviewPrivateUrl()}react/${reviews[0].id}/like`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+                    await request(app).patch(`${reviewPrivateUrl()}react/${reviews[0].id}/love`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+
+                    const response = await request(app).get(`${reviewPublicUrl()}byId/${reviews[0].id}`).send();
+
+                    expectValidReview(response, newValidReview(events[0].id));
+                    expect(response.body.body.reactions.like.count).toBe(0);
+                    expect(response.body.body.reactions.love.count).toBe(1);
+                })
+            });
+
             describe("WHEN trying to toggle", () => {
 
                 it("SHOULD decrement the like Reaction counter ", async () => {
