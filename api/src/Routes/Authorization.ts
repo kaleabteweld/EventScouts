@@ -5,12 +5,13 @@ import { privateOrganizerRouter, publicOrganizerRouter } from "../Domains/Organi
 import { privateEventRouter, publicEventRouter } from "../Domains/Event";
 import { privateCategoryRouter, publicCategoryRouter } from "../Domains/Category";
 import { privateReviewRouter, publicReviewRouter } from "../Domains/Review";
+import { privateTicketTypesRouter, publicTicketTypesRouter } from "../Domains/TicketTypes";
 
 const publicRouter = express.Router();
 const privateRouter = express.Router();
 
-publicRouter.use([publicAuthenticationRouter, publicUserRouter, publicOrganizerRouter, publicEventRouter, publicCategoryRouter, publicReviewRouter]);
-privateRouter.use([privateAuthenticationRouter, privateUserRouter, privateOrganizerRouter, privateEventRouter, privateCategoryRouter, privateReviewRouter]);
+publicRouter.use([publicAuthenticationRouter, publicUserRouter, publicOrganizerRouter, publicEventRouter, publicCategoryRouter, publicReviewRouter, publicTicketTypesRouter]);
+privateRouter.use([privateAuthenticationRouter, privateUserRouter, privateOrganizerRouter, privateEventRouter, privateCategoryRouter, privateReviewRouter, privateTicketTypesRouter]);
 
 
 export { publicRouter, privateRouter }

@@ -27,6 +27,8 @@ export const categoryPrivateUrl = () => `/Api/v1/private/category/`;
 export const categoryPublicUrl = () => `/Api/v1/public/category/`;
 export const reviewPrivateUrl = () => `/Api/v1/private/review/`;
 export const reviewPublicUrl = () => `/Api/v1/public/review/`;
+export const ticketTypePrivateUrl = () => `/Api/v1/private/ticketType/`;
+export const ticketTypePublicUrl = () => `/Api/v1/public/ticketType/`;
 
 
 

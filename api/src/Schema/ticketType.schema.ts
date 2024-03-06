@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import { ITicketTypes, ITicketTypesMethods, ITicketTypesModel } from './Types/ticketTypes.schema.types'
 import { mongooseErrorPlugin } from './Middleware/errors.middleware'
-import { update, validator } from './ExtendedFunctions/ticketType.extended'
+import { validator } from './ExtendedFunctions/ticketType.extended'
 
 export const ticketTypesSchema = new mongoose.Schema<ITicketTypes, ITicketTypesModel, ITicketTypesMethods>({
     posterURl: String,
@@ -13,14 +13,12 @@ export const ticketTypesSchema = new mongoose.Schema<ITicketTypes, ITicketTypesM
     description: String,
     refundable: { type: Boolean, default: false },
     online: { type: String, default: null },
-
     transactionHash: { type: String, default: null },
 }, {
     timestamps: true,
     autoCreate: false,
     statics: {
         validator,
-        update,
     }
 })
 

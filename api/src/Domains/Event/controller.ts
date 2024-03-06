@@ -8,6 +8,10 @@ import { IOrganizer } from "../../Schema/Types/organizer.schema.types";
 import { copyObjectWithout } from "../../Util";
 import { EventSearchBuilder, EventSortBuilder } from "../../Schema/ExtendedFunctions/event.extended";
 import OrganizerModel from "../../Schema/organizer.schema";
+import { ITicketTypesUpdateFrom } from "../TicketTypes/types";
+import TicketTypesModel from "../../Schema/ticketType.schema";
+import { updateTicketTypesSchema } from "../TicketTypes/validation";
+import { ITicketTypes } from "../../Schema/Types/ticketTypes.schema.types";
 
 
 @Route("/event")
@@ -101,5 +105,17 @@ export default class EventController {
         builder.withPagination(page);
 
         return { body: (await builder.aggregateExecute() as any) };
+    }
+
+    @Patch("/update/ticketType/{eventId}/{ticketTypesId}")
+    static async updateTicketType(_from: ITicketTypesUpdateFrom, eventId: string, ticketTypesId: string, organizer: IOrganizer): Promise<IResponseType<ITicketTypes | null>> {
+        const event = await EventModel.getById(eventId);
+        event?.checkIfOwnByOrganizer(organizer.id);
+        event?.checkIfEventContainsTicketType(ticketTypesId);
+
+        await TicketTypesModel.validator(_from, updateTicketTypesSchema);
+        const newTicketType = await event?.updateTicketType(ticketTypesId, _from)
+
+        return { body: (newTicketType?.toJSON() as any) };
     }
 }

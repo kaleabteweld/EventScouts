@@ -540,6 +540,7 @@ describe('Event', () => {
                     let response = await request(app).patch(`${eventPrivateUrl()}update/${events[0].id}`).set('authorization', `Bearer ${accessTokens[0]}`).send({
                         name: "updated Event"
                     });
+                    console.log({ response: response.body.body });
                     response = await request(app).get(`${eventPublicUrl()}byId/${events[0].id}`).send();
 
                     expectValidEvent(response, categorys, null, { name: "updated Event" });

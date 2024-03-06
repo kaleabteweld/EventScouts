@@ -55,6 +55,14 @@ privateEventRouter.patch("/update/:eventId", organizerOnly, MakeErrorHandler(
     }
 ));
 
+privateEventRouter.patch("/update/ticketType/:eventId/:ticketTypesId", organizerOnly, MakeErrorHandler(
+    async (req: any, res: Response) => {
+        const _organizer: IOrganizer = req['organizer'];
+        res.json(await EventController.updateTicketType(req.body, req.params.eventId, req.params.ticketTypesId, _organizer));
+    }
+));
+
+
 
 
 publicEventRouter.use("/event", publicEventRouter);
