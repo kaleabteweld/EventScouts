@@ -8,6 +8,7 @@ export interface INewTicketTypesFrom {
     description: string,
     refundable?: boolean,
     online?: string,
+    transactionHash?: string
 }
 
 export interface ITicketTypesUpdateFrom extends Partial<INewTicketTypesFrom> {

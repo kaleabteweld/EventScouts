@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Joi from 'joi';
+import { ITicketTypesUpdateFrom } from "../../Domains/TicketTypes/types";
 
 export interface ITicketTypes extends mongoose.Document {
     posterURl: string,
@@ -11,6 +12,7 @@ export interface ITicketTypes extends mongoose.Document {
     description: string,
     refundable: boolean,
     online?: string,
+    transactionHash?: string
 }
 
 //Dynamic methods
@@ -24,5 +26,6 @@ export interface ITicketTypesDocument extends ITicketTypes, ITicketTypesMethods,
 // statics methods
 export interface ITicketTypesModel extends mongoose.Model<ITicketTypesDocument> {
     validator<T>(userInput: T, schema: Joi.ObjectSchema<T>): Promise<any>
-    getById(_id: string): Promise<ITicketTypesDocument | null>
+    // getById(_id: string): Promise<ITicketTypesDocument | null>
+    update(_id: string, newTicketTypes: ITicketTypesUpdateFrom, populatePath?: string | string[]): Promise<ITicketTypesDocument | null>
 }

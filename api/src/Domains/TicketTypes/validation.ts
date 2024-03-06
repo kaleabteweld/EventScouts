@@ -19,9 +19,10 @@ export const newTicketTypesSchema = Joi.object<INewTicketTypesFrom>({
         }
         return value;
     }),
-    maxNumberOfTickets: Joi.number().optional().min(-1).default(null),
+    maxNumberOfTickets: Joi.number().optional().min(1).default(0),
     refundable: Joi.boolean().optional().default(false),
-    online: Joi.string().uri().optional()
+    online: Joi.string().uri().optional(),
+    transactionHash: Joi.string().regex(/^0x[a-fA-F0-9]{64}$/).optional().default(null),
 });
 
 export const updateTicketTypesSchema = Joi.object<ITicketTypesUpdateFrom>({
@@ -44,5 +45,6 @@ export const updateTicketTypesSchema = Joi.object<ITicketTypesUpdateFrom>({
     }),
     maxNumberOfTickets: Joi.number().allow(null).optional().min(-1).default(null),
     refundable: Joi.boolean().optional().default(false),
-    online: Joi.string().uri().allow(null).optional()
+    online: Joi.string().uri().allow(null).optional(),
+    transactionHash: Joi.string().regex(/^0x[a-fA-F0-9]{64}$/).optional(),
 });

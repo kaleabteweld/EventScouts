@@ -306,3 +306,30 @@ export function getEventByShareableLink(this: mongoose.Model<IEvent>, _eventId: 
     }
     return getById.bind(this)(eventId, populatePath)
 }
+
+export function checkIfEventContainsTicketType(this: IEvent, ticketTypesId: string): number {
+
+    try {
+
+        const index = this.ticketTypes.findIndex((obj) => obj.id == new mongoose.Types.ObjectId(ticketTypesId));
+        if (index == -1) {
+            throw ValidationErrorFactory({
+                msg: "Invalid Organizer",
+                statusCode: 401,
+                type: "validation"
+            }, "id")
+        }
+
+        return index;
+
+    } catch (error) {
+        if (error instanceof BSONError) {
+            throw ValidationErrorFactory({
+                msg: "Input must be a 24 character hex string, 12 byte Uint8Array, or an integer",
+                statusCode: 400,
+                type: "validation",
+            }, "id");
+        }
+        throw error;
+    }
+}

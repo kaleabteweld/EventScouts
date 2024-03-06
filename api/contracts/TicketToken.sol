@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "hardhat/console.sol";
 
 //OrganizerContract
@@ -11,9 +12,11 @@ contract TicketToken is ERC721 {
 
     struct EntityStruct {
         uint256 cost;
+        uint256 maxNumberOfTickets;
+        string eventId;
         bool isEntity;
     }
-    mapping(string => EntityStruct) public EventCosts;
+    mapping(string => EntityStruct) public TicketTypeCosts;
 
     constructor(
         string memory _name,
@@ -27,26 +30,30 @@ contract TicketToken is ERC721 {
         _;
     }
 
-    modifier checkCost(string memory _eventId, uint256 _tokenCount) {
-        uint256 eventCost = getEventCost(_eventId);
-        uint256 tokenCost = _tokenCount * eventCost;
-        // console.log(msg.value, eventCost, tokenCost);
+    modifier checkCost(string memory _id, uint256 _tokenCount) {
+        uint256 ticketCost = getTicketTypeCost(_id);
+        uint256 tokenCost = _tokenCount * ticketCost;
 
         require(msg.value >= tokenCost, "Not enough funds");
         require(msg.value <= tokenCost, "Overpayment");
-        // tokenCost > msg.value
         _;
     }
 
-    modifier checkAmount(uint256 _tokenCount) {
-        require(_tokenCount <= 5 && _tokenCount >= 1, "amount must be 1 to 5");
+    modifier checkAmount(string memory _id, uint256 _tokenCount) {
+        if(TicketTypeCosts[_id].maxNumberOfTickets == 0){
+            require(_tokenCount >= 1, "amount must Greater than 1");
+            _;
+        }else{
+            require(_tokenCount <= TicketTypeCosts[_id].maxNumberOfTickets && _tokenCount >= 1, string.concat("amount must be between 1 and ",Strings.toString(TicketTypeCosts[_id].maxNumberOfTickets)));
         _;
+        }
+        
     }
 
     function mint(
-        string memory _eventId,
+        string memory _id,
         uint256 _tokenCount
-    ) public payable checkAmount(_tokenCount) checkCost(_eventId, _tokenCount) {
+    ) public payable checkAmount(_id,_tokenCount) checkCost(_id, _tokenCount) {
         _safeMint(msg.sender, ++totalTokenSupply);
     }
 
@@ -55,18 +62,27 @@ contract TicketToken is ERC721 {
         require(os);
     }
 
-    function addEventCost(string memory _id, uint256 _cost) public onlyOwner {
-        EventCosts[_id].cost = _cost;
-        EventCosts[_id].isEntity = true;
+    function addTicketTypeCost(string memory _id,string memory eventId, uint256 _cost,uint256 maxNumberOfTickets) public onlyOwner {
+        TicketTypeCosts[_id].cost = _cost;
+        TicketTypeCosts[_id].eventId = eventId;
+        TicketTypeCosts[_id].maxNumberOfTickets = maxNumberOfTickets;
+        TicketTypeCosts[_id].isEntity = true;
+
     }
 
-    function getEventCost(string memory _id) public view returns (uint256) {
-        require(EventIsEntity(_id), "eventId does not exist");
-        return EventCosts[_id].cost;
+    function updateTicketTypeCost(string memory _id,uint256 _cost, uint256 maxNumberOfTickets) public onlyOwner {
+        TicketTypeCosts[_id].cost = _cost;
+        TicketTypeCosts[_id].maxNumberOfTickets = maxNumberOfTickets;
+        TicketTypeCosts[_id].isEntity = true;
     }
 
-    function EventIsEntity(string memory _id) public view returns (bool) {
-        return EventCosts[_id].isEntity;
+    function getTicketTypeCost(string memory _id) public view returns (uint256) {
+        require(TicketTypeIsEntity(_id), "Ticket Type does not exist");
+        return TicketTypeCosts[_id].cost;
+    }
+
+    function TicketTypeIsEntity(string memory _id) public view returns (bool) {
+        return TicketTypeCosts[_id].isEntity;
     }
 
     function getTotalTokenSupply() public view onlyOwner returns (uint256) {

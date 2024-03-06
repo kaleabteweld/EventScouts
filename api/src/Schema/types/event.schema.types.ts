@@ -39,6 +39,7 @@ export interface IEvent extends mongoose.Document {
 //Dynamic methods
 export interface IEventMethods {
     checkIfOwnByOrganizer(this: IEvent, organizerID: string): boolean
+    checkIfEventContainsTicketType(ticketTypesId: string): number
     getShareableLink(): String
 }
 

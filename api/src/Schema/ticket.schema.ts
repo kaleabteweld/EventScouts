@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
-import { IEvent } from './event.schema';
+import { IEvent } from './Types/event.schema.types';
+
 
 export interface ITicketType extends Document {
     PosterURl?: string;

@@ -29,11 +29,13 @@
     "hardhat": "^2.19.3",
     "mongodb-memory-server-core": "^9.1.3",
     "nodemon": "^3.0.2",
-    "supertest": "^6.3.3"
+    "supertest": "^6.3.3",
+    "ts-node": "^10.9.2"
   },
   "scripts": {
     "contracts-deploy": "npx hardhat run scripts/deploy.ts",
     "contracts-test": "npx hardhat test",
+    "contracts-compile": "npx hardhat compile",
     "api-test": "jest",
     "contracts-test-coverage": "npx hardhat coverage",
     "dev": "nodemon src/server.ts"
