@@ -2,10 +2,11 @@ import mongoose from "mongoose";
 import Joi from 'joi';
 import { IOrganizer } from "./organizer.schema.types";
 import { ICategory } from "./category.schema.types";
-import { ITicketTypes } from "./ticketTypes.schema.types";
+import { ITicketTypes, ITicketTypesDocument } from "./ticketTypes.schema.types";
 import { IEventUpdateFrom } from "../../Domains/Event/types";
 import { IPagination } from "../../Domains/Common/types";
 import { IReview } from "./review.schema.types";
+import { ITicketTypesUpdateFrom } from "../../Domains/TicketTypes/types";
 
 export interface ILocation {
     type: "Point"
@@ -41,6 +42,7 @@ export interface IEventMethods {
     checkIfOwnByOrganizer(this: IEvent, organizerID: string): boolean
     checkIfEventContainsTicketType(ticketTypesId: string): number
     getShareableLink(): String
+    updateTicketType(this: IEvent, ticketTypesId: string, _newTicketTypes: ITicketTypesUpdateFrom): Promise<ITicketTypesDocument | null>
 }
 
 // Extend the Document type with IUserMethods

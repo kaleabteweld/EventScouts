@@ -46,5 +46,5 @@ export const updateTicketTypesSchema = Joi.object<ITicketTypesUpdateFrom>({
     maxNumberOfTickets: Joi.number().allow(null).optional().min(-1).default(null),
     refundable: Joi.boolean().optional().default(false),
     online: Joi.string().uri().allow(null).optional(),
-    transactionHash: Joi.string().regex(/^0x[a-fA-F0-9]{64}$/).optional(),
+    transactionHash: Joi.string().regex(/^0x[a-fA-F0-9]{64}$/).optional().allow(null),
 });

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import { IEvent, IEventMethods, IEventModel, ILocation } from './Types/event.schema.types'
 import { mongooseErrorPlugin } from './Middleware/errors.middleware'
-import { validator, getById, checkIfOwnByOrganizer, removeByID, update, getShareableLink, getEventByShareableLink, checkIfEventContainsTicketType } from './ExtendedFunctions/event.extended'
+import { validator, getById, checkIfOwnByOrganizer, removeByID, update, getShareableLink, getEventByShareableLink, checkIfEventContainsTicketType, updateTicketType } from './ExtendedFunctions/event.extended'
 import { getEventWithReviews } from './Aggregate/event.aggregate'
 import { ticketTypesSchema } from './ticketType.schema'
 import { PEGIRating } from '../Domains/Event/validation'
@@ -49,6 +49,7 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
         checkIfOwnByOrganizer,
         getShareableLink,
         checkIfEventContainsTicketType,
+        updateTicketType,
     },
     statics: {
         validator,

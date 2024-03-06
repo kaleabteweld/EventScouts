@@ -8,6 +8,8 @@ import { IEventSearchFrom, IEventSortFrom, IEventUpdateFrom } from "../../Domain
 import EventModel from "../event.schema";
 import CohereAI from "../../Util/cohere";
 import { decryptId, encryptId, isEncrypted } from "../../Util";
+import { ITicketTypesUpdateFrom } from "../../Domains/TicketTypes/types";
+import { ITicketTypes } from "../Types/ticketTypes.schema.types";
 
 
 export function validator<T>(userInput: T, schema: Joi.ObjectSchema<T>) {
@@ -310,17 +312,44 @@ export function getEventByShareableLink(this: mongoose.Model<IEvent>, _eventId: 
 export function checkIfEventContainsTicketType(this: IEvent, ticketTypesId: string): number {
 
     try {
-
-        const index = this.ticketTypes.findIndex((obj) => obj.id == new mongoose.Types.ObjectId(ticketTypesId));
+        const index = this.ticketTypes.findIndex((obj) => obj.id == ticketTypesId);
         if (index == -1) {
             throw ValidationErrorFactory({
-                msg: "Invalid Organizer",
+                msg: "Invalid TicketType",
                 statusCode: 401,
                 type: "validation"
             }, "id")
         }
 
         return index;
+
+    } catch (error) {
+        if (error instanceof BSONError) {
+            throw ValidationErrorFactory({
+                msg: "Input must be a 24 character hex string, 12 byte Uint8Array, or an integer",
+                statusCode: 400,
+                type: "validation",
+            }, "id");
+        }
+        throw error;
+    }
+}
+
+export async function updateTicketType(this: IEvent, ticketTypesId: string, _newTicketTypes: ITicketTypesUpdateFrom): Promise<ITicketTypes | null> {
+
+    try {
+        const index = this.ticketTypes.findIndex((obj) => obj.id == new mongoose.Types.ObjectId(ticketTypesId));
+        if (index == -1) {
+            throw ValidationErrorFactory({
+                msg: "Invalid TicketType",
+                statusCode: 401,
+                type: "validation"
+            }, "id")
+        }
+        this.ticketTypes[index] = { ...this.ticketTypes[index], ...(_newTicketTypes as any) };
+        await this.save();
+
+        return this.ticketTypes[index];
 
     } catch (error) {
         if (error instanceof BSONError) {
