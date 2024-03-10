@@ -32,6 +32,7 @@ export interface IEventSearchFrom {
     minPrice?: number
     maxPrice?: number
     search?: string
+    amountOfPeopleComing?: number
 }
 
 export interface IEventSortFrom {
@@ -43,4 +44,5 @@ export interface IEventSortFrom {
     categorys?: 'asc' | 'desc'
     minPrice?: 'asc' | 'desc'
     maxPrice?: 'asc' | 'desc'
+    amountOfPeopleComing?: 'asc' | 'desc'
 }

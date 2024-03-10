@@ -153,6 +153,10 @@ export class EventSearchBuilder {
         // this.query.categorys = { $in: categoryIds };
         return this;
     }
+    withAmountOfPeopleComing(amountOfPeopleComing: number): this {
+        this.query.userTotal = { $gte: amountOfPeopleComing };
+        return this;
+    }
     async withEmbedding(search: string): Promise<this> {
 
         const cohere = CohereAI.getInstance(process.env.COHERE_API_KEY);
@@ -213,6 +217,9 @@ export class EventSearchBuilder {
         }
         if (json.maxPrice) {
             builder.withMaxPrice(json.maxPrice);
+        }
+        if (json.amountOfPeopleComing) {
+            builder.withAmountOfPeopleComing(json.amountOfPeopleComing);
         }
         return builder;
     }

@@ -83,6 +83,7 @@ export const eventSearchSchema = Joi.object<IEventSearchFrom>({
     minPrice: Joi.number().min(0).optional(),
     organizer: Joi.string().optional(),
     search: Joi.string().optional(),
+    amountOfPeopleComing: Joi.number().optional()
 });
 
 export const eventSortSchema = Joi.object<IEventSortFrom>({
@@ -138,6 +139,13 @@ export const eventSortSchema = Joi.object<IEventSortFrom>({
     organizer: Joi.custom((value, helper) => {
         if (!["asc", "desc"].includes(value)) {
             return helper.message({ custom: `\"organizer\" ${value} is not a valid enum value` });
+        } else {
+            return value
+        }
+    }).optional(),
+    amountOfPeopleComing: Joi.custom((value, helper) => {
+        if (!["asc", "desc"].includes(value)) {
+            return helper.message({ custom: `\"amountOfPeopleComing\" ${value} is not a valid enum value` });
         } else {
             return value
         }
