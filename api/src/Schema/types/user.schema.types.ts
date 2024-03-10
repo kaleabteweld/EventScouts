@@ -62,5 +62,5 @@ export interface UserModel extends mongoose.Model<IUserDocument> {
     getUserByWalletAccounts(walletAccounts: string[]): Promise<IUserDocument | null>
     getUserById(_id: string): Promise<IUserDocument | null>
     getByVerifiedKey(key: TVerified, value: string): Promise<IUserDocument | null>
-    addEvent(_id: string, event: IEvent, boughTicket: IBoughTicket, walletAccount: string): Promise<ITransactionsDocument | null>
+    addEvent(_id: string, event: IEvent, boughTicket: IBoughTicket, walletAccount: string): Promise<{ transaction: ITransactionsDocument, user: IUserDocument } | null>
 }

@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import { MakeValidator } from "../../Domains/Common";
 import Joi from "joi";
 import { isValidationError } from "../../Types/error"
-import { IUser, TVerified, TVerifiedSupported, UserModel, verifiedEnum, verifiedSupportedEnum } from "../Types/user.schema.types";
+import { IUser, IUserDocument, TVerified, TVerifiedSupported, UserModel, verifiedEnum, verifiedSupportedEnum } from "../Types/user.schema.types";
 import { BSONError } from 'bson';
 import { PEGIRating, TPEGIRating } from "../../Domains/Event/validation";
 import { IEvent } from "../Types/event.schema.types";
@@ -221,7 +221,7 @@ export function getPEGIRating(this: IUser): TPEGIRating {
     return "PEGI 7";
 }
 
-export async function addEvent(this: mongoose.Model<IUser>, _id: string, event: IEvent, boughTicket: IBoughTicket, walletAccount: string): Promise<ITransactionsDocument | null> {
+export async function addEvent(this: mongoose.Model<IUser>, _id: string, event: IEvent, boughTicket: IBoughTicket, walletAccount: string): Promise<{ transaction: ITransactionsDocument, user: IUserDocument } | null> {
 
     try {
         const user = await this.findOneAndUpdate({ _id: new mongoose.Types.ObjectId(_id), walletAccounts: { $in: [walletAccount] } }, {
@@ -244,8 +244,13 @@ export async function addEvent(this: mongoose.Model<IUser>, _id: string, event: 
                     $slice: -1
                 }
             },
-        }, { new: true })
-        return (user?.transactions[0] as ITransactions);
+        }, { new: true });
+
+        return {
+            transaction: (user?.transactions[0] as ITransactions),
+            user: (user as IUserDocument)
+        };
+
     } catch (error) {
         if (error instanceof BSONError) {
             throw ValidationErrorFactory({

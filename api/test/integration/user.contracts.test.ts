@@ -2,7 +2,7 @@ import { makeServer } from "../../src/Util/Factories";
 import { describe, expect, beforeEach, afterEach, beforeAll, afterAll, it } from '@jest/globals';
 import { connectDB, dropCollections, dropDB } from "../api/util";
 import Cache from "../../src/Util/cache";
-import { newValidUser, createOrganizer, createEvents, newValidCategory, newValidOrganizer, createUser, transactionPrivateUrl, expectError, expectValidUserTransaction } from "../api/common";
+import { newValidUser, createOrganizer, createEvents, newValidCategory, newValidOrganizer, createUser, transactionPrivateUrl, expectError, expectValidUserTransaction, eventPublicUrl } from "../api/common";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Contract } from "ethers";
 import { ethers } from "hardhat";
@@ -81,6 +81,27 @@ describe('User Integration', () => {
             });
             expectValidUserTransaction(response, events[0], events[0].ticketTypes[0], amount);
         });
+
+        describe("WHEN User buys a ticket Event", () => {
+
+            it("SHOULD updated to have that user", async () => {
+                const amount = 1;
+                const mint = await contract.connect(buyer).mint(events[0].ticketTypes[0].id, amount, { value: dollarsToWei(events[0].ticketTypes[0].price) });
+                expect(mint).toBeTruthy();
+                const response = await request(app).patch(`${transactionPrivateUrl()}mint`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send({
+                    eventId: events[0].id,
+                    ticketType: events[0].ticketTypes[0].id,
+                    amount: amount,
+                    mintHash: mint.hash
+                });
+                expectValidUserTransaction(response, events[0], events[0].ticketTypes[0], amount);
+
+                const eventResponse = await request(app).get(`${eventPublicUrl()}byId/${events[0].id}`).send();
+                expect(eventResponse.body.body.users.length).toBe(1);
+                expect(eventResponse.body.body.users[0].username).toBe(users[0].userName);
+
+            });
+        })
 
         describe("WHEN Invalid User tries to buy/mint a ticket ", () => {
 

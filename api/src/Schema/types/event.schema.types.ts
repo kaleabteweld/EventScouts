@@ -47,10 +47,11 @@ export interface IEvent extends mongoose.Document {
 
 //Dynamic methods
 export interface IEventMethods {
-    checkIfOwnByOrganizer(this: IEvent, organizerID: string): boolean
+    checkIfOwnByOrganizer(organizerID: string): boolean
     checkIfEventContainsTicketType(ticketTypesId: string): number
     getShareableLink(): String
-    updateTicketType(this: IEvent, ticketTypesId: string, _newTicketTypes: ITicketTypesUpdateFrom): Promise<ITicketTypesDocument | null>
+    updateTicketType(ticketTypesId: string, _newTicketTypes: ITicketTypesUpdateFrom): Promise<ITicketTypesDocument | null>
+    addUser(user: IUser): Promise<IEvent | null>
 }
 
 // Extend the Document type with IUserMethods
