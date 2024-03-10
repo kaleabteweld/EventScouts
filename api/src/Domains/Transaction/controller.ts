@@ -7,6 +7,8 @@ import EventModel from "../../Schema/event.schema";
 import { IEvent } from "../../Schema/Types/event.schema.types";
 import { ITransactions } from "../../Schema/Types/transactions.schema.types";
 import { getTransaction } from "../../Util/Ethers";
+import TransactionModel from "../../Schema/transactions.schema";
+import { newTransactionSchema } from "./validation";
 
 @Route("/transaction")
 @Tags("Transaction")
@@ -15,9 +17,8 @@ export default class TransactionController {
     @Patch("mint")
     static async mint(_from: INewTransactionFrom, _user: IUser): Promise<IResponseType<ITransactions>> {
 
+        await TransactionModel.validator(_from, newTransactionSchema);
         const ETHTransaction = await getTransaction(_from.mintHash);
-
-        console.log({ ETHTransaction })
 
         const event = await EventModel.getById(_from.eventId ?? "");
         const transaction = await User.addEvent(_user.id, (event as IEvent), {

@@ -38,3 +38,6 @@ transactionSchema.set('toJSON', {
     }
 })
 transactionSchema.plugin<any>(mongooseErrorPlugin)
+
+const TransactionModel = mongoose.model<ITransactions, ITransactionsModel>("Transaction", transactionSchema);
+export default TransactionModel;
