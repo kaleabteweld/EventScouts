@@ -31,6 +31,7 @@ export const newEventSchema = Joi.object<INewEventFrom>({
     }).required(),
     categorys: Joi.array().items(Joi.string().min(24)).min(1).required(),
     ticketTypes: Joi.array().items(newTicketTypesSchema).min(1).required(),
+
 });
 
 export const updateEventSchema = Joi.object<IEventUpdateFrom>({
@@ -83,7 +84,8 @@ export const eventSearchSchema = Joi.object<IEventSearchFrom>({
     minPrice: Joi.number().min(0).optional(),
     organizer: Joi.string().optional(),
     search: Joi.string().optional(),
-    amountOfPeopleComing: Joi.number().optional()
+    amountOfPeopleComing: Joi.number().optional(),
+    fullText: Joi.string().min(1).required(),
 });
 
 export const eventSortSchema = Joi.object<IEventSortFrom>({
@@ -146,6 +148,13 @@ export const eventSortSchema = Joi.object<IEventSortFrom>({
     amountOfPeopleComing: Joi.custom((value, helper) => {
         if (!["asc", "desc"].includes(value)) {
             return helper.message({ custom: `\"amountOfPeopleComing\" ${value} is not a valid enum value` });
+        } else {
+            return value
+        }
+    }).optional(),
+    fullText: Joi.custom((value, helper) => {
+        if (!["asc", "desc"].includes(value)) {
+            return helper.message({ custom: `\"fullText\" ${value} is not a valid enum value` });
         } else {
             return value
         }

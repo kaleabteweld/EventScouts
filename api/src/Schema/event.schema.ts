@@ -77,6 +77,8 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
     },
 });
 
+eventSchema.index({ name: 'text', description: 'text' });
+
 eventSchema.virtual('shareableLink').get(function () {
     return this.getShareableLink.bind(this)();
 })

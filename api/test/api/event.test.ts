@@ -378,6 +378,23 @@ describe('Event', () => {
                     })
                 })
 
+                describe("WHEN using Full Text", () => {
+
+                    it("SHOULD returns every Event That's has the term ", async () => {
+                        const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
+                            fullText: "1"
+                        }));
+                        expect(response.body.body.length).toBe(1);
+
+                        response.body.body.forEach((event: IEvent, index: number) => {
+                            expect(event.organizer).toMatchObject({
+                                organizer: organizers[0].id,
+                                name: organizers[0].name,
+                            })
+                        })
+                    })
+                })
+
                 describe.skip("WHEN using Location", () => {
 
                     it("SHOULD returns every Event That's near the give cords with in 1000M", async () => {

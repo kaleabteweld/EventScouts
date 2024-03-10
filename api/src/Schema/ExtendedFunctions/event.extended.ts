@@ -109,6 +109,10 @@ export class EventSearchBuilder {
         this.query.name = { $regex: new RegExp(name, 'i') };
         return this;
     }
+    withFullText(searchTerm: string): this {
+        this.query = { $text: { $search: searchTerm } };
+        return this;
+    }
     withStartDate(startDate: Date): this {
         this.query.startDate = { $gte: startDate };
         return this;
@@ -220,6 +224,9 @@ export class EventSearchBuilder {
         }
         if (json.amountOfPeopleComing) {
             builder.withAmountOfPeopleComing(json.amountOfPeopleComing);
+        }
+        if (json.fullText) {
+            builder.withFullText(json.fullText);
         }
         return builder;
     }
