@@ -12,6 +12,7 @@ import { ICategory } from "../../src/Schema/Types/category.schema.types";
 import { IEvent, ILocation } from "../../src/Schema/Types/event.schema.types";
 import { IUser } from "../../src/Schema/Types/user.schema.types";
 import { INewReviewFrom } from "../../src/Domains/Review/types";
+import { ITicketTypes } from "../../src/Schema/Types/ticketTypes.schema.types";
 
 export const sighupUrl = (user: UserType) => `/Api/v1/public/authentication/${user}/signUp`;
 export const loginUrl = (user: UserType, wallet: boolean = false) => `/Api/v1/public/authentication/${user}/login${wallet ? "/wallet" : ""}`;
@@ -29,6 +30,8 @@ export const reviewPrivateUrl = () => `/Api/v1/private/review/`;
 export const reviewPublicUrl = () => `/Api/v1/public/review/`;
 export const ticketTypePrivateUrl = () => `/Api/v1/private/ticketType/`;
 export const ticketTypePublicUrl = () => `/Api/v1/public/ticketType/`;
+export const transactionPrivateUrl = () => `/Api/v1/private/transaction/`;
+
 
 
 
@@ -315,3 +318,24 @@ export const searchFactory = (search: IEventSearchFrom, sort?: IEventSortFrom) =
     search,
     sort
 })
+
+export async function expectValidUserTransaction(response: Response, event: IEvent, ticketType: ITicketTypes, amount: number, matchers?: Record<string, unknown> | Record<string, unknown>[]): Promise<void> {
+    expect(response.status).toBe(200);
+
+    expect(response.body.body).toMatchObject({
+        event: expect.objectContaining({
+            event: event.id,
+            posterURL: event.posterURL,
+            name: event.name,
+            startDate: event.startDate,
+            endDate: event.endDate,
+            venue: event.venue,
+        }),
+        ticketType: expect.objectContaining({
+            ticketType: ticketType.id,
+            amount: amount,
+        }),
+        ...matchers
+    });
+
+}

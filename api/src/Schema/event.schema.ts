@@ -8,7 +8,7 @@ import { PEGIRating } from '../Domains/Event/validation'
 import CohereAI from '../Util/cohere'
 
 
-const pointSchema = new mongoose.Schema<ILocation>({
+export const pointSchema = new mongoose.Schema<ILocation>({
     type: {
         type: String,
         enum: ['Point'],
@@ -42,7 +42,14 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
     },
     categorys: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
     reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],
-    ticketTypes: [ticketTypesSchema]
+    ticketTypes: [ticketTypesSchema],
+    users: [{
+        username: { type: String },
+        profilePic: { type: String },
+        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        // ticketType: { type: mongoose.Schema.Types.ObjectId, ref: "TicketType" },
+    }],
+    userTotal: { type: Number, default: 0 },
 }, {
     timestamps: true,
     methods: {

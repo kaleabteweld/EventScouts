@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
 import Joi from 'joi';
 import { TPEGIRating } from "../../Domains/Event/validation";
+import { IEvent, ILocation } from "./event.schema.types";
+import { IBoughTicket } from "../../Domains/TicketTypes/types";
+import { ITransactions, ITransactionsDocument } from "./transactions.schema.types";
 
 
 export type TGender = 'male' | 'female' | 'others' | 'none';
@@ -25,22 +28,25 @@ export const verifiedSupportedEnum: { [key in TVerifiedSupported]: string } = {
     phone: 'phone',
     wallet: 'wallet',
 }
+
+
 export interface IUser extends mongoose.Document {
-    email: string;
-    name: string;
-    userName: string;
-    phone: string;
-    profilePic: string;
+    email: String;
+    name: String;
+    userName: String;
+    phone: String;
+    profilePic: String;
     verified: TVerified;
     dateOfBirth: Date;
     gender: TGender;
-    password: string;
-    walletAccounts: string[];
+    password: String;
+    walletAccounts: String[];
+    transactions: ITransactions[];
 }
 
 //Dynamic methods
 export interface IUserMethods {
-    encryptPassword(password?: string): Promise<string>
+    encryptPassword(password?: string): Promise<String>
     checkPassword(password: string): Promise<boolean>
     applyUserVerify(key: TVerified): Promise<IUser>
     getPEGIRating(): TPEGIRating
@@ -56,4 +62,5 @@ export interface UserModel extends mongoose.Model<IUserDocument> {
     getUserByWalletAccounts(walletAccounts: string[]): Promise<IUserDocument | null>
     getUserById(_id: string): Promise<IUserDocument | null>
     getByVerifiedKey(key: TVerified, value: string): Promise<IUserDocument | null>
+    addEvent(_id: string, event: IEvent, boughTicket: IBoughTicket, walletAccount: string): Promise<ITransactionsDocument | null>
 }

@@ -7,13 +7,17 @@ import { isValidationError } from "../../Types/error"
 import { IUser, TVerified, TVerifiedSupported, UserModel, verifiedEnum, verifiedSupportedEnum } from "../Types/user.schema.types";
 import { BSONError } from 'bson';
 import { PEGIRating, TPEGIRating } from "../../Domains/Event/validation";
+import { IEvent } from "../Types/event.schema.types";
+import { ITicketTypes } from "../Types/ticketTypes.schema.types";
+import { IBoughTicket } from "../../Domains/TicketTypes/types";
+import { ITransactions, ITransactionsDocument } from "../Types/transactions.schema.types";
 
 
-export async function encryptPassword(this: IUser, password?: string): Promise<string> {
+export async function encryptPassword(this: IUser, password?: string): Promise<String> {
 
     const saltRounds: number = Number.parseInt(process.env.saltRounds || "11");
     try {
-        const hashPassword = await bcrypt.hash(password ?? this.password, saltRounds);
+        const hashPassword = await bcrypt.hash(password ?? this.password as string, saltRounds);
         this.password = hashPassword;
         return this.password;
     } catch (error) {
@@ -30,7 +34,7 @@ export async function encryptPassword(this: IUser, password?: string): Promise<s
 export async function checkPassword(this: IUser, password: string): Promise<boolean> {
 
     try {
-        const gate = await bcrypt.compare(password, this.password);
+        const gate = await bcrypt.compare(password, this.password as string);
         if (gate === false) {
             throw ValidationErrorFactory({
                 msg: "Invalid Email or Password",
@@ -215,4 +219,42 @@ export function getPEGIRating(this: IUser): TPEGIRating {
     }
 
     return "PEGI 7";
+}
+
+export async function addEvent(this: mongoose.Model<IUser>, _id: string, event: IEvent, boughTicket: IBoughTicket, walletAccount: string): Promise<ITransactionsDocument | null> {
+
+    try {
+        const user = await this.findOneAndUpdate({ _id: new mongoose.Types.ObjectId(_id), walletAccounts: { $in: [walletAccount] } }, {
+            $push: {
+                transactions: {
+                    $each: [
+                        {
+                            event: {
+                                endDate: event.endDate,
+                                event: event.id,
+                                name: event.name,
+                                posterURL: event.posterURL,
+                                startDate: event.startDate,
+                                location: event.location,
+                                venue: event.venue,
+                            },
+                            ticketType: boughTicket
+                        }
+                    ],
+                    $slice: -1
+                }
+            },
+        }, { new: true })
+        return (user?.transactions[0] as ITransactions);
+    } catch (error) {
+        if (error instanceof BSONError) {
+            throw ValidationErrorFactory({
+                msg: "Input must be a 24 character hex string, 12 byte Uint8Array, or an integer",
+                statusCode: 400,
+                type: "validation",
+            }, "id");
+        }
+        throw error;
+    }
+
 }

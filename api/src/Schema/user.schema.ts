@@ -1,7 +1,9 @@
 import mongoose from 'mongoose'
-import { getUserByEmail, checkPassword, encryptPassword, validator, getUserByWalletAccounts, getUserById, applyUserVerify, getByVerifiedKey, getPEGIRating } from './ExtendedFunctions/user.extended';
+import { getUserByEmail, checkPassword, encryptPassword, validator, getUserByWalletAccounts, getUserById, applyUserVerify, getByVerifiedKey, getPEGIRating, addEvent } from './ExtendedFunctions/user.extended';
 import { mongooseErrorPlugin } from './Middleware/errors.middleware';
 import { GenderEnum, IUser, IUserMethods, UserModel, verifiedEnum } from './Types/user.schema.types';
+import { pointSchema } from './event.schema';
+import { transactionSchema } from './transactions.schema';
 
 export const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
 
@@ -23,6 +25,7 @@ export const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
     },
     password: { type: String },
     walletAccounts: [String],
+    transactions: [transactionSchema]
 }, {
     timestamps: true,
     methods: {
@@ -37,6 +40,7 @@ export const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
         getUserByWalletAccounts,
         getUserById,
         getByVerifiedKey,
+        addEvent,
     }
 });
 
@@ -48,7 +52,7 @@ userSchema.set('toJSON', {
         return ret
     }
 })
-userSchema.plugin(mongooseErrorPlugin)
+userSchema.plugin<any>(mongooseErrorPlugin)
 
 const User = mongoose.model<IUser, UserModel>('User', userSchema);
 

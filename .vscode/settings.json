@@ -4,6 +4,7 @@
         "BSON",
         "CIPHERIV",
         "dsphere",
+        "ethersproject",
         "fsdb",
         "haha",
         "nomiclabs",

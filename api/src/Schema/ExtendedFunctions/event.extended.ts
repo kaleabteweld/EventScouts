@@ -10,6 +10,7 @@ import CohereAI from "../../Util/cohere";
 import { decryptId, encryptId, isEncrypted } from "../../Util";
 import { ITicketTypesUpdateFrom } from "../../Domains/TicketTypes/types";
 import { ITicketTypes } from "../Types/ticketTypes.schema.types";
+import { IUser } from "../Types/user.schema.types";
 
 
 export function validator<T>(userInput: T, schema: Joi.ObjectSchema<T>) {
@@ -361,4 +362,20 @@ export async function updateTicketType(this: IEvent, ticketTypesId: string, _new
         }
         throw error;
     }
+}
+
+export async function addUser(this: IEvent, user: IUser, ticketType?: ITicketTypes): Promise<IEvent | null> {
+
+    this.users.push({
+        user: user,
+        username: user.userName,
+        profilePic: user.profilePic,
+    })
+
+    this.userTotal++;
+
+    console.log({ event: this });
+
+    await this.save()
+    return this;
 }

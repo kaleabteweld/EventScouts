@@ -7,6 +7,7 @@ import { IEventUpdateFrom } from "../../Domains/Event/types";
 import { IPagination } from "../../Domains/Common/types";
 import { IReview } from "./review.schema.types";
 import { ITicketTypesUpdateFrom } from "../../Domains/TicketTypes/types";
+import { IUser } from "./user.schema.types";
 
 export interface ILocation {
     type: "Point"
@@ -28,13 +29,20 @@ export interface IEvent extends mongoose.Document {
     shareableLink: string,
     rating: { avgRating: number, ratingCount: number },
     organizer: {
-        name: string
-        logoURL: string
+        name: String
+        logoURL: String
         organizer: mongoose.Types.ObjectId | IOrganizer
     },
     categorys: mongoose.Schema.Types.ObjectId[] | ICategory[]
     ticketTypes: ITicketTypes[]
     reviews: mongoose.Schema.Types.ObjectId[] | IReview[]
+    users: {
+        username: String
+        profilePic: String
+        user: mongoose.Schema.Types.ObjectId | IUser
+        // ticketType: mongoose.Schema.Types.ObjectId | ITicketTypes
+    }[]
+    userTotal: number
 }
 
 //Dynamic methods

@@ -14,15 +14,15 @@ export interface IReviewReaction {
 export interface IReview extends mongoose.Document {
     event: mongoose.Schema.Types.ObjectId | IEvent[]
     rating: number
-    review: string
+    review: String
     user: {
-        username: string
-        profilePic: string
+        username: String
+        profilePic: String
         user: mongoose.Schema.Types.ObjectId | IUser
     },
     reactedUsers: {
-        username: string
-        profilePic: string
+        username: String
+        profilePic: String
         reaction: TReactionType,
         user: mongoose.Schema.Types.ObjectId | IUser
     }[],

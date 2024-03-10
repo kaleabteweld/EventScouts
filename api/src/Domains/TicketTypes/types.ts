@@ -13,3 +13,8 @@ export interface INewTicketTypesFrom {
 
 export interface ITicketTypesUpdateFrom extends Partial<INewTicketTypesFrom> {
 }
+
+export interface IBoughTicket {
+    ticketType: any,
+    amount: number
+}

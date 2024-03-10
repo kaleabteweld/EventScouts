@@ -10,6 +10,13 @@ contract TicketToken is ERC721 {
     address public immutable owner;
     uint256 private totalTokenSupply;
 
+    event TicketMinted(
+        string indexed eventId,
+        address indexed user,
+        string indexed ticketType,
+        uint256 tokenCount
+    );
+
     struct EntityStruct {
         uint256 cost;
         uint256 maxNumberOfTickets;
@@ -40,21 +47,32 @@ contract TicketToken is ERC721 {
     }
 
     modifier checkAmount(string memory _id, uint256 _tokenCount) {
-        if(TicketTypeCosts[_id].maxNumberOfTickets == 0){
+        if (TicketTypeCosts[_id].maxNumberOfTickets == 0) {
             require(_tokenCount >= 1, "amount must Greater than 1");
             _;
-        }else{
-            require(_tokenCount <= TicketTypeCosts[_id].maxNumberOfTickets && _tokenCount >= 1, string.concat("amount must be between 1 and ",Strings.toString(TicketTypeCosts[_id].maxNumberOfTickets)));
-        _;
+        } else {
+            require(
+                _tokenCount <= TicketTypeCosts[_id].maxNumberOfTickets &&
+                    _tokenCount >= 1,
+                string.concat(
+                    "amount must be between 1 and ",
+                    Strings.toString(TicketTypeCosts[_id].maxNumberOfTickets)
+                )
+            );
+            _;
         }
-        
     }
 
     function mint(
         string memory _id,
         uint256 _tokenCount
-    ) public payable checkAmount(_id,_tokenCount) checkCost(_id, _tokenCount) {
+    ) public payable checkAmount(_id, _tokenCount) checkCost(_id, _tokenCount) {
         _safeMint(msg.sender, ++totalTokenSupply);
+        // emit TicketMinted(
+        //     TicketTypeCosts[_id].eventId,
+        //     msg.sender,
+        //     _tokenCount
+        // );
     }
 
     function withdraw() public payable onlyOwner {
@@ -62,21 +80,31 @@ contract TicketToken is ERC721 {
         require(os);
     }
 
-    function addTicketTypeCost(string memory _id,string memory eventId, uint256 _cost,uint256 maxNumberOfTickets) public onlyOwner {
+    function addTicketTypeCost(
+        string memory _id,
+        string memory eventId,
+        uint256 _cost,
+        uint256 maxNumberOfTickets
+    ) public onlyOwner {
         TicketTypeCosts[_id].cost = _cost;
         TicketTypeCosts[_id].eventId = eventId;
         TicketTypeCosts[_id].maxNumberOfTickets = maxNumberOfTickets;
         TicketTypeCosts[_id].isEntity = true;
-
     }
 
-    function updateTicketTypeCost(string memory _id,uint256 _cost, uint256 maxNumberOfTickets) public onlyOwner {
+    function updateTicketTypeCost(
+        string memory _id,
+        uint256 _cost,
+        uint256 maxNumberOfTickets
+    ) public onlyOwner {
         TicketTypeCosts[_id].cost = _cost;
         TicketTypeCosts[_id].maxNumberOfTickets = maxNumberOfTickets;
         TicketTypeCosts[_id].isEntity = true;
     }
 
-    function getTicketTypeCost(string memory _id) public view returns (uint256) {
+    function getTicketTypeCost(
+        string memory _id
+    ) public view returns (uint256) {
         require(TicketTypeIsEntity(_id), "Ticket Type does not exist");
         return TicketTypeCosts[_id].cost;
     }
