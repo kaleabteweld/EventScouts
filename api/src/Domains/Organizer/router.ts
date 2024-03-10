@@ -43,6 +43,12 @@ privateOrganizerRouter.patch("/wallet/disconnect/:wallet", MakeErrorHandler(
     }
 ));
 
+privateOrganizerRouter.patch("/update", organizerOnly, MakeErrorHandler(
+    async (req: any, res: Response) => {
+        const _eventOrganizer: IOrganizer = req['organizer'];
+        res.json(await OrganizerController.update(req.body, _eventOrganizer));
+    }
+));
 
 publicOrganizerRouter.use("/organizer", publicOrganizerRouter);
 privateOrganizerRouter.use("/organizer", privateOrganizerRouter);

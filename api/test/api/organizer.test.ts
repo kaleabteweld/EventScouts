@@ -4,8 +4,9 @@ import { connectDB, dropCollections, dropDB } from './util';
 import Cache from "../../src/Util/cache";
 import request from "supertest";
 import { IOrganizer } from '../../src/Schema/Types/organizer.schema.types';
-import { createOrganizer, expectError, loginUrl, newValidOrganizer, newValidOrganizer2, userPrivateUrl } from './common';
+import { createOrganizer, expectError, loginUrl, newValidOrganizer, newValidOrganizer2, newValidUser, sighupUrl, userPrivateUrl } from './common';
 import { UserType } from '../../src/Types';
+import { IUser } from '../../src/Schema/Types/user.schema.types';
 
 
 
@@ -175,5 +176,70 @@ describe('Organizer', () => {
                 });
             })
         })
+    });
+
+    describe("Update", () => {
+        var organizers: IOrganizer[] = [];
+        var accessTokens: string[] = [];
+
+
+        beforeEach(async () => {
+            const { accessTokens: ats, organizers: ogs } = await createOrganizer(request, app, [newValidOrganizer, newValidOrganizer2]);
+            accessTokens = ats;
+            organizers = organizers;
+        })
+
+        describe("WHEN Login in as a Organizer", () => {
+            describe("WHEN Organizer try to update there event", () => {
+                it("SHOULD update only one Attributes Not the rest and return 200 with the event", async () => {
+                    let response = await request(app).patch(`${userPrivateUrl(UserType.organizer)}update`).set('authorization', `Bearer ${accessTokens[0]}`).send({
+                        socialLinks: {
+                            facebook: "https://www.facebook.com/eventScouts"
+                        }
+                    });
+                    const organizerResponse = await request(app).get(userPrivateUrl(UserType.organizer)).set("Authorization", `Bearer ${accessTokens[0]}`).send();
+
+                    const checkValidOrganizer = { ...newValidOrganizer }
+                    delete (checkValidOrganizer as any)["password"]
+                    expect(organizerResponse.body.body).toMatchObject({
+                        ...checkValidOrganizer,
+                        id: expect.any(String),
+                        socialLinks: {
+                            facebook: "https://www.facebook.com/eventScouts"
+                        }
+                    })
+
+                });
+
+            });
+
+        });
+
+        describe("WHEN not Login in as a Organizer", () => {
+
+            it("SHOULD return a 401 status code AND Error obj", async () => {
+                const response = await request(app).patch(`${userPrivateUrl(UserType.organizer)}update`).send({});
+                expectError(response, 401);
+            });
+
+            describe("WHEN Login in as a User", () => {
+
+                var user: IUser;
+                var userAccessToken: string;
+
+                beforeEach(async () => {
+                    const response = await request(app).post(sighupUrl(UserType.user)).send(newValidUser);
+                    user = response.body;
+                    userAccessToken = response.header.authorization.split(" ")[1];
+                })
+
+                it("SHOULD return a 401 status code AND Error obj", async () => {
+                    const response = await request(app).patch(`${userPrivateUrl(UserType.organizer)}update`).set('authorization', `Bearer ${userAccessToken}`).send({});
+                    expectError(response, 401);
+                })
+            })
+
+        });
+
     })
 });

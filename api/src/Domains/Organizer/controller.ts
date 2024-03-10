@@ -1,5 +1,5 @@
-import { IOrganizerLogInFrom, IOrganizerLogInFromWithWallet, IOrganizerSignUpFrom } from "./types";
-import { organizerIogInSchema, OrganizerChangePassword, newOrganizerSchema, logInWithWalletSchema } from "./validation";
+import { IOrganizerLogInFrom, IOrganizerLogInFromWithWallet, IOrganizerSignUpFrom, IOrganizerUpdateFrom } from "./types";
+import { organizerIogInSchema, OrganizerChangePassword, newOrganizerSchema, logInWithWalletSchema, updateOrganizerSchema } from "./validation";
 import { UserType } from "../../Types";
 import { IChangePasswordFrom, IResponseType, IResponseWithHeaderType } from "../Common/types";
 import { Route, Tags, Get, Patch, Post, Delete, Body, Query, Path } from "tsoa";
@@ -110,6 +110,14 @@ export default class OrganizerController {
     static async disconnectWallet(_organizer: IOrganizer, wallet: string): Promise<IResponseType<IOrganizer>> {
         const organizer = await OrganizerModel.getById(_organizer.id);
         await organizer!.removeWalletAccount(wallet);
+        return { body: (organizer!.toJSON() as any) }
+    }
+
+    @Patch("update/")
+    static async update(_from: IOrganizerUpdateFrom, _organizer: IOrganizer): Promise<IResponseType<IOrganizer>> {
+
+        await OrganizerModel.validator(_from, updateOrganizerSchema);
+        const organizer = await OrganizerModel.update(_organizer.id, _from);
         return { body: (organizer!.toJSON() as any) }
     }
 }

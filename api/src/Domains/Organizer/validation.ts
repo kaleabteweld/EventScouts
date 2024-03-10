@@ -1,6 +1,6 @@
 import Joi from "joi";
 import { IChangePasswordFrom } from "../Common/types";
-import { IOrganizerLogInFrom, IOrganizerSignUpFrom, IOrganizerLogInFromWithWallet } from "./types";
+import { IOrganizerLogInFrom, IOrganizerSignUpFrom, IOrganizerLogInFromWithWallet, IOrganizerUpdateFrom } from "./types";
 
 export const newOrganizerSchema = Joi.object<IOrganizerSignUpFrom>({
     email: Joi.string().email().required(),
@@ -22,4 +22,20 @@ export const OrganizerChangePassword = Joi.object<IChangePasswordFrom>({
 
 export const logInWithWalletSchema = Joi.object<IOrganizerLogInFromWithWallet>({
     walletAccounts: Joi.array().min(1).items(Joi.string().min(8).max(254)).required(),
+});
+
+export const updateOrganizerSchema = Joi.object<IOrganizerUpdateFrom>({
+    email: Joi.string().email().optional(),
+    name: Joi.string().max(30).optional(),
+    phone: Joi.string().optional(),
+    logoURL: Joi.string().uri().optional(),
+    walletAccounts: Joi.array().items(Joi.string().min(8).max(254)).optional(),
+    socialLinks: Joi.object({
+        facebook: Joi.string().uri().optional().default(null),
+        twitter: Joi.string().uri().optional().default(null),
+        instagram: Joi.string().uri().optional().default(null),
+        website: Joi.string().uri().optional().default(null),
+        youtube: Joi.string().uri().optional().default(null),
+        googlePhotos: Joi.string().uri().optional().default(null)
+    }),
 });

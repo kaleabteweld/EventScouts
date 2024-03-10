@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Joi from 'joi';
 import { ICategory } from "./category.schema.types";
 import { IEvent } from "./event.schema.types";
+import { IOrganizerUpdateFrom } from "../../Domains/Organizer/types";
 
 export type TVerified = 'email' | 'phone' | 'document' | 'none';
 export const verifiedEnum: { [key in TVerified]: string } = {
@@ -28,6 +29,7 @@ export interface IOrganizer extends mongoose.Document {
     categorys: mongoose.Schema.Types.ObjectId[] | ICategory[]
     events: mongoose.Schema.Types.ObjectId | IEvent[];
     walletAccounts: string[];
+    socialLinks: { facebook?: string, twitter?: string, instagram?: string, website?: string, youtube?: string, googlePhotos?: string }
 }
 
 //Dynamic methods
@@ -50,4 +52,6 @@ export interface IOrganizerModel extends mongoose.Model<IOrganizerDocument> {
     getById(_id: string, populatePath?: string | string[]): Promise<IOrganizerDocument | null>
     getByVerifiedKey(key: TVerified, value: string): Promise<IOrganizerDocument | null>
     getByWalletAccounts(walletAccounts: string[]): Promise<IOrganizerDocument | null>
+    update(_id: string, newOrganizer: IOrganizerUpdateFrom, populatePath?: string | string[]): Promise<IOrganizer | null>
+
 }

@@ -6,6 +6,7 @@ import { isValidationError } from "../../Types/error";
 import { MakeValidator } from "../../Domains/Common";
 import mongoose from "mongoose";
 import { BSONError } from 'bson';
+import { IOrganizerUpdateFrom } from "../../Domains/Organizer/types";
 
 
 export async function encryptPassword(this: IOrganizer, password?: string): Promise<string> {
@@ -219,4 +220,15 @@ export async function removeWalletAccount(this: IOrganizer, wallet: string): Pro
     }
     (this.walletAccounts as any).pull(wallet);
     return await this.save();
+}
+
+export async function update(this: mongoose.Model<IOrganizer>, _id: string, newOrganizer: IOrganizerUpdateFrom, populatePath?: string | string[]): Promise<IOrganizer | null> {
+
+    try {
+        const newDoc = await this.findByIdAndUpdate(_id, newOrganizer, { new: true, overwrite: true });
+        if (populatePath) await newDoc?.populate(populatePath)
+        return newDoc;
+    } catch (error) {
+        throw error;
+    }
 }
