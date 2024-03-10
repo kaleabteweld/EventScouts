@@ -66,17 +66,33 @@ describe("organizer integration", () => {
             expect(_owner).toEqual(organizers[0].walletAccounts[0]);
         });
 
-        it("should allow the owner to add event and each Tickets type cost", async function () {
+        describe("WHEN adding TicketType to Smart contract", () => {
 
-            for (let index = 0; index != events[0].ticketTypes.length; index++) {
-                const ticketTypes = events[0].ticketTypes[index];
-                const temp = await contract.addTicketTypeCost(ticketTypes.id, events[0].id, dollarsToWei(ticketTypes.price), ticketTypes.maxNumberOfTickets);
-                console.log({ temp })
+            it("should allow the owner to add event and each Tickets type cost", async function () {
 
-            }
-            const cost: BigNumber = await contract.getTicketTypeCost(events[0].ticketTypes[0].id);
-            expect(cost.eq(dollarsToWei(events[0].ticketTypes[0].price))).toBe(true);
-        });
+                for (let index = 0; index != events[0].ticketTypes.length; index++) {
+                    const ticketTypes = events[0].ticketTypes[index];
+                    await contract.addTicketTypeCost(ticketTypes.id, events[0].id, dollarsToWei(ticketTypes.price), ticketTypes.maxNumberOfTickets);
+
+                }
+                const cost: BigNumber = await contract.getTicketTypeCost(events[0].ticketTypes[0].id);
+                expect(cost.eq(dollarsToWei(events[0].ticketTypes[0].price))).toBe(true);
+            });
+
+            it("should update each Tickets type hash", async function () {
+
+                for (let index = 0; index != events[0].ticketTypes.length; index++) {
+                    const ticketTypes = events[0].ticketTypes[index];
+                    const temp = await contract.addTicketTypeCost(ticketTypes.id, events[0].id, dollarsToWei(ticketTypes.price), ticketTypes.maxNumberOfTickets);
+                    const response = await request(app).patch(`${eventPrivateUrl()}/update/ticketType/${events[0].id}/${ticketTypes.id}`).set('authorization', `Bearer ${accessTokens[0]}`).send({
+                        transactionHash: temp.hash
+                    });
+                    expect(response.body.body.transactionHash).toBe(temp.hash);
+
+                }
+            });
+        })
+
 
 
     })
