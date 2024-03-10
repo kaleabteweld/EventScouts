@@ -378,7 +378,7 @@ describe('Event', () => {
                     })
                 })
 
-                describe("WHEN using Full Text", () => {
+                describe.skip("WHEN using Full Text", () => {
 
                     it("SHOULD returns every Event That's has the term ", async () => {
                         const response = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({

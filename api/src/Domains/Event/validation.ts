@@ -85,7 +85,7 @@ export const eventSearchSchema = Joi.object<IEventSearchFrom>({
     organizer: Joi.string().optional(),
     search: Joi.string().optional(),
     amountOfPeopleComing: Joi.number().optional(),
-    fullText: Joi.string().min(1).required(),
+    fullText: Joi.string().min(1).optional(),
 });
 
 export const eventSortSchema = Joi.object<IEventSortFrom>({
