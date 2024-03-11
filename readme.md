@@ -107,7 +107,7 @@ deploy contracts
 
 ## Screenshots
 
-![demo](https://github.com/kaleabteweld/EventScouts/.github/image.jpg?raw=true)
+![demo](https://github.com/kaleabteweld/EventScouts/blob/main/.github/image.png?raw=true)
 
 
 ## Lessons Learned
