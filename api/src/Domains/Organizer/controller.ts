@@ -2,24 +2,17 @@ import { IOrganizerLogInFrom, IOrganizerLogInFromWithWallet, IOrganizerSignUpFro
 import { organizerIogInSchema, OrganizerChangePassword, newOrganizerSchema, logInWithWalletSchema, updateOrganizerSchema } from "./validation";
 import { UserType } from "../../Types";
 import { IChangePasswordFrom, IResponseType, IResponseWithHeaderType } from "../Common/types";
-import { Route, Tags, Get, Patch, Post, Delete, Body, Query, Path } from "tsoa";
 import OrganizerModel from "../../Schema/organizer.schema";
 import { MakeTokens, MakeValidator, verifyAccessToken, verifyRefreshToken } from "../Common/utils";
 import Cache from "../../Util/cache";
 import { IOrganizer, TVerified } from "../../Schema/Types/organizer.schema.types";
 
-@Route("/organizer")
-@Tags("organizer")
 export default class OrganizerController {
 
-    @Get("/")
     static async getById(organizer: IOrganizer): Promise<IResponseType<IOrganizer | null>> {
         return { body: ((await OrganizerModel.getById(organizer.id ?? "", "categorys"))?.toJSON() as any) };
     }
 
-    @Path("/Authentication/organizer")
-    @Tags("Auth")
-    @Post("/SignUp")
     static async signUp(_organizer: IOrganizerSignUpFrom): Promise<IResponseWithHeaderType<IOrganizer>> {
 
         await OrganizerModel.validator(_organizer, newOrganizerSchema);
@@ -31,9 +24,6 @@ export default class OrganizerController {
         return { body: (organizer.toJSON() as any), header: { accessToken, refreshToken } }
     }
 
-    @Path("/Authentication/organizer")
-    @Tags("Auth")
-    @Post("/logIn")
     static async logIn(from: IOrganizerLogInFrom): Promise<IResponseWithHeaderType<IOrganizer>> {
         await OrganizerModel.validator(from, organizerIogInSchema);
         const organizer = await OrganizerModel.getByEmail(from.email);
@@ -44,10 +34,6 @@ export default class OrganizerController {
 
     }
 
-
-    @Path("/Authentication/organizer")
-    @Tags("Auth")
-    @Get("/refreshToken/{}")
     static async refreshToken(_refreshToken: string): Promise<IResponseWithHeaderType<undefined>> {
 
         const tokenUser = await verifyRefreshToken<IOrganizer>(_refreshToken, UserType.organizer);
@@ -57,17 +43,11 @@ export default class OrganizerController {
         return { body: undefined, header: { accessToken, refreshToken } }
     }
 
-    @Path("/Authentication/organizer")
-    @Tags("Auth")
-    @Post("/logOut")
     static async logOut(token: string): Promise<void> {
         const organizer = await verifyAccessToken<IOrganizer>(token, UserType.organizer);
         await Cache.run(() => Cache.removeRefreshToken(organizer.id));
     }
 
-    @Path("/Authentication/organizer")
-    @Tags("Auth")
-    @Patch("/forgotPassword/{key}/{Value}/{newPassword}")
     static async forgotPassword(key: "email" | "phone", value: string, _newPassword: string): Promise<IResponseType<undefined>> {
 
         const { password } = await MakeValidator<IChangePasswordFrom>(OrganizerChangePassword, { password: _newPassword });
@@ -79,7 +59,6 @@ export default class OrganizerController {
         return { body: undefined }
     }
 
-    @Patch("VerifyUser/{key}")
     static async verifyUser(_organizer: IOrganizer, key: TVerified): Promise<IResponseType<IOrganizer>> {
         const organizer = await OrganizerModel.getById(_organizer.id);
         await organizer!.applyVerify(key);
@@ -87,9 +66,6 @@ export default class OrganizerController {
         return { body: (organizer!.toJSON() as any) }
     }
 
-    @Path("/Authentication/organizer")
-    @Tags("Auth")
-    @Post("/logIn/wallet")
     static async logInWithWallet(from: IOrganizerLogInFromWithWallet): Promise<IResponseWithHeaderType<IOrganizer>> {
         await OrganizerModel.validator(from, logInWithWalletSchema);
         const organizer = await OrganizerModel.getByWalletAccounts(from.walletAccounts);
@@ -99,21 +75,18 @@ export default class OrganizerController {
 
     }
 
-    @Patch("wallet/connect/{wallet}")
     static async connectWallet(_organizer: IOrganizer, wallet: string): Promise<IResponseType<IOrganizer>> {
         const organizer = await OrganizerModel.getById(_organizer.id);
         await organizer!.addWalletAccount(wallet);
         return { body: (organizer!.toJSON() as any) }
     }
 
-    @Patch("wallet/disconnect/{wallet}")
     static async disconnectWallet(_organizer: IOrganizer, wallet: string): Promise<IResponseType<IOrganizer>> {
         const organizer = await OrganizerModel.getById(_organizer.id);
         await organizer!.removeWalletAccount(wallet);
         return { body: (organizer!.toJSON() as any) }
     }
 
-    @Patch("update/")
     static async update(_from: IOrganizerUpdateFrom, _organizer: IOrganizer): Promise<IResponseType<IOrganizer>> {
 
         await OrganizerModel.validator(_from, updateOrganizerSchema);

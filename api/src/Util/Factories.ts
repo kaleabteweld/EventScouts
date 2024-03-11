@@ -5,7 +5,7 @@ import { errorMiddleWare } from "./middlewares";
 import swaggerUi from "swagger-ui-express";
 import helmet from "helmet";
 import swaggerJsdoc from 'swagger-jsdoc'
-import { Error401JsdocSchema, organizerJsdocSchema, organizerLogInFrom, organizerSignUpFrom, organizerWalletLogInFrom, validationError } from "../Schema/Types/jsdoc";
+import { Error401JsdocSchema, organizerJsdocSchema, organizerLogInFrom, organizerSignUpFrom, organizerUpdateFrom, organizerWalletLogInFrom, validationError } from "../Schema/Types/jsdoc";
 
 export function errorFactory(error: errorResponse): errorResponse {
     return error;
@@ -66,6 +66,7 @@ export function makeServer() {
                     validationError: validationError,
                     organizerLogInFrom: organizerLogInFrom,
                     organizerWalletLogInFrom: organizerWalletLogInFrom,
+                    organizerUpdateFrom: organizerUpdateFrom,
                 },
             },
             security: [{

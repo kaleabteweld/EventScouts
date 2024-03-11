@@ -18,6 +18,13 @@ function ClassMap(userType: string): UserController | OrganizerController {
 
 /**
  * @swagger
+ * tags:
+ *   name: Authentication
+ *   description: Endpoints for Authentication operations
+ */
+
+/**
+ * @swagger
  * /public/authentication/organizer/signUp:
  *   post:
  *     summary: Sign up a an organizer

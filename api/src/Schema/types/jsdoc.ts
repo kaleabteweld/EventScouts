@@ -117,3 +117,25 @@ export const organizerWalletLogInFrom = {
         walletAccounts: { type: 'array', items: { type: 'string' } },
     }
 }
+
+export const organizerUpdateFrom = {
+    type: 'object',
+    properties: {
+        email: { type: 'string', nullable: true },
+        name: { type: 'string', nullable: true },
+        phone: { type: 'string', nullable: true },
+        logoURL: { type: 'string', nullable: true },
+        walletAccounts: { type: 'array', items: { type: 'string', nullable: true } },
+        socialLinks: {
+            type: 'object',
+            properties: {
+                facebook: { type: 'string', nullable: true },
+                twitter: { type: 'string', nullable: true },
+                instagram: { type: 'string', nullable: true },
+                website: { type: 'string', nullable: true },
+                youtube: { type: 'string', nullable: true },
+                googlePhotos: { type: 'string', nullable: true },
+            },
+        },
+    },
+}
