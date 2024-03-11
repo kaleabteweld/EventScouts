@@ -1,7 +1,6 @@
 import { IEventSearchFrom, IEventSortFrom, IEventUpdateFrom, INewEventFrom } from "./types";
 import { eventSearchSchema, eventSortSchema, newEventSchema, updateEventSchema } from "./validation";
 import { IPagination, IResponseType } from "../Common/types";
-import { Route, Tags, Post, Get, Delete, Patch } from "tsoa";
 import { IEvent } from "../../Schema/Types/event.schema.types";
 import EventModel from "../../Schema/event.schema";
 import { IOrganizer } from "../../Schema/Types/organizer.schema.types";
@@ -14,10 +13,7 @@ import { updateTicketTypesSchema } from "../TicketTypes/validation";
 import { ITicketTypes } from "../../Schema/Types/ticketTypes.schema.types";
 
 
-@Route("/event")
-@Tags("Event")
 export default class EventController {
-    @Post("/")
     static async createEvent(_event: INewEventFrom, organizer: IOrganizer): Promise<IResponseType<IEvent>> {
 
         const _organizer = await OrganizerModel.getById(organizer.id)
@@ -39,8 +35,6 @@ export default class EventController {
 
         return { body: (event.toJSON() as any) }
     }
-
-    @Get("/list/{skip}/{limit}")
     static async list({ skip, limit }: IPagination): Promise<IResponseType<IEvent[]>> {
         return {
             body: await EventModel.find()
@@ -51,12 +45,10 @@ export default class EventController {
         }
     }
 
-    @Get("/byId/{eventId}")
     static async getById(eventId: string): Promise<IResponseType<IEvent | null>> {
         return { body: ((await EventModel.getById(eventId, "categorys"))?.toJSON() as any) };
     }
 
-    @Delete("/remove/{eventId}")
     static async removeById(eventId: string, organizer: IOrganizer): Promise<IResponseType<IEvent | null>> {
         const event = await EventModel.getById(eventId);
         event?.checkIfOwnByOrganizer(organizer.id);
@@ -66,7 +58,6 @@ export default class EventController {
 
     }
 
-    @Patch("/update/{eventId}")
     static async update(_from: IEventUpdateFrom, eventId: string, organizer: IOrganizer): Promise<IResponseType<IEvent | null>> {
         const event = await EventModel.getById(eventId);
         event?.checkIfOwnByOrganizer(organizer.id);
@@ -84,7 +75,6 @@ export default class EventController {
         return { body: (newEvent?.toJSON() as any) };
     }
 
-    @Post("/search/{page}")
     static async search(searchFrom: { search: IEventSearchFrom, sort?: IEventSortFrom }, page: number): Promise<IResponseType<IEvent[] | null>> {
         await EventModel.validator(searchFrom.search, eventSearchSchema);
         const builder = EventSearchBuilder.fromJSON(EventModel, searchFrom.search);
@@ -98,7 +88,6 @@ export default class EventController {
         return { body: (await builder.execute() as any) };
     }
 
-    @Post("/search/vector/{page}")
     static async vectorSearch(searchFrom: IEventSearchFrom, page: number): Promise<IResponseType<IEvent[] | null>> {
         await EventModel.validator(searchFrom, eventSearchSchema);
         const builder = await EventSearchBuilder.fromJSON(EventModel, searchFrom).withEmbedding(searchFrom.search ?? "");
@@ -107,7 +96,6 @@ export default class EventController {
         return { body: (await builder.aggregateExecute() as any) };
     }
 
-    @Patch("/update/ticketType/{eventId}/{ticketTypesId}")
     static async updateTicketType(_from: ITicketTypesUpdateFrom, eventId: string, ticketTypesId: string, organizer: IOrganizer): Promise<IResponseType<ITicketTypes | null>> {
         const event = await EventModel.getById(eventId);
         event?.checkIfOwnByOrganizer(organizer.id);
