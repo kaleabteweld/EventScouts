@@ -48,7 +48,7 @@ publicEventRouter.get("/list/:skip/:limit", MakeErrorHandler(
 
 /**
  * @swagger
- * /public/events/search/{page}:
+ * /public/event/search/{page}:
  *   post:
  *     summary: Search for events
  *     tags: [Event]
@@ -90,7 +90,7 @@ publicEventRouter.post("/search/:page", MakeErrorHandler(
 
 /**
  * @swagger
- * /public/events/search/vector/{page}:
+ * /public/event/search/vector/{page}:
  *   post:
  *     summary: Vector search for events
  *     tags: [Event]
@@ -132,10 +132,10 @@ publicEventRouter.post("/search/vector/:page", MakeErrorHandler(
 
 /**
  * @swagger
- * /public/events/byId/{id}:
+ * /public/event/byId/{id}:
  *   get:
  *     summary: Get event by ID
- *     tags: [Events]
+ *     tags: [Event]
  *     parameters:
  *       - in: path
  *         name: id
@@ -170,10 +170,10 @@ publicEventRouter.get("/byId/:id", MakeErrorHandler(
 
 /**
  * @swagger
- * /private/events/:
+ * /private/event/:
  *   post:
  *     summary: Create a new event
- *     tags: [Events]
+ *     tags: [Event]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -211,10 +211,10 @@ privateEventRouter.post("/", organizerOnly, MakeErrorHandler(
 
 /**
  * @swagger
- * /private/events/remove/{eventId}:
+ * /private/event/remove/{eventId}:
  *   delete:
  *     summary: Remove an event by ID
- *     tags: [Events]
+ *     tags: [Event]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -253,7 +253,7 @@ privateEventRouter.delete("/remove/:eventId", organizerOnly, MakeErrorHandler(
  * /private/events/update/{eventId}:
  *   patch:
  *     summary: Update an event
- *     tags: [Events]
+ *     tags: [Event]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -298,10 +298,10 @@ privateEventRouter.patch("/update/:eventId", organizerOnly, MakeErrorHandler(
 
 /**
  * @swagger
- * /private/events/update/ticketType/{eventId}/{ticketTypesId}:
+ * /private/event/update/ticketType/{eventId}/{ticketTypesId}:
  *   patch:
  *     summary: Update a ticket type of an event
- *     tags: [Events]
+ *     tags: [Event]
  *     security:
  *       - bearerAuth: []
  *     parameters:
