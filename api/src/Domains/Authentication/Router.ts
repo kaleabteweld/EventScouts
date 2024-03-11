@@ -16,6 +16,37 @@ function ClassMap(userType: string): UserController | OrganizerController {
     return classmap.get(userType);
 }
 
+/**
+ * @swagger
+ * /public/authentication/organizer/signUp:
+ *   post:
+ *     summary: Sign up a an organizer
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/organizerSignUpFrom'
+ *     responses:
+ *       200:
+ *         description: Successful sign-up organizer
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Organizer'
+ *         headers:
+ *           Authorization:
+ *             description: JWT token for authentication
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Error occurred during sign-up process
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/validationError'
+ */
 publicAuthenticationRouter.post('/:userType/signUp', MakeErrorHandler(
     async (req: Request, res: Response) => {
 
@@ -27,6 +58,37 @@ publicAuthenticationRouter.post('/:userType/signUp', MakeErrorHandler(
     }
 ));
 
+/**
+ * @swagger
+ * /public/authentication/organizer/logIn:
+ *   post:
+ *     summary: Log In a an organizer
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/organizerLogInFrom'
+ *     responses:
+ *       200:
+ *         description: Successful Log in organizer
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Organizer'
+ *         headers:
+ *           Authorization:
+ *             description: JWT token for authentication
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Error occurred during Log in process
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/validationError'
+ */
 publicAuthenticationRouter.post('/:userType/logIn', MakeErrorHandler(
     async (req: Request, res: Response) => {
 
@@ -39,6 +101,37 @@ publicAuthenticationRouter.post('/:userType/logIn', MakeErrorHandler(
     }
 ));
 
+/**
+ * @swagger
+ * /public/authentication/organizer/logIn/wallet:
+ *   post:
+ *     summary: Log In a an organizer Wth Wallet
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/organizerWalletLogInFrom'
+ *     responses:
+ *       200:
+ *         description: Successful Log in With Wallet organizer
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Organizer'
+ *         headers:
+ *           Authorization:
+ *             description: JWT token for authentication
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Error occurred during Log in With Wallet process
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/validationError'
+ */
 publicAuthenticationRouter.post('/:userType/logIn/wallet', MakeErrorHandler(
     async (req: Request, res: Response) => {
 
@@ -51,6 +144,33 @@ publicAuthenticationRouter.post('/:userType/logIn/wallet', MakeErrorHandler(
     }
 ));
 
+/**
+ * @swagger
+ * /public/authentication/organizer/refreshToken:
+ *   get:
+ *     summary: Refresh Token for an organizer
+ *     tags: [Authentication]
+ *     security:
+ *        - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successful refreshToken organizer
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Organizer'
+ *         headers:
+ *           Authorization:
+ *             description: JWT token for authentication
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Error occurred during refreshToken process
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/validationError'
+ */
 publicAuthenticationRouter.get('/:userType/refreshToken', MakeErrorHandler(
     async (req: Request, res: Response) => {
 
@@ -64,6 +184,41 @@ publicAuthenticationRouter.get('/:userType/refreshToken', MakeErrorHandler(
     }
 ));
 
+/**
+ * @swagger
+ * /public/authentication/organizer/forgotPassword/{key}/{Value}/{newPassword}:
+ *   patch:
+ *     summary: Forgot Password for an organizer
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: path
+ *         name: key
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The key used for password recovery
+ *       - in: path
+ *         name: Value
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The value associated with the key (e.g., email)
+ *       - in: path
+ *         name: newPassword
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The new password for the user
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ *       400:
+ *         description: Error occurred during password reset process
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/validationError'
+ */
 publicAuthenticationRouter.patch('/:userType/forgotPassword/:key/:Value/:newPassword', MakeErrorHandler(
     async (req: Request, res: Response) => {
 
@@ -78,6 +233,24 @@ publicAuthenticationRouter.patch('/:userType/forgotPassword/:key/:Value/:newPass
     }
 ));
 
+/**
+ * @swagger
+ * /private/authentication/organizer/logOut:
+ *   delete:
+ *     summary: Log out the organizer
+ *     tags: [Authentication]
+ *     security:
+ *        - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: organizer logged out successfully
+ *       400:
+ *         description: Error occurred during logout process
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/validationError'
+ */
 privateAuthenticationRouter.delete('/:userType/logOut', MakeErrorHandler(
     async (req: Request, res: Response) => {
 
@@ -91,7 +264,40 @@ privateAuthenticationRouter.delete('/:userType/logOut', MakeErrorHandler(
     }
 ));
 
-
+/**
+ * @swagger
+ * /public/authentication/emailOtp/{email}:
+ *   get:
+ *     summary: Generate OTP for email verification
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Email address for OTP generation
+ *     responses:
+ *       200:
+ *         description: Email OTP generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 email:
+ *                   type: string
+ *                   description: Email address for which OTP is generated
+ *                 status:
+ *                   type: boolean
+ *                   description: Status of OTP generation (true for success)
+ *       400:
+ *         description: Error occurred during OTP generation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/validationError'
+ */
 publicAuthenticationRouter.get('/emailOtp/:email', MakeErrorHandler(
     async (req: Request, res: Response) => {
 
@@ -104,6 +310,49 @@ publicAuthenticationRouter.get('/emailOtp/:email', MakeErrorHandler(
     }
 ));
 
+/**
+ * @swagger
+ * /public/authentication/emailOtp/verify/{email}/{otp}:
+ *   get:
+ *     summary: Verify OTP for email verification
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: path
+ *         name: email
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Email address for which OTP is generated
+ *       - in: path
+ *         name: otp
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: OTP to be verified
+ *     responses:
+ *       200:
+ *         description: OTP verified successfully
+ *         content:
+ *           application/json:
+ *            schema:
+ *               type: object
+ *               properties:
+ *                 email:
+ *                   type: string
+ *                   description: Email address for which OTP is generated
+ *                 code:
+ *                   type: string
+ *                   description: OTP code that is generated
+ *                 status:
+ *                   type: boolean
+ *                   description: Status of OTP generation (true for success)
+ *       400:
+ *         description: Error occurred during OTP verification process
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/validationError'
+ */
 publicAuthenticationRouter.get('/emailOtp/verify/:email/:otp', MakeErrorHandler(
     async (req: Request, res: Response) => {
 
@@ -115,6 +364,40 @@ publicAuthenticationRouter.get('/emailOtp/verify/:email/:otp', MakeErrorHandler(
     }
 ));
 
+/**
+ * @swagger
+ * /public/authentication/otp/{phoneNumber}:
+ *   get:
+ *     summary: Generate OTP for phone number verification
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: path
+ *         name: phoneNumber
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Phone number for which OTP is to be generated
+ *     responses:
+ *       200:
+ *         description: OTP generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 phoneNumber:
+ *                   type: string
+ *                   description: Phone number for which OTP is generated
+ *                 verificationId:
+ *                   type: string
+ *                   description: Generated OTP verification Id
+ *       400:
+ *         description: Error occurred during OTP generation process
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/validationError'
+ */
 publicAuthenticationRouter.get('/otp/:phoneNumber', MakeErrorHandler(
     async (req: Request, res: Response) => {
 
@@ -128,6 +411,55 @@ publicAuthenticationRouter.get('/otp/:phoneNumber', MakeErrorHandler(
     }
 ));
 
+/**
+ * @swagger
+ * /public/authentication/otp/verify/{phoneNumber}/{otp}/{verificationId}:
+ *   get:
+ *     summary: Verify OTP for phone number verification
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: path
+ *         name: phoneNumber
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Phone number for which OTP is generated
+ *       - in: path
+ *         name: otp
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: OTP to be verified
+ *       - in: path
+ *         name: verificationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Verification ID received during OTP generation
+ *     responses:
+ *       200:
+ *         description: OTP verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 code:
+ *                   type: string
+ *                   description: Verification code
+ *                 phone:
+ *                   type: string
+ *                   description: Phone number for which OTP is verified
+ *                 status:
+ *                   type: boolean
+ *                   description: Verification status (true/false)
+ *       400:
+ *         description: Error occurred during OTP verification process
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/validationError'
+ */
 publicAuthenticationRouter.get('/otp/verify/:phoneNumber/:otp/:verificationId', MakeErrorHandler(
     async (req: Request, res: Response) => {
 

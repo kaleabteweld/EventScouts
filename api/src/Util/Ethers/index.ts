@@ -5,6 +5,7 @@ import { ValidationErrorFactory } from "../Factories";
 export async function getTransaction(mintHash: string): Promise<TransactionResponse> {
     var ETHTransaction: unknown = {};
     try {
+
         const ETHTransaction = await ethers.provider.getTransaction(mintHash);
         if (!ETHTransaction) {
             throw ValidationErrorFactory({

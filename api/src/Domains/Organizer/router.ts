@@ -7,6 +7,45 @@ import { IOrganizer } from "../../Schema/Types/organizer.schema.types";
 const publicOrganizerRouter = express.Router();
 const privateOrganizerRouter = express.Router();
 
+/**
+ * @swagger
+ * tags:
+ *   name: Organizer
+ *   description: Endpoints for organizer operations
+ */
+
+/**
+ * @swagger
+ * /private/organizer/:
+ *   get:
+ *     summary: Get organizer by ID
+ *     tags: [Organizer]
+ *     security:
+ *       - bearerAuth: [] 
+ *     responses:
+ *       200:
+ *         description: Successful operation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Organizer'
+ *       400:
+ *         description: Error occurred
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message       
+ *       401:
+ *         description: No Valid Token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NoValidToken'
+ */
 privateOrganizerRouter.get("/", organizerOnly, MakeErrorHandler(
     async (req: any, res: Response) => {
 

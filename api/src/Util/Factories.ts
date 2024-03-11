@@ -4,7 +4,8 @@ import { errorResponse, ValidationError } from "../Types/error"
 import { errorMiddleWare } from "./middlewares";
 import swaggerUi from "swagger-ui-express";
 import helmet from "helmet";
-
+import swaggerJsdoc from 'swagger-jsdoc'
+import { Error401JsdocSchema, organizerJsdocSchema, organizerLogInFrom, organizerSignUpFrom, organizerWalletLogInFrom, validationError } from "../Schema/Types/jsdoc";
 
 export function errorFactory(error: errorResponse): errorResponse {
     return error;
@@ -36,16 +37,54 @@ export function makeServer() {
     app.use(appRouter);
     app.use(errorMiddleWare);
 
-    app.use(
-        "/docs",
-        swaggerUi.serve,
-        swaggerUi.setup(undefined, {
-            swaggerOptions: {
-                url: "/swagger.json",
-                explorer: true
+    const options: swaggerJsdoc.Options = {
+        swaggerDefinition: {
+            openapi: '3.0.1',
+            info: {
+                title: 'EventScouts API',
+                version: '1.0.0',
+                description: 'API documentation for EventScouts',
             },
-        })
-    );
+            servers: [
+                {
+                    url: `http://localhost:${process.env.APP_PORT || 5000}/Api/v1`,
+                    description: 'Development server',
+                },
+            ],
+            components: {
+                securitySchemes: {
+                    bearerAuth: {
+                        type: 'http',
+                        scheme: 'bearer',
+                        bearerFormat: 'JWT',
+                    }
+                },
+                schemas: {
+                    Organizer: organizerJsdocSchema,
+                    NoValidToken: Error401JsdocSchema,
+                    organizerSignUpFrom: organizerSignUpFrom,
+                    validationError: validationError,
+                    organizerLogInFrom: organizerLogInFrom,
+                    organizerWalletLogInFrom: organizerWalletLogInFrom,
+                },
+            },
+            security: [{
+                bearerAuth: []
+            }],
+            securityDefinitions: {
+                bearerAuth: {
+                    type: 'apiKey',
+                    name: 'Authorization',
+                    scheme: 'bearer',
+                    in: 'header',
+                },
+            },
+        },
+        apis: ['./src/Domains/*/router.ts'],
+    };
+
+    const specs = swaggerJsdoc(options);
+    app.use('/docs', swaggerUi.serve, swaggerUi.setup(specs));
 
     return app;
 }
