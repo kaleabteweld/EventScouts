@@ -4,7 +4,7 @@ import { connectDB, dropCollections, dropDB } from "../api/util";
 import Cache from "../../src/Util/cache";
 import { newValidUser, createOrganizer, createEvents, newValidCategory, newValidOrganizer, createUser, transactionPrivateUrl, expectError, expectValidUserTransaction, eventPublicUrl, searchFactory } from "../api/common";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Contract } from "ethers";
+import { BigNumber, Contract } from "ethers";
 import { ethers } from "hardhat";
 import { IOrganizer } from "../../src/Schema/Types/organizer.schema.types";
 import { ICategory } from "../../src/Schema/Types/category.schema.types";
@@ -82,7 +82,7 @@ describe('User Integration', () => {
             expectValidUserTransaction(response, events[0], events[0].ticketTypes[0], amount);
         });
 
-        describe("WHEN User buys a ticket Event", () => {
+        describe("WHEN User buys a ticket, Event", () => {
 
             it("SHOULD updated to have that user", async () => {
                 const amount = 1;
@@ -170,6 +170,43 @@ describe('User Integration', () => {
 
                     expectError(response, 400)
                 });
+            });
+        });
+
+        describe("WHEN User buys a ticket, Contract", () => {
+
+            it("SHOULD updated totalTokenSupply to Amount of Bought", async () => {
+                const amount = 1;
+                const mint = await contract.connect(buyer).mint(events[0].ticketTypes[0].id, amount, { value: dollarsToWei(events[0].ticketTypes[0].price) });
+                expect(mint).toBeTruthy();
+                const response = await request(app).patch(`${transactionPrivateUrl()}mint`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send({
+                    eventId: events[0].id,
+                    ticketType: events[0].ticketTypes[0].id,
+                    amount: amount,
+                    mintHash: mint.hash
+                });
+                expectValidUserTransaction(response, events[0], events[0].ticketTypes[0], amount);
+
+                const totalTokenSupply: BigNumber = await contract.connect(owner).getTicketTypeTotalTokenSupply(events[0].ticketTypes[0].id);
+                expect(totalTokenSupply.eq(BigNumber.from(amount)));
+
+            });
+
+            it("SHOULD Not let the user buy more then current supply", async () => {
+                const amount = events[0].ticketTypes[0].maxNumberOfTickets;
+                const mint = await contract.connect(buyer).mint(events[0].ticketTypes[0].id, amount, { value: dollarsToWei(events[0].ticketTypes[0].price, amount) });
+                expect(mint).toBeTruthy();
+
+                const totalTokenSupply: BigNumber = await contract.connect(owner).getTicketTypeTotalTokenSupply(events[0].ticketTypes[0].id);
+                expect(totalTokenSupply.eq(BigNumber.from(events[0].ticketTypes[0].maxNumberOfTickets)));
+
+                try {
+                    const _mint = await contract.connect(buyer).mint(events[0].ticketTypes[0].id, 1, { value: dollarsToWei(events[0].ticketTypes[0].price) });
+                    expect(_mint).toBeFalsy();
+                } catch (error: any) {
+                    expect(error.toString()).toEqual(`Error: VM Exception while processing transaction: reverted with reason string 'amount must be between 1 and ${events[0].ticketTypes[0].maxNumberOfTickets}'`);
+                }
+
             });
         });
 

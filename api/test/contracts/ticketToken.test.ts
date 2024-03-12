@@ -169,9 +169,9 @@ describe("TicketToken", () => {
         })
 
         it("Should let buyer be able to buy", async function () {
-            const totalTokenSupplyBefore = await contract.getTotalTokenSupply();
+            const totalTokenSupplyBefore = await contract.getTicketTypeTotalTokenSupply(ticketType[0].id);
             await contract.connect(buyer).mint(ticketType[0].id, 2, { value: ticketType[0].cost.mul(BigNumber.from(2)) })
-            const totalTokenSupplyAfter = await contract.getTotalTokenSupply();
+            const totalTokenSupplyAfter = await contract.getTicketTypeTotalTokenSupply(ticketType[0].id);
 
             expect(totalTokenSupplyBefore < totalTokenSupplyAfter)
 

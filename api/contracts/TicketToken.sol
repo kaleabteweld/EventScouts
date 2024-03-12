@@ -8,7 +8,6 @@ import "hardhat/console.sol";
 //OrganizerContract
 contract TicketToken is ERC721 {
     address public immutable owner;
-    uint256 private totalTokenSupply;
 
     event TicketMinted(
         string indexed eventId,
@@ -20,6 +19,7 @@ contract TicketToken is ERC721 {
     struct EntityStruct {
         uint256 cost;
         uint256 maxNumberOfTickets;
+        uint256 totalTokenSupply;
         string eventId;
         bool isEntity;
     }
@@ -52,8 +52,10 @@ contract TicketToken is ERC721 {
             _;
         } else {
             require(
-                _tokenCount <= TicketTypeCosts[_id].maxNumberOfTickets &&
-                    _tokenCount >= 1,
+                (_tokenCount <= TicketTypeCosts[_id].maxNumberOfTickets &&
+                    _tokenCount >= 1) &&
+                    TicketTypeCosts[_id].totalTokenSupply + _tokenCount <=
+                    TicketTypeCosts[_id].maxNumberOfTickets,
                 string.concat(
                     "amount must be between 1 and ",
                     Strings.toString(TicketTypeCosts[_id].maxNumberOfTickets)
@@ -67,7 +69,10 @@ contract TicketToken is ERC721 {
         string memory _id,
         uint256 _tokenCount
     ) public payable checkAmount(_id, _tokenCount) checkCost(_id, _tokenCount) {
-        _safeMint(msg.sender, ++totalTokenSupply);
+        TicketTypeCosts[_id].totalTokenSupply =
+            TicketTypeCosts[_id].totalTokenSupply +
+            _tokenCount;
+        _safeMint(msg.sender, TicketTypeCosts[_id].totalTokenSupply);
         // emit TicketMinted(
         //     TicketTypeCosts[_id].eventId,
         //     msg.sender,
@@ -113,7 +118,10 @@ contract TicketToken is ERC721 {
         return TicketTypeCosts[_id].isEntity;
     }
 
-    function getTotalTokenSupply() public view onlyOwner returns (uint256) {
-        return totalTokenSupply;
+    function getTicketTypeTotalTokenSupply(
+        string memory _id
+    ) public view onlyOwner returns (uint256) {
+        require(TicketTypeIsEntity(_id), "Ticket Type does not exist");
+        return TicketTypeCosts[_id].totalTokenSupply;
     }
 }
