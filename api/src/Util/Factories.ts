@@ -5,7 +5,7 @@ import { errorMiddleWare } from "./middlewares";
 import swaggerUi from "swagger-ui-express";
 import helmet from "helmet";
 import swaggerJsdoc from 'swagger-jsdoc'
-import { categoryCreationRequestSchema, categoryJsdocSchema, categoryWithEventCountJsdocSchema, Error401JsdocSchema, evenSearchFrom, eventCreationRequestSchema, eventJsdocSchema, eventUpdateRequestSchema, organizerJsdocSchema, organizerLogInFrom, organizerSignUpFrom, organizerUpdateFrom, organizerWalletLogInFrom, ticketTypeJsdocSchema, ticketTypesUpdateSchema, validationError } from "../Schema/Types/jsdoc";
+import { categoryCreationRequestSchema, categoryJsdocSchema, categoryWithEventCountJsdocSchema, Error401JsdocSchema, evenSearchFrom, eventCreationRequestSchema, eventJsdocSchema, eventUpdateRequestSchema, newReviewFromJsdocSchema, organizerJsdocSchema, organizerLogInFrom, organizerSignUpFrom, organizerUpdateFrom, organizerWalletLogInFrom, reviewJsdocSchema, reviewReactionJsdocSchema, ticketTypeJsdocSchema, ticketTypesUpdateSchema, validationError } from "../Schema/Types/jsdoc";
 
 export function errorFactory(error: errorResponse): errorResponse {
     return error;
@@ -76,6 +76,9 @@ export function makeServer() {
                     categoryCreationRequestSchema: categoryCreationRequestSchema,
                     Category: categoryJsdocSchema,
                     CategoryWithEventCount: categoryWithEventCountJsdocSchema,
+                    ReviewReaction: reviewReactionJsdocSchema,
+                    Review: reviewJsdocSchema,
+                    newReviewFromJsdocSchema: newReviewFromJsdocSchema,
                 },
             },
             security: [{

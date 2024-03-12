@@ -369,3 +369,63 @@ export const categoryWithEventCountJsdocSchema = {
         eventCount: { type: 'number' },
     },
 };
+
+export const reviewReactionJsdocSchema = {
+    type: 'object',
+    properties: {
+        emoji: { type: 'string' },
+        count: { type: 'number' },
+        users: { type: 'array', items: { type: 'string' } }
+    }
+};
+
+export const reviewJsdocSchema = {
+    type: 'object',
+    properties: {
+        event: { type: 'string' },
+        rating: { type: 'number' },
+        review: { type: 'string' },
+        user: {
+            type: 'object',
+            properties: {
+                username: { type: 'string' },
+                profilePic: { type: 'string' },
+                user: { type: 'string' }
+            }
+        },
+        reactedUsers: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    username: { type: 'string' },
+                    profilePic: { type: 'string' },
+                    reaction: { type: 'string' },
+                    user: { type: 'string' }
+                }
+            }
+        },
+        reactions: {
+            type: 'object',
+            properties: {
+                like: { $ref: '#/components/schemas/ReviewReaction' },
+                love: { $ref: '#/components/schemas/ReviewReaction' },
+                haha: { $ref: '#/components/schemas/ReviewReaction' },
+                wow: { $ref: '#/components/schemas/ReviewReaction' },
+                sad: { $ref: '#/components/schemas/ReviewReaction' },
+                angry: { $ref: '#/components/schemas/ReviewReaction' }
+            }
+        }
+    }
+};
+
+export const newReviewFromJsdocSchema = {
+    type: 'object',
+    properties: {
+        event: { type: 'string' },
+        rating: { type: 'number' },
+        review: { type: 'string' }
+    }
+};
+
+
