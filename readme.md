@@ -1,4 +1,12 @@
 
+## Badges
+
+![mongodb 6.0.2](https://img.shields.io/badge/MongoDB-v6.0.2-green)
+![nodeJs 20.9.0](https://img.shields.io/badge/Node.js-20.9.0-yellow)
+
+
+
+
 # EventScouts
 
 Experience the future of event ticketing with Web 3.0 EventScouts, where NFTs serve as tamper-proof, secure, and collectible digital tickets on the blockchain
@@ -6,7 +14,7 @@ Experience the future of event ticketing with Web 3.0 EventScouts, where NFTs se
 
 ## Environment Variables
 
-To run this project, you will need to add the following environment variables to your .env file
+To run this project, you will need to add the following environment variables to your **.env file on /api/.env**
 
 `INFURA_URL`  This variable specifies the URL of the Infura node used for interacting with the Ethereum blockchain. In this case, it's set to a local Ganache instance running on http://127.0.0.1:7545.
 
@@ -14,7 +22,7 @@ To run this project, you will need to add the following environment variables to
 
 `MONGOMS_SYSTEM_BINARY`: This variable points to the location of the MongoDB system binary (mongod.exe) on your system. It's used for testing
 
-USER_SECRET, ORGANIZER_SECRET, CONTROLLER_SECRET: These are JWT secrets used for signing and verifying JSON Web Tokens for user authentication, organizer authentication, and controller authentication, respectively.
+`USER_SECRET`, `ORGANIZER_SECRET`: These are JWT secrets used for signing and verifying JSON Web Tokens for user authentication, organizer authentication, and controller authentication, respectively.
 
 `USER_REfRESH_SECRET`, ORGANIZER_REfRESH_SECRET, CONTROLLER_REfRESH_SECRET: Similar to the previous set of secrets, these are used specifically for generating refresh tokens.
 
@@ -112,12 +120,13 @@ deploy contracts
 
 ## Lessons Learned
 
-What did you learn while building this project? What challenges did you face and how did you overcome them?
+- web3: Understanding how to interact with Ethereum and other blockchain networks using web3 libraries provided valuable insights into decentralized application development.
+- ethers/hardhat: Exploring ethers.js and Hardhat allowed for efficient and effective Ethereum smart contract development, testing, and deployment processes.
+- solidity: Learning Solidity enabled the creation of smart contracts for various decentralized applications, providing a foundation for blockchain development.
+- mongoose: Working with Mongoose provided a deeper understanding of MongoDB integration within Node.js applications, facilitating efficient data modeling and querying capabilities.
 
-- web3
-- ethers/hardhat
-- solidity
-- mongooes
+### Overall Insights
+Decentralized applications (DApps) and web3 technology bring a unique flavor of interesting features to the world of software development. They offer decentralized, trustless, and transparent systems that can revolutionize various industries. However, it's essential to remember that despite their innovative nature, they ultimately serve as decentralized leisure systems. Integrating them with traditional web two systems adds another layer of complexity but is crucial for creating seamless user experiences and unlocking the full potential of decentralized technologies.
 ## Tech Stack
 
 **Server:**
