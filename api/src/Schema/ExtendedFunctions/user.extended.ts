@@ -11,6 +11,7 @@ import { IEvent } from "../Types/event.schema.types";
 import { ITicketTypes } from "../Types/ticketTypes.schema.types";
 import { IBoughTicket } from "../../Domains/TicketTypes/types";
 import { ITransactions, ITransactionsDocument } from "../Types/transactions.schema.types";
+import { IUserUpdateFrom } from "../../Domains/User/types";
 
 
 export async function encryptPassword(this: IUser, password?: string): Promise<String> {
@@ -262,4 +263,43 @@ export async function addEvent(this: mongoose.Model<IUser>, _id: string, event: 
         throw error;
     }
 
+}
+
+export async function removeByID(this: mongoose.Model<IUser>, _id: string): Promise<void> {
+    try {
+        const result = await this.deleteOne({ _id: new mongoose.Types.ObjectId(_id) })
+        if (result.deletedCount === 0) {
+            throw ValidationErrorFactory({
+                msg: "User not found",
+                statusCode: 404,
+                type: "Validation"
+            }, "_id")
+        }
+    } catch (error) {
+        if (error instanceof BSONError) {
+            throw ValidationErrorFactory({
+                msg: "Input must be a 24 character hex string, 12 byte Uint8Array, or an integer",
+                statusCode: 400,
+                type: "validation",
+            }, "id");
+        }
+        throw error;
+    }
+}
+
+export async function update(this: mongoose.Model<IUser>, _id: string, newUser: IUserUpdateFrom, populatePath?: string | string[]): Promise<IUser | null> {
+
+    try {
+        var newDoc: any = {};
+        if (newUser.password) {
+            const newPassword = await (encryptPassword.bind({} as any))(newUser.password);
+            newDoc = await this.findByIdAndUpdate(_id, { ...newUser, password: newPassword }, { new: true, overwrite: true });
+        } else {
+            newDoc = await this.findByIdAndUpdate(_id, newUser, { new: true, overwrite: true });
+        }
+        if (populatePath) await newDoc?.populate(populatePath)
+        return newDoc;
+    } catch (error) {
+        throw error;
+    }
 }

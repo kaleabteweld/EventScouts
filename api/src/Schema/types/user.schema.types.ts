@@ -4,6 +4,7 @@ import { TPEGIRating } from "../../Domains/Event/validation";
 import { IEvent, ILocation } from "./event.schema.types";
 import { IBoughTicket } from "../../Domains/TicketTypes/types";
 import { ITransactions, ITransactionsDocument } from "./transactions.schema.types";
+import { IUserUpdateFrom } from "../../Domains/User/types";
 
 
 export type TGender = 'male' | 'female' | 'others' | 'none';
@@ -63,4 +64,6 @@ export interface UserModel extends mongoose.Model<IUserDocument> {
     getUserById(_id: string): Promise<IUserDocument | null>
     getByVerifiedKey(key: TVerified, value: string): Promise<IUserDocument | null>
     addEvent(_id: string, event: IEvent, boughTicket: IBoughTicket, walletAccount: string): Promise<{ transaction: ITransactionsDocument, user: IUserDocument } | null>
+    removeByID(_id: string): Promise<void>
+    update(_id: string, newUser: IUserUpdateFrom, populatePath?: string | string[]): Promise<IUser | null>
 }

@@ -1,6 +1,6 @@
 import Joi from "joi";
 import { IChangePasswordFrom } from "../Common/types";
-import { IUserLogInFrom, IUserLogInFromWithWallet, IUserSignUpFrom } from "./types";
+import { IUserLogInFrom, IUserLogInFromWithWallet, IUserSignUpFrom, IUserUpdateFrom } from "./types";
 import { GenderEnum } from "../../Schema/Types/user.schema.types";
 
 
@@ -33,5 +33,23 @@ export const logInWithWalletSchema = Joi.object<IUserLogInFromWithWallet>({
 
 export const userChangePassword = Joi.object<IChangePasswordFrom>({
     password: newUserSchema.extract("password"),
+});
+
+export const updateUserSchema = Joi.object<IUserUpdateFrom>({
+    email: Joi.string().email().optional(),
+    name: Joi.string().max(30).optional(),
+    userName: Joi.string().max(20).optional(),
+    phone: Joi.string().optional(),
+    profilePic: Joi.string().uri().optional(),
+    dateOfBirth: Joi.date().optional(),
+    gender: Joi.custom((value, helper) => {
+        if (!Object.values(GenderEnum).includes(value)) {
+            return helper.message({ custom: `\"gender\" ${value} is not a valid enum value` });
+        } else {
+            return value
+        }
+    }).optional(),
+    password: Joi.string().min(8).max(254).optional(),
+    walletAccounts: Joi.array().items(Joi.string().min(8).max(254)).optional(),
 });
 

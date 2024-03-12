@@ -21,3 +21,6 @@ export interface IUserSignUpFrom {
     password: string,
     walletAccounts: string[]
 }
+
+export interface IUserUpdateFrom extends Partial<IUserSignUpFrom> {
+}

@@ -101,6 +101,7 @@ publicAuthenticationRouter.post('/:userType/logIn', MakeErrorHandler(
 
         // const controller: any = getControllerFactory(req.params.userType);
         const controller: any = ClassMap(req.params.userType);
+        console.log({ userType: req.params.userType, controller })
         const user = await controller.logIn(req.body);
 
         makeAuthHeaders(res, user.header)

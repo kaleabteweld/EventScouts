@@ -71,7 +71,14 @@ export function checkIfOwnByOrganizer(this: IEvent, organizerID: string): boolea
 
 export async function removeByID(this: mongoose.Model<IEvent>, _id: string): Promise<void> {
     try {
-        await this.deleteOne({ _id: new mongoose.Types.ObjectId(_id) })
+        const result = await this.deleteOne({ _id: new mongoose.Types.ObjectId(_id) })
+        if (result.deletedCount === 0) {
+            throw ValidationErrorFactory({
+                msg: "Event not found",
+                statusCode: 404,
+                type: "Validation"
+            }, "_id")
+        }
     } catch (error) {
         if (error instanceof BSONError) {
             throw ValidationErrorFactory({

@@ -61,7 +61,14 @@ export function checkIfOwnByOrganizer(this: ICategory, organizerID: string): boo
 
 export async function removeByID(this: mongoose.Model<ICategory>, _id: string): Promise<void> {
     try {
-        await this.deleteOne({ _id: new mongoose.Types.ObjectId(_id) })
+        const result = await this.deleteOne({ _id: new mongoose.Types.ObjectId(_id) })
+        if (result.deletedCount === 0) {
+            throw ValidationErrorFactory({
+                msg: "Category not found",
+                statusCode: 404,
+                type: "Validation"
+            }, "_id")
+        }
     } catch (error) {
         if (error instanceof BSONError) {
             throw ValidationErrorFactory({
