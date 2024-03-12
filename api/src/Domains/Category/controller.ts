@@ -7,11 +7,7 @@ import CategoryModel from "../../Schema/category.schema";
 import { IOrganizer } from "../../Schema/Types/organizer.schema.types";
 import OrganizerModel from "../../Schema/organizer.schema";
 
-
-@Route("/category")
-@Tags("Category")
 export default class CategoryController {
-    @Post("/")
     static async createCategory(_Category: INewCategoryFrom, _organizer: IOrganizer): Promise<IResponseType<ICategory>> {
 
         await CategoryModel.validator(_Category, newCategorySchema);
@@ -22,7 +18,6 @@ export default class CategoryController {
         return { body: (category.toJSON() as any) }
     }
 
-    @Get("/list/{skip}/{limit}")
     static async list({ skip, limit }: IPagination, withEventCount?: boolean): Promise<IResponseType<ICategory[]>> {
         if (withEventCount) {
             return {
@@ -39,7 +34,6 @@ export default class CategoryController {
         }
     }
 
-    @Get("/byId/{categoryId}")
     static async getById(categoryId: string, withEventCount?: boolean): Promise<IResponseType<ICategory | null>> {
         if (withEventCount) {
             return { body: ((await CategoryModel.getCategoryWithEventCount(categoryId)) as any) };
@@ -48,7 +42,6 @@ export default class CategoryController {
         }
     }
 
-    @Delete("/remove/{categoryId}")
     static async removeById(categoryId: string, organizer: IOrganizer): Promise<IResponseType<ICategory | null>> {
         const category = await CategoryModel.getById(categoryId);
         category?.checkIfOwnByOrganizer(organizer.id);

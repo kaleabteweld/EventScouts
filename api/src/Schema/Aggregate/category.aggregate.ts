@@ -96,15 +96,6 @@ export async function getCategorysWithEventCount(this: mongoose.Model<ICategory>
                 $limit: limit ?? 1
             }
         ]);
-
-        if (result.length === 0) {
-            throw ValidationErrorFactory({
-                msg: "Category not found",
-                statusCode: 404,
-                type: "Validation"
-            }, "_id");
-        }
-
         return result;
     } catch (error) {
         if (error instanceof BSONError) {

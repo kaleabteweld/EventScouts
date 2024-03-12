@@ -344,3 +344,28 @@ export const eventUpdateRequestSchema = {
         ticketTypes: { type: 'array', items: { type: 'object', properties: { ...ticketTypesUpdateSchema.properties } }, nullable: true },
     },
 };
+
+export const categoryCreationRequestSchema = {
+    type: 'object',
+    properties: {
+        name: { type: 'string' },
+    },
+};
+
+export const categoryJsdocSchema = {
+    type: 'object',
+    properties: {
+        name: { type: 'string' },
+        events: { type: 'array', items: { type: 'string' } },
+        organizer: { type: 'string' },
+    },
+};
+export const categoryWithEventCountJsdocSchema = {
+    type: 'object',
+    properties: {
+        name: { type: 'string' },
+        events: { type: 'array', items: { type: 'string' } },
+        organizer: { type: 'string' },
+        eventCount: { type: 'number' },
+    },
+};
