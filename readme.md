@@ -14,7 +14,13 @@ Experience the future of event ticketing with Web 3.0 EventScouts, where NFTs se
 
 ## Environment Variables
 
-To run this project, you will need to add the following environment variables to your **.env file on /api/.env**
+To run this project, you will need to add the following environment variables to your **.env file on /api/.env.[development | production]**
+
+### .env.development
+need to add .env.development to run Locally
+
+### .env.production
+need to add .env.production for production
 
 `INFURA_URL`  This variable specifies the URL of the Infura node used for interacting with the Ethereum blockchain. In this case, it's set to a local Ganache instance running on http://127.0.0.1:7545.
 
@@ -28,7 +34,7 @@ To run this project, you will need to add the following environment variables to
 
 `COHERE_API_KEY`: This variable holds the API key for integrating with the Cohere API, which provides natural language processing functionality.
 
-`CIPHERIV_SECRET_KEY`: This is a secret key used for encryption or decryption operations, used to encrypting shareable ID like shareable event link.
+`CIPHERIV_SECRET_KEY`: This is a secret key used for encrypting shareable ID like shareable event link.
 
 `SHAREABLE_LINK_BASE_URL`: This variable defines the base URL for generating shareable links, typically used for sharing events or content within the application.`
 
@@ -59,7 +65,7 @@ Run Solidity Compiler to compile
   npm run contracts-compile
 ```
 
-Start the Development server
+Start the Development server (will set NODE_ENV to development)
 
 ```bash
   npm run dev
@@ -99,6 +105,12 @@ deploy contracts
 
 ```bash
   npm run deploy
+```
+
+Start the Production server (will set NODE_ENV to production)
+
+```bash
+  npm run production
 ```
 
 

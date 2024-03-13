@@ -40,7 +40,8 @@
     "contracts-compile": "npx hardhat compile",
     "api-test": "jest",
     "contracts-test-coverage": "npx hardhat coverage",
-    "dev": "nodemon src/server.ts"
+    "dev": "set NODE_ENV=development && nodemon src/server.ts",
+    "production": "set NODE_ENV=production && nodemon src/server.ts"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.1",

@@ -3,8 +3,8 @@ import Cache from "./Util/cache";
 import { makeServer } from './Util/Factories';
 import dotenv from 'dotenv';
 
-dotenv.config();
-
+dotenv.config({ path: `.env.${process.env.NODE_ENV?.trim()}` });
+console.log(`[+] running on ${process.env.NODE_ENV?.trim()} mode`)
 const app = makeServer();
 
 Cache.connect();
