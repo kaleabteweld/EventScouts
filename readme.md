@@ -26,7 +26,7 @@ need to add .env.production for production
 
 `DATABASE_URL` This variable contains the connection string for MongoDB, specifying the database URL (mongodb://localhost:27017/EventScouts) where the application data will be stored.
 
-`MONGOMS_SYSTEM_BINARY`: This variable points to the location of the MongoDB system binary (mongod.exe) on your system. It's used for testing
+`MONGOMS_SYSTEM_BINARY`: This variable points to the location of the MongoDB system binary (mongod.exe) on your system. It's used for **Testing Requires MongoDB v6.0.9**
 
 `USER_SECRET`, `ORGANIZER_SECRET`: These are JWT secrets used for signing and verifying JSON Web Tokens for user authentication, organizer authentication, and controller authentication, respectively.
 

@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { MongoMemoryServer } from 'mongodb-memory-server-core';
 import dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({ path: `.env.development` });
 
 export var mongo: MongoMemoryServer;
 
