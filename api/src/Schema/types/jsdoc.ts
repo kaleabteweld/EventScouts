@@ -428,4 +428,97 @@ export const newReviewFromJsdocSchema = {
     }
 };
 
+export const userJsdocSchema = {
+    type: 'object',
+    properties: {
+        _id: { type: 'string' },
+        email: { type: 'string' },
+        name: { type: 'string' },
+        userName: { type: 'string' },
+        phone: { type: 'string' },
+        profilePic: { type: 'string' },
+        verified: { type: 'string', enum: ['email', 'phone', 'wallet', 'none'] },
+        dateOfBirth: { type: 'string', format: 'date-time' },
+        gender: { type: 'string', enum: ['male', 'female', 'others', 'none'] },
+        password: { type: 'string' },
+        walletAccounts: { type: 'array', items: { type: 'string' } },
+        transactions: { type: 'array', items: { $ref: '#/components/schemas/Transaction' } }
+    }
+};
 
+export const userLoginJsdocSchema = {
+    type: 'object',
+    properties: {
+        email: { type: 'string' },
+        password: { type: 'string' }
+    },
+    required: ['email', 'password']
+};
+
+export const userSignUpJsdocSchema = {
+    type: 'object',
+    properties: {
+        email: { type: 'string' },
+        name: { type: 'string' },
+        userName: { type: 'string' },
+        phone: { type: 'string' },
+        profilePic: { type: 'string' },
+        dateOfBirth: { type: 'string', format: 'date' },
+        gender: { type: 'string', enum: ['male', 'female', 'others', 'none'] },
+        password: { type: 'string' },
+        walletAccounts: { type: 'array', items: { type: 'string' } }
+    },
+    required: ['email', 'name', 'userName', 'phone', 'profilePic', 'dateOfBirth', 'gender', 'password', 'walletAccounts']
+};
+
+export const transactionsJsdocSchema = {
+    type: 'object',
+    properties: {
+        event: {
+            type: 'object',
+            properties: {
+                event: { type: 'string' },
+                posterURL: { type: 'string' },
+                name: { type: 'string' },
+                startDate: { type: 'string', format: 'date-time' },
+                endDate: { type: 'string', format: 'date-time' },
+                location: {
+                    type: 'object',
+                    properties: {
+                        type: { type: 'string' },
+                        coordinates: { type: 'array', items: { type: 'number' } }
+                    }
+                },
+                venue: { type: 'string' }
+            },
+            required: ['event', 'posterURL', 'name', 'startDate', 'endDate', 'location', 'venue']
+        },
+        ticketType: {
+            type: 'object',
+            properties: {
+                ticketType: { type: 'string' },
+                amount: { type: 'number' }
+            },
+            required: ['ticketType', 'amount']
+        }
+    },
+    required: ['event', 'ticketType']
+};
+
+export const newTransactionJsdocSchema = {
+    type: 'object',
+    properties: {
+        eventId: { type: 'string' },
+        ticketType: { type: 'string' },
+        amount: { type: 'number' },
+        mintHash: { type: 'string' }
+    },
+    required: ['eventId', 'ticketType', 'amount', 'mintHash']
+};
+
+export const userWalletLogInFrom = {
+    type: "object",
+    properties: {
+        walletAccounts: { type: 'array', items: { type: 'string' } },
+    }
+}

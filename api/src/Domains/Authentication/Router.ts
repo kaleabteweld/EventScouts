@@ -54,6 +54,39 @@ function ClassMap(userType: string): UserController | OrganizerController {
  *             schema:
  *               $ref: '#/components/schemas/validationError'
  */
+
+/**
+ * @swagger
+ * /public/authentication/user/signUp:
+ *   post:
+ *     summary: Sign up a user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/userSignUpJsdocSchema'
+ *     responses:
+ *       200:
+ *         description: Successful sign-up of the user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *         headers:
+ *           Authorization:
+ *             description: JWT token for authentication
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Error occurred during sign-up process
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/validationError'
+ */
+
 publicAuthenticationRouter.post('/:userType/signUp', MakeErrorHandler(
     async (req: Request, res: Response) => {
 
@@ -96,6 +129,46 @@ publicAuthenticationRouter.post('/:userType/signUp', MakeErrorHandler(
  *             schema:
  *               $ref: '#/components/schemas/validationError'
  */
+
+/**
+ * @swagger
+ * /public/authentication/user/logIn:
+ *   post:
+ *     summary: Log in a user
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: path
+ *         name: userType
+ *         required: true
+ *         description: Type of user to log in
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/userLoginJsdocSchema'
+ *     responses:
+ *       200:
+ *         description: Successful user log-in
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *         headers:
+ *           Authorization:
+ *             description: JWT token for authentication
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Error occurred during log-in process
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/validationError'
+ */
+
 publicAuthenticationRouter.post('/:userType/logIn', MakeErrorHandler(
     async (req: Request, res: Response) => {
 
@@ -140,6 +213,46 @@ publicAuthenticationRouter.post('/:userType/logIn', MakeErrorHandler(
  *             schema:
  *               $ref: '#/components/schemas/validationError'
  */
+
+/**
+ * @swagger
+ * /public/authentication/user/logIn/wallet:
+ *   post:
+ *     summary: Log In a user with Wallet
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: path
+ *         name: userType
+ *         required: true
+ *         description: Type of user to log in
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/userWalletLogInFrom'
+ *     responses:
+ *       200:
+ *         description: Successful log-in with Wallet for user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *         headers:
+ *           Authorization:
+ *             description: JWT token for authentication
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Error occurred during log-in with Wallet process
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/validationError'
+ */
+
 publicAuthenticationRouter.post('/:userType/logIn/wallet', MakeErrorHandler(
     async (req: Request, res: Response) => {
 
@@ -179,6 +292,47 @@ publicAuthenticationRouter.post('/:userType/logIn/wallet', MakeErrorHandler(
  *             schema:
  *               $ref: '#/components/schemas/validationError'
  */
+
+/**
+ * @swagger
+ * /public/authentication/user/refreshToken:
+ *   get:
+ *     summary: Refresh Token for an User
+ *     tags: [Authentication]
+ *     security:
+ *        - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successful refreshToken User
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *         headers:
+ *           Authorization:
+ *             description: JWT token for authentication
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Error occurred during refreshToken process
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/validationError'
+ */
+publicAuthenticationRouter.get('/:userType/refreshToken', MakeErrorHandler(
+    async (req: Request, res: Response) => {
+
+        const controller: any = ClassMap(req.params.userType);
+        const token = req.headers.authorization?.split('Bearer ')[1] ?? "";
+        const user = await controller.refreshToken(token);
+
+        makeAuthHeaders(res, user.header)
+        res.json({})
+    }
+));
+
+
 publicAuthenticationRouter.get('/:userType/refreshToken', MakeErrorHandler(
     async (req: Request, res: Response) => {
 
@@ -227,6 +381,43 @@ publicAuthenticationRouter.get('/:userType/refreshToken', MakeErrorHandler(
  *             schema:
  *               $ref: '#/components/schemas/validationError'
  */
+
+/**
+ * @swagger
+ * /public/authentication/user/forgotPassword/{key}/{value}/{newPassword}:
+ *   patch:
+ *     summary: Reset password for a user
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: path
+ *         name: key
+ *         required: true
+ *         description: Key for identifying the user (e.g., email, username)
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: value
+ *         required: true
+ *         description: Value corresponding to the key
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: newPassword
+ *         required: true
+ *         description: New password to set for the user
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ *       400:
+ *         description: Error occurred during password reset process
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/validationError'
+ */
+
 publicAuthenticationRouter.patch('/:userType/forgotPassword/:key/:Value/:newPassword', MakeErrorHandler(
     async (req: Request, res: Response) => {
 
@@ -259,6 +450,26 @@ publicAuthenticationRouter.patch('/:userType/forgotPassword/:key/:Value/:newPass
  *             schema:
  *               $ref: '#/components/schemas/validationError'
  */
+
+/**
+ * @swagger
+ * /private/authentication/user/logOut:
+ *   delete:
+ *     summary: Log out a user
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logout successful
+ *       400:
+ *         description: Error occurred during logout process
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/validationError'
+ */
+
 privateAuthenticationRouter.delete('/:userType/logOut', MakeErrorHandler(
     async (req: Request, res: Response) => {
 
