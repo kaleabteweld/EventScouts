@@ -66,4 +66,5 @@ export interface UserModel extends mongoose.Model<IUserDocument> {
     addEvent(_id: string, event: IEvent, boughTicket: IBoughTicket, walletAccount: string): Promise<{ transaction: ITransactionsDocument, user: IUserDocument } | null>
     removeByID(_id: string): Promise<void>
     update(_id: string, newUser: IUserUpdateFrom, populatePath?: string | string[]): Promise<IUser | null>
+    checkIfUserHasTicket(eventId: string, userId: string): Promise<boolean>
 }

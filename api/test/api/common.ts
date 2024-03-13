@@ -61,8 +61,19 @@ export const newValidUser: IUserSignUpFrom = {
     name: "test",
     profilePic: "http://localhost/category/a.png",
     password: "abcd12345",
-    phone: "+251900000",
+    phone: "+251900001",
     userName: "test",
+    walletAccounts: ["fdd3d4ad2a1c88bfa0e44e18bf4b04886d28dc7ecaa47a838b4f1dee8eb551afdd859c926ab9b8001bdc3fb758fd7253a56df6f61cb93d0178d063cf79e602f5", "07f153aae615da277f12fc6d891d143ece72cbb4d9c4d12170b6b7ac78d53f4acb177511c67cb95737247fd3edfc94d3b33bb49a7432dcc838ba7a8fed5e015b"]
+};
+export const newValidUser2: IUserSignUpFrom = {
+    dateOfBirth: new Date(),
+    email: "test1@test.com",
+    gender: 'male',
+    name: "test1",
+    profilePic: "http://localhost/category/a.png",
+    password: "abcd12345",
+    phone: "+251900000",
+    userName: "test1",
     walletAccounts: ["fdd3d4ad2a1c88bfa0e44e18bf4b04886d28dc7ecaa47a838b4f1dee8eb551afdd859c926ab9b8001bdc3fb758fd7253a56df6f61cb93d0178d063cf79e602f5", "07f153aae615da277f12fc6d891d143ece72cbb4d9c4d12170b6b7ac78d53f4acb177511c67cb95737247fd3edfc94d3b33bb49a7432dcc838ba7a8fed5e015b"]
 };
 

@@ -303,3 +303,52 @@ export async function update(this: mongoose.Model<IUser>, _id: string, newUser: 
         throw error;
     }
 }
+
+export async function _checkIfUserHasTicket(this: IUser, eventId: string): Promise<boolean> {
+
+    try {
+        const userTransactions = this.transactions;
+        for (const transaction of userTransactions) {
+            if (transaction.event.event.toString() === eventId) {
+                return true;
+            }
+        }
+
+        return false;
+    } catch (error) {
+        throw error;
+    }
+
+}
+
+export async function checkIfUserHasTicket(this: mongoose.Model<IUser>, eventId: string, userId: string): Promise<boolean> {
+
+    try {
+        const userTransactions = await this.findOne({
+            _id: new mongoose.Types.ObjectId(userId),
+            transactions: {
+                $elemMatch: {
+                    "event.event": new mongoose.Types.ObjectId(eventId)
+                }
+            }
+        })
+        if (userTransactions == null) {
+            throw ValidationErrorFactory({
+                msg: "User either does not exist or has no tickets",
+                statusCode: 400,
+                type: "validation",
+            }, "userId");
+        }
+        return true;
+    } catch (error) {
+        if (error instanceof BSONError) {
+            throw ValidationErrorFactory({
+                msg: "Input must be a 24 character hex string, 12 byte Uint8Array, or an integer",
+                statusCode: 400,
+                type: "validation",
+            }, "id");
+        }
+        throw error;
+    }
+
+}

@@ -13,15 +13,15 @@ import User from "../../Schema/user.schema";
 @Tags("Review")
 export default class ReviewController {
     @Post("/")
-    static async createReview(_review: INewReviewFrom, user: IUser): Promise<IResponseType<IReview>> {
+    static async createReview(_review: INewReviewFrom, _user: IUser): Promise<IResponseType<IReview>> {
 
         await ReviewModel.validator(_review, newReviewSchema);
-
+        await User.checkIfUserHasTicket(_review.event, _user.id);
         _review = {
             ..._review, user: {
-                username: user.userName,
-                profilePic: user.profilePic,
-                user: user.id,
+                username: _user.userName,
+                profilePic: _user.profilePic,
+                user: _user.id,
             }
         } as any;
 
