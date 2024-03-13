@@ -471,6 +471,21 @@ export const userSignUpJsdocSchema = {
     required: ['email', 'name', 'userName', 'phone', 'profilePic', 'dateOfBirth', 'gender', 'password', 'walletAccounts']
 };
 
+export const userUpdateJsdocSchema = {
+    type: 'object',
+    properties: {
+        email: { type: 'string', nullable: true },
+        name: { type: 'string', nullable: true },
+        userName: { type: 'string', nullable: true },
+        phone: { type: 'string', nullable: true },
+        profilePic: { type: 'string', nullable: true },
+        dateOfBirth: { type: 'string', nullable: true, format: 'date' },
+        gender: { type: 'string', nullable: true, enum: ['male', 'female', 'others', 'none'] },
+        password: { type: 'string', nullable: true },
+        walletAccounts: { type: 'array', items: { type: 'string', nullable: true } }
+    },
+};
+
 export const transactionsJsdocSchema = {
     type: 'object',
     properties: {

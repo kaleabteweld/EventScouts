@@ -136,13 +136,6 @@ publicAuthenticationRouter.post('/:userType/signUp', MakeErrorHandler(
  *   post:
  *     summary: Log in a user
  *     tags: [Authentication]
- *     parameters:
- *       - in: path
- *         name: userType
- *         required: true
- *         description: Type of user to log in
- *         schema:
- *           type: string
  *     requestBody:
  *       required: true
  *       content:
@@ -220,13 +213,6 @@ publicAuthenticationRouter.post('/:userType/logIn', MakeErrorHandler(
  *   post:
  *     summary: Log In a user with Wallet
  *     tags: [Authentication]
- *     parameters:
- *       - in: path
- *         name: userType
- *         required: true
- *         description: Type of user to log in
- *         schema:
- *           type: string
  *     requestBody:
  *       required: true
  *       content:
@@ -448,7 +434,13 @@ publicAuthenticationRouter.patch('/:userType/forgotPassword/:key/:Value/:newPass
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/validationError'
+ *               $ref: '#/components/schemas/validationError'      
+ *       401:
+ *         description: No Valid Token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NoValidToken'
  */
 
 /**
@@ -467,7 +459,13 @@ publicAuthenticationRouter.patch('/:userType/forgotPassword/:key/:Value/:newPass
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/validationError'
+ *               $ref: '#/components/schemas/validationError'      
+ *       401:
+ *         description: No Valid Token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NoValidToken'
  */
 
 privateAuthenticationRouter.delete('/:userType/logOut', MakeErrorHandler(

@@ -34,11 +34,7 @@ const privateOrganizerRouter = express.Router();
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   description: Error message       
+ *               $ref: '#/components/schemas/validationError'      
  *       401:
  *         description: No Valid Token
  *         content:
@@ -121,17 +117,13 @@ privateOrganizerRouter.patch("/VerifyUser/:key", MakeErrorHandler(
  *             schema:
  *               $ref: '#/components/schemas/Organizer'
  *       400:
- *         description: Error occurred during wallet connection process
+ *         description: Error occurred
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   description: Error message
+ *               $ref: '#/components/schemas/validationError'      
  *       401:
- *         description: No valid token
+ *         description: No Valid Token
  *         content:
  *           application/json:
  *             schema:
@@ -169,17 +161,13 @@ privateOrganizerRouter.patch("/wallet/connect/:wallet", MakeErrorHandler(
  *             schema:
  *               $ref: '#/components/schemas/Organizer'
  *       400:
- *         description: Error occurred during wallet disconnection process
+ *         description: Error occurred
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   description: Error message
+ *               $ref: '#/components/schemas/validationError'      
  *       401:
- *         description: No valid token
+ *         description: No Valid Token
  *         content:
  *           application/json:
  *             schema:
@@ -216,17 +204,13 @@ privateOrganizerRouter.patch("/wallet/disconnect/:wallet", MakeErrorHandler(
  *             schema:
  *               $ref: '#/components/schemas/Organizer'
  *       400:
- *         description: Error occurred during organizer information update process
+ *         description: Error occurred
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   description: Error message
+ *               $ref: '#/components/schemas/validationError'      
  *       401:
- *         description: No valid token
+ *         description: No Valid Token
  *         content:
  *           application/json:
  *             schema:
