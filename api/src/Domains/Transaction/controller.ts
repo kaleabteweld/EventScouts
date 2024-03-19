@@ -1,5 +1,4 @@
 import { IResponseType } from "../Common/types";
-import { Route, Tags, Get, Patch, Post, Delete, Body, Query, Path } from "tsoa";
 import User from "../../Schema/user.schema";
 import { IUser, IUserDocument } from "../../Schema/Types/user.schema.types";
 import { INewTransactionFrom } from "./types";
@@ -10,11 +9,8 @@ import { getTransaction } from "../../Util/Ethers";
 import TransactionModel from "../../Schema/transactions.schema";
 import { newTransactionSchema } from "./validation";
 
-@Route("/transaction")
-@Tags("Transaction")
 export default class TransactionController {
 
-    @Patch("mint")
     static async mint(_from: INewTransactionFrom, _user: IUser): Promise<IResponseType<ITransactions>> {
 
         await TransactionModel.validator(_from, newTransactionSchema);

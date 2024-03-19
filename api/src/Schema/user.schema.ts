@@ -25,7 +25,8 @@ export const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
     },
     password: { type: String },
     walletAccounts: [String],
-    transactions: [transactionSchema]
+    transactions: [transactionSchema],
+    FCMToken: { type: String, default: null },
 }, {
     timestamps: true,
     methods: {

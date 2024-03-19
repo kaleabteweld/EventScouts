@@ -20,6 +20,7 @@ export interface IUserSignUpFrom {
     gender: TGender,
     password: string,
     walletAccounts: string[]
+    FCMToken?: string
 }
 
 export interface IUserUpdateFrom extends Partial<IUserSignUpFrom> {

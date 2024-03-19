@@ -20,6 +20,7 @@ export const newUserSchema = Joi.object<IUserSignUpFrom>({
     }).required(),
     password: Joi.string().min(8).max(254).required(),
     walletAccounts: Joi.array().items(Joi.string().min(8).max(254)).optional(),
+    FCMToken: Joi.string().optional()
 });
 
 export const logInSchema = Joi.object<IUserLogInFrom>({
@@ -51,5 +52,6 @@ export const updateUserSchema = Joi.object<IUserUpdateFrom>({
     }).optional(),
     password: Joi.string().min(8).max(254).optional(),
     walletAccounts: Joi.array().items(Joi.string().min(8).max(254)).optional(),
+    FCMToken: Joi.string().optional()
 });
 

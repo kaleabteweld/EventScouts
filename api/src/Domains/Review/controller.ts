@@ -1,5 +1,4 @@
 import { IPagination, IResponseType } from "../Common/types";
-import { Route, Tags, Post, Get, Delete, Patch } from "tsoa";
 import { INewReviewFrom } from "./types";
 import { IUser } from "../../Schema/Types/user.schema.types";
 import { IReview, TReactionType } from "../../Schema/Types/review.schema.types";
@@ -9,10 +8,7 @@ import EventModel from "../../Schema/event.schema";
 import User from "../../Schema/user.schema";
 
 
-@Route("/review")
-@Tags("Review")
 export default class ReviewController {
-    @Post("/")
     static async createReview(_review: INewReviewFrom, _user: IUser): Promise<IResponseType<IReview>> {
 
         await ReviewModel.validator(_review, newReviewSchema);
@@ -31,7 +27,6 @@ export default class ReviewController {
         return { body: (review.toJSON() as any) }
     }
 
-    @Get("/list/{eventId}/{skip}/{limit}")
     static async list({ skip, limit }: IPagination, eventId: string): Promise<IResponseType<{ reviews: IReview[], total: number }>> {
         const event = await EventModel.getEventWithReviews({ skip, limit }, eventId)
         return {
@@ -39,12 +34,10 @@ export default class ReviewController {
         }
     }
 
-    @Get("/byId/{reviewId}")
     static async getById(reviewId: string): Promise<IResponseType<IReview | null>> {
         return { body: ((await ReviewModel.getById(reviewId))?.toJSON() as any) };
     }
 
-    @Patch("/react/{reviewId}/{reaction}")
     static async react(reviewId: string, reaction: TReactionType, _user: IUser): Promise<IResponseType<IReview | null>> {
         const user = await User.getUserById(_user.id);
         const review = await ReviewModel.getById(reviewId);

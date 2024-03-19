@@ -32,7 +32,8 @@
     "nodemon": "^3.0.2",
     "supertest": "^6.3.3",
     "swagger-jsdoc": "^6.2.8",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.2"
   },
   "scripts": {
     "contracts-deploy": "npx hardhat run scripts/deploy.ts",

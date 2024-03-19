@@ -43,6 +43,7 @@ export interface IUser extends mongoose.Document {
     password: String;
     walletAccounts: String[];
     transactions: ITransactions[];
+    FCMToken?: String;
 }
 
 //Dynamic methods

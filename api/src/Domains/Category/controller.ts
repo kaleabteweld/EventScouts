@@ -1,7 +1,6 @@
 import { INewCategoryFrom } from "./types";
 import { newCategorySchema } from "./validation";
 import { IPagination, IResponseType } from "../Common/types";
-import { Route, Tags, Post, Path, Get, Delete } from "tsoa";
 import { ICategory } from "../../Schema/Types/category.schema.types";
 import CategoryModel from "../../Schema/category.schema";
 import { IOrganizer } from "../../Schema/Types/organizer.schema.types";
