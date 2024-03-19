@@ -38,6 +38,7 @@ need to add .env.production for production
 
 `SHAREABLE_LINK_BASE_URL`: This variable defines the base URL for generating shareable links, typically used for sharing events or content within the application.`
 
+`GOOGLE_APPLICATION_CREDENTIALS`: the path for your firebase json file
 
 ## Run Locally
 
