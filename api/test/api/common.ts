@@ -92,8 +92,8 @@ type TNewValidEventArgs = { categorys?: string[], organizer?: string, ticketType
 export const newValidEvent = ({ categorys = [], ticketTypes = [], name = "Category", location = { type: "Point", coordinates: [9.007544344601149, 38.798132727216654] } }: TNewValidEventArgs): INewEventFrom => ({
     categorys,
     description: "Category description",
-    endDate: new Date(),
     startDate: new Date(),
+    endDate: new Date(),
     location,
     name,
     posterURL: "http://localhost/category/a.png",
@@ -119,7 +119,7 @@ export const newValidTicketTypes: INewTicketTypesFrom[] = [{
     type: "VIP",
     price: 100,
     sellingStartDate: new Date(new Date().getTime() - (24 * 60 * 60 * 1000)),
-    sellingEndDate: new Date("2024-03-31"),
+    sellingEndDate: new Date(new Date().getTime() + (7 * 24 * 60 * 60 * 1000)),
     description: "VIP ticket with special access.",
     maxNumberOfTickets: 10,
 
@@ -128,7 +128,7 @@ export const newValidTicketTypes: INewTicketTypesFrom[] = [{
     type: "Standard",
     price: 50,
     sellingStartDate: new Date(new Date().getTime() - (24 * 60 * 60 * 1000)),
-    sellingEndDate: new Date("2024-03-15"),
+    sellingEndDate: new Date(new Date().getTime() + (7 * 24 * 60 * 60 * 1000)),
     description: "Standard ticket for general admission.",
 }]
 
@@ -137,7 +137,7 @@ export const newValidTicketType: INewTicketTypesFrom = {
     type: "Standard",
     price: 10,
     sellingStartDate: new Date(new Date().getTime() - (24 * 60 * 60 * 1000)),
-    sellingEndDate: new Date("2024-03-15"),
+    sellingEndDate: new Date(new Date().getTime() + (7 * 24 * 60 * 60 * 1000)),
     description: "Standard ticket for general admission.",
 }
 

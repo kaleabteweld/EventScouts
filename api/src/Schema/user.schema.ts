@@ -2,7 +2,6 @@ import mongoose from 'mongoose'
 import { getUserByEmail, checkPassword, encryptPassword, validator, getUserByWalletAccounts, getUserById, applyUserVerify, getByVerifiedKey, getPEGIRating, addEvent, update, removeByID, checkIfUserHasTicket } from './ExtendedFunctions/user.extended';
 import { mongooseErrorPlugin } from './Middleware/errors.middleware';
 import { GenderEnum, IUser, IUserMethods, UserModel, verifiedEnum } from './Types/user.schema.types';
-import { pointSchema } from './event.schema';
 import { transactionSchema } from './transactions.schema';
 
 export const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
