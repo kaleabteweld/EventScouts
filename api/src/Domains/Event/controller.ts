@@ -11,6 +11,8 @@ import { ITicketTypesUpdateFrom } from "../TicketTypes/types";
 import TicketTypesModel from "../../Schema/ticketType.schema";
 import { updateTicketTypesSchema } from "../TicketTypes/validation";
 import { ITicketTypes } from "../../Schema/Types/ticketTypes.schema.types";
+import { ValidationErrorFactory } from "../../Util/Factories";
+import { Request } from 'express'
 
 
 export default class EventController {
@@ -105,5 +107,13 @@ export default class EventController {
         const newTicketType = await event?.updateTicketType(ticketTypesId, _from)
 
         return { body: (newTicketType?.toJSON() as any) };
+    }
+
+    static async generateImagesUrl(req: Request): Promise<IResponseType<String[] | null>> {
+        if (!req.files || req.files.length === 0) throw ValidationErrorFactory({ msg: "File is required", statusCode: 400, type: "Validation" }, "file");
+        const imageUrls: String[] = (req.files as Express.Multer.File[]).map(file => {
+            return `${req.protocol}://${req.get('host')}/${file.path}`;
+        });
+        return { body: imageUrls }
     }
 }

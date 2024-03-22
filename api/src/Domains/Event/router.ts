@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import { MakeErrorHandler, organizerOnly } from "../../Util/middlewares";
 import { IOrganizer } from "../../Schema/Types/organizer.schema.types";
 import EventController from "./controller";
+import getMulter from "../../Util/Multer";
 
 
 const publicEventRouter = express.Router();
@@ -350,6 +351,10 @@ privateEventRouter.patch("/update/ticketType/:eventId/:ticketTypesId", organizer
     }
 ));
 
+// privateEventRouter.post('/upload', organizerOnly, getMulter('event').array('images'), (req, res) => {
+//     const imageUrls = EventController.generateImagesUrl(req);
+//     res.json(imageUrls);
+// });
 
 
 
