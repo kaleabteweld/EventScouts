@@ -98,7 +98,7 @@ describe('User Integration', () => {
 
                 const eventResponse = await request(app).get(`${eventPublicUrl()}byId/${events[0].id}`).send();
                 expect(eventResponse.body.body.users.length).toBe(1);
-                expect(eventResponse.body.body.users[0].username).toBe(users[0].userName);
+                expect(eventResponse.body.body.users[0]).toBe(users[0].id);
 
             });
 
