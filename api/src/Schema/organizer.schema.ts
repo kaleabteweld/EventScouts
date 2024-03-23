@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import { IOrganizer, IOrganizerMethods, IOrganizerModel, verifiedEnum } from './Types/organizer.schema.types';
 import { mongooseErrorPlugin } from './Middleware/errors.middleware';
 import { checkPassword, encryptPassword, validator, getByEmail, getById, getByVerifiedKey, applyVerify, getByWalletAccounts, addWalletAccount, removeWalletAccount, update } from './ExtendedFunctions/organizer.extended'
+import EventModel from './event.schema';
 
 export const organizerSchema = new mongoose.Schema<IOrganizer, IOrganizerModel, IOrganizerMethods>({
     email: { type: String, unique: true },
@@ -45,6 +46,19 @@ organizerSchema.set('toJSON', {
         return ret
     }
 })
+organizerSchema.post('findOneAndUpdate', async function () {
+    const organizer = this;
+    try {
+        const docUpdated: IOrganizer | null = await organizer.model.findOne(organizer.getFilter());
+
+        await EventModel.updateMany({ 'organizer.organizer': docUpdated?._id }, {
+            'organizer.name': docUpdated?.name,
+            'organizer.logoURL': docUpdated?.logoURL
+        });
+    } catch (error) {
+        console.error('Error updating events:', error);
+    }
+});
 organizerSchema.plugin<any>(mongooseErrorPlugin)
 
 const OrganizerModel = mongoose.model<IOrganizer, IOrganizerModel>("Organizer", organizerSchema);

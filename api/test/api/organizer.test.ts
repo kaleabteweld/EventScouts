@@ -186,11 +186,13 @@ describe('Organizer', () => {
         beforeEach(async () => {
             const { accessTokens: ats, organizers: ogs } = await createOrganizer(request, app, [newValidOrganizer, newValidOrganizer2]);
             accessTokens = ats;
-            organizers = organizers;
+            organizers = ogs;
         })
 
         describe("WHEN Login in as a Organizer", () => {
+
             describe("WHEN Organizer try to update there event", () => {
+
                 it("SHOULD update only one Attributes Not the rest and return 200 with the event", async () => {
                     let response = await request(app).patch(`${userPrivateUrl(UserType.organizer)}update`).set('authorization', `Bearer ${accessTokens[0]}`).send({
                         socialLinks: {
@@ -210,6 +212,26 @@ describe('Organizer', () => {
                     })
 
                 });
+
+                it("SHOULD update only one Attributes Not the rest and return 200 with the event", async () => {
+
+                    let response = await request(app).patch(`${userPrivateUrl(UserType.organizer)}update`).set('authorization', `Bearer ${accessTokens[0]}`).send({
+                        socialLinks: {
+                            facebook: "https://www.facebook.com/eventScouts"
+                        }
+                    });
+                    const organizerResponse = await request(app).get(userPrivateUrl(UserType.organizer)).set("Authorization", `Bearer ${accessTokens[0]}`).send();
+
+                    const checkValidOrganizer = { ...newValidOrganizer }
+                    delete (checkValidOrganizer as any)["password"]
+                    expect(organizerResponse.body.body).toMatchObject({
+                        ...checkValidOrganizer,
+                        id: expect.any(String),
+                        socialLinks: {
+                            facebook: "https://www.facebook.com/eventScouts"
+                        }
+                    })
+                })
 
             });
 

@@ -531,11 +531,13 @@ describe('Event', () => {
         var categorys: ICategory[] = [];
         var events: IEvent[] = [];
         var accessTokens: string[];
+        var organizers: IOrganizer[] = []
 
 
         beforeEach(async () => {
-            const { accessTokens: ats } = await createOrganizer(request, app, [newValidOrganizer, newValidOrganizer2]);
+            const { accessTokens: ats, organizers: orgs } = await createOrganizer(request, app, [newValidOrganizer, newValidOrganizer2]);
             accessTokens = ats;
+            organizers = orgs;
 
             const { categorys: cats, events: eves } = await createEvents(request, app, [newValidCategory, { name: "Category2" }], 2, accessTokens[0])
             categorys = cats;
@@ -553,6 +555,7 @@ describe('Event', () => {
             })
 
             describe("WHEN Organizer try to update there event", () => {
+
                 it("SHOULD update only one Attributes Not the rest and return 200 with the event", async () => {
                     let response = await request(app).patch(`${eventPrivateUrl()}update/${events[0].id}`).set('authorization', `Bearer ${accessTokens[0]}`).send({
                         name: "updated Event"
@@ -625,6 +628,30 @@ describe('Event', () => {
                         });
                         expectError(response, 400);
                     });
+                })
+
+                describe("WHEN Organizer try to update there name, logoURL", () => {
+
+                    it("SHOULD update organizer.name,organizer.logoURL on events that belong to the organizer", async () => {
+
+                        await request(app).patch(`${userPrivateUrl(UserType.organizer)}update`).set('authorization', `Bearer ${accessTokens[0]}`).send({
+                            name: "kolo",
+                            logoURL: "https://www.facebook.com/kolo"
+                        });
+
+                        const eventsResponse = await request(app).post(`${eventPublicUrl()}search/1`).send(searchFactory({
+                            organizer: organizers[0].id
+                        }));
+                        expect(eventsResponse.body.body.length).toBeGreaterThanOrEqual(1);
+
+                        eventsResponse.body.body.forEach((event: IEvent, index: number) => {
+                            expect(event.organizer).toMatchObject({
+                                organizer: organizers[0].id,
+                                name: 'kolo',
+                                logoURL: 'https://www.facebook.com/kolo'
+                            })
+                        })
+                    })
                 })
 
             });

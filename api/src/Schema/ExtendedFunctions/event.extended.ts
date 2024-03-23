@@ -387,11 +387,7 @@ export async function updateTicketType(this: IEvent, ticketTypesId: string, _new
 
 export async function addUser(this: IEvent, user: IUser): Promise<IEvent | null> {
 
-    this.users.push({
-        user: user.id,
-        username: user.userName,
-        profilePic: user.profilePic,
-    });
+    this.users.push(user.id);
     this.userTotal++;
 
     await this.save()

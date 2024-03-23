@@ -43,13 +43,7 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
     categorys: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
     reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],
     ticketTypes: [ticketTypesSchema],
-    users: [{
-        _id: false,
-        username: { type: String },
-        profilePic: { type: String },
-        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-        // ticketType: { type: mongoose.Schema.Types.ObjectId, ref: "TicketType" },
-    }],
+    users: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     userTotal: { type: Number, default: 0 },
 }, {
     timestamps: true,

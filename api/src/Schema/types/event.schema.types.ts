@@ -36,12 +36,7 @@ export interface IEvent extends mongoose.Document {
     categorys: mongoose.Schema.Types.ObjectId[] | ICategory[]
     ticketTypes: ITicketTypes[]
     reviews: mongoose.Schema.Types.ObjectId[] | IReview[]
-    users: {
-        username: String
-        profilePic: String
-        user: mongoose.Schema.Types.ObjectId | IUser
-        // ticketType: mongoose.Schema.Types.ObjectId | ITicketTypes
-    }[]
+    users: mongoose.Schema.Types.ObjectId[] | IUser[]
     userTotal: number
 }
 
