@@ -1,11 +1,12 @@
 import { IUserLogInFrom, IUserLogInFromWithWallet, IUserSignUpFrom, IUserUpdateFrom } from "./types";
 import { logInSchema, logInWithWalletSchema, newUserSchema, updateUserSchema, userChangePassword } from "./validation";
 import { UserType } from "../../Types";
-import { IChangePasswordFrom, IResponseType, IResponseWithHeaderType } from "../Common/types";
+import { IChangePasswordFrom, IPagination, IResponseType, IResponseWithHeaderType } from "../Common/types";
 import User from "../../Schema/user.schema";
 import { MakeTokens, MakeValidator, verifyAccessToken, verifyRefreshToken } from "../Common/utils";
 import Cache from "../../Util/cache";
 import { IUser, TVerified } from "../../Schema/Types/user.schema.types";
+import { ITransactions } from "../../Schema/Types/transactions.schema.types";
 
 
 export default class UserController {
@@ -94,4 +95,8 @@ export default class UserController {
 
     }
 
+    static async getUserTransactions(userId: string, pagination: IPagination): Promise<IResponseType<ITransactions[]>> {
+        const transactions = await User.getTransactions(userId, pagination);
+        return { body: transactions }
+    }
 }

@@ -12,6 +12,8 @@ import { ITicketTypes } from "../Types/ticketTypes.schema.types";
 import { IBoughTicket } from "../../Domains/TicketTypes/types";
 import { ITransactions, ITransactionsDocument } from "../Types/transactions.schema.types";
 import { IUserUpdateFrom } from "../../Domains/User/types";
+import { IPagination } from "../../Domains/Common/types";
+import { IEventUpdateFrom } from "../../Domains/Event/types";
 
 
 export async function encryptPassword(this: IUser, password?: string): Promise<String> {
@@ -351,4 +353,59 @@ export async function checkIfUserHasTicket(this: mongoose.Model<IUser>, eventId:
         throw error;
     }
 
+}
+
+export async function getTransactions(this: mongoose.Model<IUser>, userId: string, { skip, limit }: IPagination): Promise<ITransactions[]> {
+    try {
+        const user = await this.findById(new mongoose.Types.ObjectId(userId))
+            .select('transactions')
+            .slice('transactions', [skip ?? 0, limit ?? 1])
+
+        if (user == null || user.transactions == null) {
+            throw ValidationErrorFactory({
+                msg: "User not found",
+                statusCode: 404,
+                type: "Validation"
+            }, "_id")
+        }
+        return user.transactions;
+    } catch (error) {
+        if (error instanceof BSONError) {
+            throw ValidationErrorFactory({
+                msg: "Input must be a 24 character hex string, 12 byte Uint8Array, or an integer",
+                statusCode: 400,
+                type: "validation",
+            }, "id");
+        }
+        throw error;
+    }
+}
+
+export async function updateTransactionsEvent(this: mongoose.Model<IUser>, eventId: string, newEvent: IEventUpdateFrom) {
+    try {
+        await this.updateMany({
+            "transactions.event.event": new mongoose.Types.ObjectId(eventId)
+        }, {
+            $set: {
+                'transactions.$[elem].event.name': newEvent.name,
+                'transactions.$[elem].event.posterURL': newEvent.posterURL,
+                'transactions.$[elem].event.startDate': newEvent.startDate,
+                'transactions.$[elem].event.endDate': newEvent.endDate,
+                'transactions.$[elem].event.location': newEvent.location,
+                'transactions.$[elem].event.venue': newEvent.venue,
+            },
+        }, {
+            arrayFilters: [{ "elem.event.event": new mongoose.Types.ObjectId(eventId) }]
+        });
+
+    } catch (error) {
+        if (error instanceof BSONError) {
+            throw ValidationErrorFactory({
+                msg: "Input must be a 24 character hex string, 12 byte Uint8Array, or an integer",
+                statusCode: 400,
+                type: "validation",
+            }, "id");
+        }
+        throw error;
+    }
 }

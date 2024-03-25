@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { getUserByEmail, checkPassword, encryptPassword, validator, getUserByWalletAccounts, getUserById, applyUserVerify, getByVerifiedKey, getPEGIRating, addEvent, update, removeByID, checkIfUserHasTicket } from './ExtendedFunctions/user.extended';
+import { getUserByEmail, checkPassword, encryptPassword, validator, getUserByWalletAccounts, getUserById, applyUserVerify, getByVerifiedKey, getPEGIRating, addEvent, update, removeByID, checkIfUserHasTicket, getTransactions, updateTransactionsEvent } from './ExtendedFunctions/user.extended';
 import { mongooseErrorPlugin } from './Middleware/errors.middleware';
 import { GenderEnum, IUser, IUserMethods, UserModel, verifiedEnum } from './Types/user.schema.types';
 import { transactionSchema } from './transactions.schema';
@@ -44,6 +44,8 @@ export const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
         removeByID,
         update,
         checkIfUserHasTicket,
+        getTransactions,
+        updateTransactionsEvent,
     }
 });
 

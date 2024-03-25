@@ -5,6 +5,8 @@ import { IEvent, ILocation } from "./event.schema.types";
 import { IBoughTicket } from "../../Domains/TicketTypes/types";
 import { ITransactions, ITransactionsDocument } from "./transactions.schema.types";
 import { IUserUpdateFrom } from "../../Domains/User/types";
+import { IPagination } from "../../Domains/Common/types";
+import { IEventUpdateFrom } from "../../Domains/Event/types";
 
 
 export type TGender = 'male' | 'female' | 'others' | 'none';
@@ -68,4 +70,6 @@ export interface UserModel extends mongoose.Model<IUserDocument> {
     removeByID(_id: string): Promise<void>
     update(_id: string, newUser: IUserUpdateFrom, populatePath?: string | string[]): Promise<IUser | null>
     checkIfUserHasTicket(eventId: string, userId: string): Promise<boolean>
+    getTransactions(userId: string, pagination: IPagination): Promise<ITransactions[]>
+    updateTransactionsEvent(eventId: string, newEvent: IEventUpdateFrom): void
 }

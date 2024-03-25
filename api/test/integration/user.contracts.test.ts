@@ -2,7 +2,7 @@ import { makeServer } from "../../src/Util/Factories";
 import { describe, expect, beforeEach, afterEach, beforeAll, afterAll, it } from '@jest/globals';
 import { connectDB, dropCollections, dropDB } from "../api/util";
 import Cache from "../../src/Util/cache";
-import { newValidUser, createOrganizer, createEvents, newValidCategory, newValidOrganizer, createUser, transactionPrivateUrl, expectError, expectValidUserTransaction, eventPublicUrl, searchFactory } from "../api/common";
+import { newValidUser, createOrganizer, createEvents, newValidCategory, newValidOrganizer, createUser, transactionPrivateUrl, expectError, expectValidUserTransaction, eventPublicUrl, searchFactory, userPrivateUrl, eventPrivateUrl } from "../api/common";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber, Contract } from "ethers";
 import { ethers } from "hardhat";
@@ -12,6 +12,7 @@ import { IEvent } from "../../src/Schema/Types/event.schema.types";
 import request from "supertest";
 import { IUser } from "../../src/Schema/Types/user.schema.types";
 import { dollarsToWei } from "./common";
+import { UserType } from "../../src/Types";
 
 const app = makeServer();
 
@@ -120,6 +121,33 @@ describe('User Integration', () => {
                         amountOfPeopleComing: 1
                     }));
                     expect(eventResponse.body.body.length).toBe(1);
+
+                });
+            })
+
+            describe("WHEN organizer updates Event After buying", () => {
+
+                it("SHOULD update event on Transaction", async () => {
+                    const amount = 1;
+                    const mint = await contract.connect(buyer).mint(events[0].ticketTypes[0].id, amount, { value: dollarsToWei(events[0].ticketTypes[0].price) });
+                    expect(mint).toBeTruthy();
+                    await request(app).patch(`${transactionPrivateUrl()}mint`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send({
+                        eventId: events[0].id,
+                        ticketType: events[0].ticketTypes[0].id,
+                        amount: amount,
+                        mintHash: mint.hash
+                    });
+
+                    await request(app).patch(`${eventPrivateUrl()}update/${events[0].id}`).set('authorization', `Bearer ${accessTokens[0]}`).send({
+                        name: "kolo",
+                        posterURL: "https://www.facebook.com/kolo"
+                    });
+
+                    const response = await request(app).get(`${userPrivateUrl(UserType.user)}transactions/0/1`).set('authorization', `Bearer ${userAccessTokens[0]}`).send();
+                    expect(response.body.body[0].event).toMatchObject({
+                        name: "kolo",
+                        posterURL: "https://www.facebook.com/kolo"
+                    });
 
                 });
             })

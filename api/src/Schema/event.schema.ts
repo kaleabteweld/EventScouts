@@ -5,6 +5,7 @@ import { validator, getById, checkIfOwnByOrganizer, removeByID, update, getShare
 import { ticketTypesSchema } from './ticketType.schema'
 import { PEGIRating } from '../Domains/Event/validation'
 import CohereAI from '../Util/cohere'
+import User from './user.schema'
 
 
 export const pointSchema = new mongoose.Schema<ILocation>({
@@ -175,6 +176,8 @@ eventSchema.post('findOneAndUpdate', async function () {
             const minimumPrice = Math.min(...(docUpdated as IEvent).ticketTypes.map((ticket: any) => ticket.price));
             await event.model.updateOne({}, { $set: { minimumTicketPrice: minimumPrice } });
         }
+
+        await User.updateTransactionsEvent((docUpdated as IEvent)._id, (docUpdated as any));
 
     } catch (error: any) {
         console.log({ error })

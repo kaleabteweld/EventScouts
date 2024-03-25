@@ -172,6 +172,59 @@ privateUserRouter.patch("/update", userOnly, MakeErrorHandler(
     }
 ));
 
+/**
+ * @swagger
+ * /transactions/{skip}/{limit}:
+ *   get:
+ *     summary: Get transactions for a user with pagination.
+ *     tags: [Transactions,User]
+ *     security:
+ *        - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: skip
+ *         required: true
+ *         description: Number of transactions to skip.
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: limit
+ *         required: true
+ *         description: Maximum number of transactions to return.
+ *         schema:
+ *           type: integer
+ *     responses:
+ *      200:
+ *         description: A list of transactions for the user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Transaction'
+ *       400:
+ *         description: Error occurred
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/validationError'      
+ *       401:
+ *         description: No Valid Token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NoValidToken'
+ */
+
+privateUserRouter.get("/transactions/:skip/:limit", userOnly, MakeErrorHandler(
+    async (req: any, res: Response) => {
+        const _user: IUser = req['user'];
+        const skip = Number.parseInt(req.params.skip);
+        const limit = Number.parseInt(req.params.limit);
+        res.json(await UserController.getUserTransactions(_user.id, { skip, limit }));
+    }
+));
+
 publicUserRouter.use("/user", publicUserRouter);
 privateUserRouter.use("/user", privateUserRouter);
 
