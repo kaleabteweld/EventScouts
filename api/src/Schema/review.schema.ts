@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import { mongooseErrorPlugin } from './Middleware/errors.middleware'
-import { validator, getById, removeByID, react } from './ExtendedFunctions/review.extended'
+import { validator, getById, removeByID, react, getReviewsByEventId } from './ExtendedFunctions/review.extended'
 import { IReview, IReviewMethods, IReviewModel, IReviewReaction } from './Types/review.schema.types'
 import { IEvent } from './Types/event.schema.types'
 
@@ -36,6 +36,7 @@ export const reviewSchema = new mongoose.Schema<IReview, IReviewModel, IReviewMe
         validator,
         getById,
         removeByID,
+        getReviewsByEventId,
     }
 })
 
@@ -52,6 +53,8 @@ reviewSchema.post('save', async function (doc, next) {
         if (event) {
             event.rating.avgRating = ((event.rating.avgRating || 0) * (event.rating.ratingCount || 0) + (doc.rating)) / (event.rating.ratingCount + 1);
             event.rating.ratingCount += 1;
+
+            event.totalReviews += 1;
             event.save();
         }
         next();

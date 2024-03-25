@@ -4,7 +4,6 @@ import { IUser } from "../../Schema/Types/user.schema.types";
 import { IReview, TReactionType } from "../../Schema/Types/review.schema.types";
 import ReviewModel from "../../Schema/review.schema";
 import { newReviewSchema } from "./validation";
-import EventModel from "../../Schema/event.schema";
 import User from "../../Schema/user.schema";
 
 
@@ -20,18 +19,21 @@ export default class ReviewController {
         const review = await new ReviewModel((_review));
         await review.save();
 
+
         return { body: (review.toJSON() as any) }
     }
 
-    static async list({ skip, limit }: IPagination, eventId: string): Promise<IResponseType<{ reviews: IReview[], total: number }>> {
-        const event = await EventModel.getEventWithReviews({ skip, limit }, eventId)
+    static async list({ skip, limit }: IPagination, eventId: string, includeAuthor: boolean, includeReactedUsers: boolean): Promise<IResponseType<{ reviews: IReview[] }>> {
+        const reviews = await ReviewModel.getReviewsByEventId({ skip, limit }, eventId, includeAuthor, includeReactedUsers)
         return {
-            body: { reviews: (event.reviews as IReview[]), total: (event as any).total }
+            body: { reviews }
         }
     }
 
-    static async getById(reviewId: string): Promise<IResponseType<IReview | null>> {
-        return { body: ((await ReviewModel.getById(reviewId))?.toJSON() as any) };
+    static async getById(reviewId: string, includeAuthor: boolean, includeReactedUsers: boolean): Promise<IResponseType<IReview | null>> {
+        return {
+            body: ((await ReviewModel.getById(reviewId, includeAuthor, includeReactedUsers))?.toJSON() as any)
+        };
     }
 
     static async react(reviewId: string, reaction: TReactionType, _user: IUser): Promise<IResponseType<IReview | null>> {

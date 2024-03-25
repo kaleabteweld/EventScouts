@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Joi from 'joi';
 import { IEvent } from "./event.schema.types";
 import { IUser } from "./user.schema.types";
+import { IPagination } from "../../Domains/Common/types";
 
 export type TReactionType = "like" | "love" | "haha" | "wow" | "sad" | "angry";
 
@@ -42,7 +43,8 @@ export interface IReviewDocument extends IReview, IReviewMethods, mongoose.Docum
 // statics methods
 export interface IReviewModel extends mongoose.Model<IReviewDocument> {
     validator<T>(userInput: T, schema: Joi.ObjectSchema<T>): Promise<any>
-    getById(_id: string, populatePath?: string | string[]): Promise<IReviewDocument | null>
+    getById(_id: string, includeAuthor?: boolean, includeReactedUsers?: boolean, populatePath?: string | string[]): Promise<IReviewDocument | null>
     removeByID(_id: string): Promise<void>
+    getReviewsByEventId(pagination: IPagination, _id: string, includeAuthor: boolean, includeReactedUsers: boolean): Promise<IReview[]>
     // update(_id: string, newEvent: IReviewUpdateFrom, populatePath: string | string[]): Promise<IReview | null>
 }

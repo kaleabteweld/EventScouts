@@ -2,7 +2,6 @@ import mongoose from 'mongoose'
 import { IEvent, IEventMethods, IEventModel, ILocation } from './Types/event.schema.types'
 import { mongooseErrorPlugin } from './Middleware/errors.middleware'
 import { validator, getById, checkIfOwnByOrganizer, removeByID, update, getShareableLink, getEventByShareableLink, checkIfEventContainsTicketType, updateTicketType, addUser } from './ExtendedFunctions/event.extended'
-import { getEventWithReviews } from './Aggregate/event.aggregate'
 import { ticketTypesSchema } from './ticketType.schema'
 import { PEGIRating } from '../Domains/Event/validation'
 import CohereAI from '../Util/cohere'
@@ -42,6 +41,7 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
     },
     categorys: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
     reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],
+    totalReviews: { type: Number, default: 0 },
     ticketTypes: [ticketTypesSchema],
     users: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     userTotal: { type: Number, default: 0 },
@@ -59,7 +59,6 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
         getById,
         removeByID,
         update,
-        getEventWithReviews,
         getEventByShareableLink,
     },
     virtuals: {

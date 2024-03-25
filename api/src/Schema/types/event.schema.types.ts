@@ -36,6 +36,7 @@ export interface IEvent extends mongoose.Document {
     categorys: mongoose.Schema.Types.ObjectId[] | ICategory[]
     ticketTypes: ITicketTypes[]
     reviews: mongoose.Schema.Types.ObjectId[] | IReview[]
+    totalReviews: number
     users: mongoose.Schema.Types.ObjectId[] | IUser[]
     userTotal: number
 }
@@ -59,6 +60,6 @@ export interface IEventModel extends mongoose.Model<IEventDocument> {
     getById(_id: string, populatePath?: string | string[]): Promise<IEventDocument | null>
     removeByID(_id: string): Promise<void>
     update(_id: string, newEvent: IEventUpdateFrom, populatePath: string | string[]): Promise<IEvent | null>
-    getEventWithReviews(pagination: IPagination, _id: string): Promise<IEvent>
+    getEventWithReviews(pagination: IPagination, _id: string, includeAuthor: boolean, includeReactedUsers: boolean): Promise<IEvent>
     getEventByShareableLink(_eventId: string, populatePath: string | string[]): Promise<IEventDocument | null>
 }

@@ -116,7 +116,6 @@ describe('Review', () => {
                                 const reviewResponse = await request(app).get(`${reviewPublicUrl()}list/${events[0].id}/0/3`).send();
                                 expect(reviewResponse.status).toBe(200)
 
-                                expect(reviewResponse.body.body.total).toBe(1)
                                 expect(reviewResponse.body.body.reviews.length).toBeGreaterThan(0)
                                 expect(reviewResponse.body.body.reviews.length).toBeLessThan(3)
                             });
@@ -148,6 +147,31 @@ describe('Review', () => {
                                 expect(eventResponse.body.body.rating.avgRating).toBe(
                                     (avgRating * ratingCount + newValidReview(events[0].id).rating) / (ratingCount + 1)
                                 )
+                            });
+
+                            it("SHOULD update Event totalReviews", async () => {
+
+                                const amount = 1;
+
+                                var eventResponse = await request(app).get(`${eventPublicUrl()}byId/${events[0].id}`).send();
+                                const totalReviews = eventResponse.body.body.totalReviews;
+
+                                const mint = await contract.connect(buyer).mint(events[0].ticketTypes[0].id, amount, { value: dollarsToWei(events[0].ticketTypes[0].price) });
+                                expect(mint).toBeTruthy();
+                                await request(app).patch(`${transactionPrivateUrl()}mint`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send({
+                                    eventId: events[0].id,
+                                    ticketType: events[0].ticketTypes[0].id,
+                                    amount: amount,
+                                    mintHash: mint.hash
+                                });
+                                const response = await request(app).post(reviewPrivateUrl()).set("Authorization", `Bearer ${userAccessTokens[0]}`)
+                                    .send(newValidReview(events[0].id));
+
+                                expectValidReview(response, newValidReview(events[0].id))
+
+                                eventResponse = await request(app).get(`${eventPublicUrl()}byId/${events[0].id}`).send();
+
+                                expect(eventResponse.body.body.totalReviews).toBeGreaterThan(totalReviews);
                             });
                         });
                     })
@@ -212,9 +236,45 @@ describe('Review', () => {
                     const response = await request(app).get(`${reviewPublicUrl()}list/${events[0].id}/0/3`).send();
                     expect(response.status).toBe(200)
 
-                    expect(response.body.body.total).toBe(1)
                     expect(response.body.body.reviews.length).toBeGreaterThan(0)
                     expect(response.body.body.reviews.length).toBeLessThan(3)
+                })
+
+                describe("WHEN trying to get Reviews with includeAuthor flag true", () => {
+
+                    it("SHOULD return a list of reviews With Author set", async () => {
+                        const response = await request(app).get(`${reviewPublicUrl()}list/${events[0].id}/0/3?includeAuthor=true`).send();
+                        expect(response.status).toBe(200);
+
+                        expect(response.body.body.reviews[0].user).toMatchObject({ id: users[0].id, userName: users[0].userName, profilePic: users[0].profilePic });
+                        expect(response.body.body.reviews.length).toBeGreaterThan(0)
+                        expect(response.body.body.reviews.length).toBeLessThan(3)
+                    })
+                })
+
+                describe("WHEN trying to get Reviews with includeReactedUsers flag true and includeAuthor flag true", () => {
+
+                    it("SHOULD return a list of reviews With includeReactedUsers set and Author set", async () => {
+
+                        const amount = 1;
+                        const mint = await contract.connect(buyer).mint(events[0].ticketTypes[0].id, amount, { value: dollarsToWei(events[0].ticketTypes[0].price) });
+                        await request(app).patch(`${transactionPrivateUrl()}mint`).set("Authorization", `Bearer ${userAccessTokens[1]}`).send({
+                            eventId: events[0].id,
+                            ticketType: events[0].ticketTypes[0].id,
+                            amount: amount,
+                            mintHash: mint.hash
+                        });
+                        const toggleReactResponse = await request(app).patch(`${reviewPrivateUrl()}react/${reviews[0].id}/like`).set("Authorization", `Bearer ${userAccessTokens[1]}`).send();
+
+                        const response = await request(app).get(`${reviewPublicUrl()}list/${events[0].id}/0/3?includeAuthor=true&includeReactedUsers=true`).send();
+                        expect(response.status).toBe(200);
+
+                        expect(response.body.body.reviews[0].user).toMatchObject({ id: users[0].id, userName: users[0].userName, profilePic: users[0].profilePic });
+                        expect(response.body.body.reviews[0].reactedUsers[0].user).toMatchObject({ id: users[1].id, userName: users[1].userName, profilePic: users[1].profilePic });
+                        expect(response.body.body.reviews.length).toBeGreaterThan(0)
+                        expect(response.body.body.reviews.length).toBeLessThan(3)
+
+                    });
                 })
 
             });
@@ -222,10 +282,46 @@ describe('Review', () => {
             describe("WHEN trying to get Reviews by reviews id", () => {
 
                 describe("WHEN trying to get Reviews by valid event id", () => {
-                    it("SHOULD return the Review with that id", async () => {
 
+                    it("SHOULD return the Review with that id", async () => {
                         const response = await request(app).get(`${reviewPublicUrl()}byId/${reviews[0].id}`).send();
                         expectValidReview(response, newValidReview(events[0].id))
+                    })
+
+                    describe("WHEN trying to get Reviews with includeAuthor flag true", () => {
+
+                        it("SHOULD return a list of reviews With Author set", async () => {
+                            const response = await request(app).get(`${reviewPublicUrl()}byId/${reviews[0].id}?includeAuthor=true`).send();
+                            expect(response.status).toBe(200);
+
+                            expectValidReview(response, newValidReview(events[0].id), {
+                                user: { id: users[0].id, userName: users[0].userName, profilePic: users[0].profilePic }
+                            })
+                        })
+                    })
+
+                    describe("WHEN trying to get Reviews with includeReactedUsers flag true and includeAuthor flag true", () => {
+
+                        it("SHOULD return a list of reviews With includeReactedUsers set and Author set", async () => {
+
+                            const amount = 1;
+                            const mint = await contract.connect(buyer).mint(events[0].ticketTypes[0].id, amount, { value: dollarsToWei(events[0].ticketTypes[0].price) });
+                            await request(app).patch(`${transactionPrivateUrl()}mint`).set("Authorization", `Bearer ${userAccessTokens[1]}`).send({
+                                eventId: events[0].id,
+                                ticketType: events[0].ticketTypes[0].id,
+                                amount: amount,
+                                mintHash: mint.hash
+                            });
+                            const toggleReactResponse = await request(app).patch(`${reviewPrivateUrl()}react/${reviews[0].id}/like`).set("Authorization", `Bearer ${userAccessTokens[1]}`).send();
+
+                            const response = await request(app).get(`${reviewPublicUrl()}byId/${reviews[0].id}?includeAuthor=true&includeReactedUsers=true`).send();
+                            expect(response.status).toBe(200);
+
+                            expectValidReview(response, newValidReview(events[0].id), {
+                                user: { id: users[0].id, userName: users[0].userName, profilePic: users[0].profilePic }
+                            })
+                            expect(response.body.body.reactedUsers[0].user).toMatchObject({ id: users[1].id, userName: users[1].userName, profilePic: users[1].profilePic });
+                        });
                     })
                 })
 

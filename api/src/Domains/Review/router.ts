@@ -35,6 +35,18 @@ const privateReviewRouter = express.Router();
  *         schema:
  *           type: integer
  *           minimum: 1
+        - in: query
+ *         name: includeAuthor
+ *         required: false
+ *         description: Whether to include author information in the reviews
+ *         schema:
+ *           type: boolean
+ *       - in: query
+ *         name: includeReactedUsers
+ *         required: false
+ *         description: Whether to include information about users who reacted to the reviews
+ *         schema:
+ *           type: boolean
  *     responses:
  *       200:
  *         description: A list of reviews for the specified event
@@ -49,8 +61,10 @@ publicReviewRouter.get("/list/:eventId/:skip/:limit", MakeErrorHandler(
     async (req: any, res: Response) => {
         const skip = Number.parseInt(req.params.skip);
         const limit = Number.parseInt(req.params.limit);
+        const includeAuthor = req.query.includeAuthor === 'true';
+        const includeReactedUsers = req.query.includeReactedUsers === 'true';
         const eventId = req.params.eventId
-        res.json(await ReviewController.list({ skip, limit }, eventId));
+        res.json(await ReviewController.list({ skip, limit }, eventId, includeAuthor, includeReactedUsers));
     }
 ));
 
@@ -67,6 +81,18 @@ publicReviewRouter.get("/list/:eventId/:skip/:limit", MakeErrorHandler(
  *         description: ID of the review to retrieve
  *         schema:
  *           type: string
+         - in: query
+ *         name: includeAuthor
+ *         required: false
+ *         description: Whether to include author information in the reviews
+ *         schema:
+ *           type: boolean
+ *       - in: query
+ *         name: includeReactedUsers
+ *         required: false
+ *         description: Whether to include information about users who reacted to the reviews
+ *         schema:
+ *           type: boolean
  *     responses:
  *       200:
  *         description: A review object
@@ -82,7 +108,11 @@ publicReviewRouter.get("/list/:eventId/:skip/:limit", MakeErrorHandler(
  *               $ref: '#/components/schemas/validationError'
  */
 publicReviewRouter.get("/byId/:id", MakeErrorHandler(
-    async (req: Request, res: Response) => res.json(await ReviewController.getById(req.params.id))
+    async (req: Request, res: Response) => {
+        const includeAuthor = req.query.includeAuthor === 'true';
+        const includeReactedUsers = req.query.includeReactedUsers === 'true';
+        return res.json(await ReviewController.getById(req.params.id, includeAuthor, includeReactedUsers));
+    }
 ));
 
 /**

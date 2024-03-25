@@ -6,15 +6,23 @@ import { ValidationErrorFactory } from "../../Util/Factories";
 import { BSONError } from 'bson';
 import { IUser } from "../Types/user.schema.types";
 import { reactions } from "../review.schema";
+import { IPagination } from "../../Domains/Common/types";
 
 
 export function validator<T>(userInput: T, schema: Joi.ObjectSchema<T>) {
     return MakeValidator<T>(schema, userInput);
 }
 
-export async function getById(this: mongoose.Model<IReview>, _id: string, populatePath: string | string[]): Promise<mongoose.Document<unknown, {}, IReview> & IReview & { _id: mongoose.Types.ObjectId; } | null> {
+export async function getById(this: mongoose.Model<IReview>, _id: string, includeAuthor: boolean = false, includeReactedUsers: boolean = false, populatePath: string | string[]): Promise<IReview | null> {
     try {
-        const review = await this.findById(new mongoose.Types.ObjectId(_id)).populate(populatePath);
+        let _review = this.findById(new mongoose.Types.ObjectId(_id)).populate(populatePath);
+        if (includeAuthor) {
+            _review.populate("user", "userName profilePic");
+        }
+        if (includeReactedUsers) {
+            _review.populate("reactedUsers.user", "userName profilePic");
+        }
+        const review = await _review.exec();
         if (review == null) {
             throw ValidationErrorFactory({
                 msg: "Review not found",
@@ -36,6 +44,20 @@ export async function getById(this: mongoose.Model<IReview>, _id: string, popula
 
 
 }
+
+export async function getReviewsByEventId(this: mongoose.Model<IReview>, { skip, limit }: IPagination, eventID: string, includeAuthor: boolean = false, includeReactedUsers: boolean = false): Promise<IReview[]> {
+
+    const reviews = this.find({ event: eventID }).skip(skip ?? 0).limit(limit ?? 1);
+    if (includeAuthor) {
+        reviews.populate("user", "userName profilePic");
+    }
+    if (includeReactedUsers) {
+        reviews.populate("reactedUsers.user", "userName profilePic");
+    }
+
+    return await reviews.exec();
+}
+
 export async function removeByID(this: mongoose.Model<IReview>, _id: string): Promise<void> {
     try {
         await this.deleteOne({ _id: new mongoose.Types.ObjectId(_id) })
