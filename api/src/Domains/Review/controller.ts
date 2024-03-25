@@ -14,11 +14,7 @@ export default class ReviewController {
         await ReviewModel.validator(_review, newReviewSchema);
         await User.checkIfUserHasTicket(_review.event, _user.id);
         _review = {
-            ..._review, user: {
-                username: _user.userName,
-                profilePic: _user.profilePic,
-                user: _user.id,
-            }
+            ..._review, user: _user.id
         } as any;
 
         const review = await new ReviewModel((_review));

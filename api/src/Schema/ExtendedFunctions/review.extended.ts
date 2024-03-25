@@ -72,8 +72,6 @@ export async function react(this: IReview, reaction: TReactionType, user: IUser)
     } else {
         this.reactedUsers.push({
             user: user.id,
-            username: user.userName,
-            profilePic: user.profilePic,
             reaction: reaction,
         });
         this.reactions[reaction].count++;

@@ -15,14 +15,8 @@ export interface IReview extends mongoose.Document {
     event: mongoose.Schema.Types.ObjectId | IEvent[]
     rating: number
     review: String
-    user: {
-        username: String
-        profilePic: String
-        user: mongoose.Schema.Types.ObjectId | IUser
-    },
+    user: mongoose.Schema.Types.ObjectId | IUser,
     reactedUsers: {
-        username: String
-        profilePic: String
         reaction: TReactionType,
         user: mongoose.Schema.Types.ObjectId | IUser
     }[],

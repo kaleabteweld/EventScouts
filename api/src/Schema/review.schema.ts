@@ -13,14 +13,8 @@ export const reviewSchema = new mongoose.Schema<IReview, IReviewModel, IReviewMe
     event: { type: mongoose.Schema.Types.ObjectId, ref: "Event" },
     rating: { type: Number, min: 1, max: 5, default: 1 },
     review: String,
-    user: {
-        username: { type: String },
-        profilePic: { type: String },
-        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     reactedUsers: [{
-        username: { type: String },
-        profilePic: { type: String },
         reaction: { type: String, enum: reactions },
         user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     }],
