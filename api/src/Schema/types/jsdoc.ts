@@ -442,7 +442,8 @@ export const userJsdocSchema = {
         gender: { type: 'string', enum: ['male', 'female', 'others', 'none'] },
         password: { type: 'string' },
         walletAccounts: { type: 'array', items: { type: 'string' } },
-        transactions: { type: 'array', items: { $ref: '#/components/schemas/Transaction' } }
+        transactions: { type: 'array', items: { $ref: '#/components/schemas/Transaction' } },
+        FCMToken: { type: 'string', nullable: true }
     }
 };
 
@@ -466,7 +467,8 @@ export const userSignUpJsdocSchema = {
         dateOfBirth: { type: 'string', format: 'date' },
         gender: { type: 'string', enum: ['male', 'female', 'others', 'none'] },
         password: { type: 'string' },
-        walletAccounts: { type: 'array', items: { type: 'string' } }
+        walletAccounts: { type: 'array', items: { type: 'string' } },
+        FCMToken: { type: 'string', nullable: true }
     },
     required: ['email', 'name', 'userName', 'phone', 'profilePic', 'dateOfBirth', 'gender', 'password', 'walletAccounts']
 };
@@ -482,7 +484,8 @@ export const userUpdateJsdocSchema = {
         dateOfBirth: { type: 'string', nullable: true, format: 'date' },
         gender: { type: 'string', nullable: true, enum: ['male', 'female', 'others', 'none'] },
         password: { type: 'string', nullable: true },
-        walletAccounts: { type: 'array', items: { type: 'string', nullable: true } }
+        walletAccounts: { type: 'array', items: { type: 'string', nullable: true } },
+        FCMToken: { type: 'string', nullable: true }
     },
 };
 
