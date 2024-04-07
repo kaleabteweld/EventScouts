@@ -7,6 +7,7 @@ import { MakeValidator } from "../../Domains/Common";
 import mongoose from "mongoose";
 import { BSONError } from 'bson';
 import { IOrganizerUpdateFrom } from "../../Domains/Organizer/types";
+import { IUser } from "../Types/user.schema.types";
 
 
 export async function encryptPassword(this: IOrganizer, password?: string): Promise<string> {
@@ -230,5 +231,30 @@ export async function update(this: mongoose.Model<IOrganizer>, _id: string, newO
         return newDoc;
     } catch (error) {
         throw error;
+    }
+}
+
+export async function toggleFollower(this: IOrganizer, user: IUser): Promise<IOrganizer> {
+
+    if (!this.followers.includes(user._id) && !user.followingOrganizers.includes(this._id)) {
+        this.followers.push(user._id);
+        user.followingOrganizers.push({
+            name: this.name as String,
+            logoURL: this.logoURL as String,
+            organizer: this._id
+        });
+
+        this.followersCount = this.followersCount + 1;
+        user.followingCount = user.followingCount + 1;
+        await user.save();
+        return await this.save();
+    } else {
+        (this.followers as any).pull(user._id);
+        (user.followingOrganizers as any).pull(this._id);
+
+        this.followersCount = this.followersCount - 1;
+        user.followingCount = user.followingCount - 1;
+        await user.save();
+        return await this.save();
     }
 }

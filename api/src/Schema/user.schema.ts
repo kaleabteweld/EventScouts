@@ -26,6 +26,12 @@ export const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
     walletAccounts: [String],
     transactions: [transactionSchema],
     FCMToken: { type: String, default: null },
+    followingOrganizers: [{
+        name: { type: String },
+        logoURL: { type: String },
+        organizer: { type: mongoose.Schema.Types.ObjectId, ref: "Organizer" },
+    }],
+    followingCount: { type: Number, default: 0 },
 }, {
     timestamps: true,
     methods: {

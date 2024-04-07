@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import { MakeErrorHandler, userOnly } from "../../Util/middlewares";
 import UserController from "./controller";
 import { IUser } from "../../Schema/Types/user.schema.types";
+import { OrganizerController } from "../Organizer";
 
 
 const publicUserRouter = express.Router();
@@ -222,6 +223,58 @@ privateUserRouter.get("/transactions/:skip/:limit", userOnly, MakeErrorHandler(
         const skip = Number.parseInt(req.params.skip);
         const limit = Number.parseInt(req.params.limit);
         res.json(await UserController.getUserTransactions(_user.id, { skip, limit }));
+    }
+));
+
+/**
+ * @swagger
+ * /follow/organizer/{id}:
+ *   patch:
+ *     summary: Toggle follower status for an organizer.
+ *     tags: [User]
+ *     security:
+ *        - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the organizer to follow/un-follow.
+ *         schema:
+ *           type: string
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         description: Bearer token for authentication.
+ *         schema:
+ *           type: string
+ *     responses:
+ *      200:
+ *         description: A list of transactions for the user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Organizer'
+ *       400:
+ *         description: Error occurred
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/validationError'      
+ *       401:
+ *         description: No Valid Token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NoValidToken'
+ */
+
+privateUserRouter.patch("/follow/organizer/:id", userOnly, MakeErrorHandler(
+    async (req: any, res: Response) => {
+        const _user: IUser = req['user'];
+        const organizerId = req.params.id;
+        res.json(await OrganizerController.toggleFollower(organizerId, _user));
     }
 ));
 

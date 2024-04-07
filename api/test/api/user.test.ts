@@ -5,7 +5,8 @@ import request from "supertest";
 import { makeServer } from '../../src/Util/Factories';
 import { UserType } from '../../src/Types';
 import { IUser } from '../../src/Schema/Types/user.schema.types';
-import { createUser, expectError, loginUrl, newValidOrganizer, newValidUser, sighupUrl, userPrivateUrl } from './common';
+import { createOrganizer, createUser, expectError, loginUrl, newValidOrganizer, newValidUser, sighupUrl, userPrivateUrl } from './common';
+import { IOrganizer } from '../../src/Schema/Types/organizer.schema.types';
 
 const app = makeServer();
 
@@ -216,4 +217,63 @@ describe('User', () => {
 
     })
 
+    describe("follow", () => {
+        var users: IUser[] = [];
+        var organizers: IOrganizer[] = [];
+        var userAccessTokens: string[];
+        var organizerAccessTokens: string[];
+
+        beforeEach(async () => {
+            const { accessTokens: ats, users: usrs } = await createUser(request, app, [newValidUser]);
+            const { accessTokens: ats2, organizers: orgs } = await createOrganizer(request, app, [newValidOrganizer]);
+            userAccessTokens = ats;
+            users = usrs
+            organizerAccessTokens = ats2;
+            organizers = orgs
+        })
+
+        describe("WHEN User trying to follow an Organizer", () => {
+
+            it("SHOULD add the User to the Organizer list of Followers", async () => {
+                const userResponse = await request(app).patch(`${userPrivateUrl(UserType.user)}follow/organizer/${organizers[0].id}`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+                expect(userResponse.status).toBe(200)
+                expect(userResponse.body.body.followers).toContain(users[0].id)
+                expect(userResponse.body.body.followersCount).toBe(1)
+            });
+
+            it("SHOULD add the Organizer to the User list of following", async () => {
+                let userResponse = await request(app).patch(`${userPrivateUrl(UserType.user)}follow/organizer/${organizers[0].id}`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+                expect(userResponse.status).toBe(200)
+
+                userResponse = await request(app).get(`${userPrivateUrl(UserType.user)}`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+                expect(userResponse.body.body.followingOrganizers[0]).toMatchObject({
+                    name: organizers[0].name,
+                    logoURL: organizers[0].logoURL,
+                    organizer: organizers[0].id
+                })
+                expect(userResponse.body.body.followingCount).toBe(1)
+            });
+
+            describe("WHEN User is trying to follow BUT is a follower", () => {
+
+                it("SHOULD remove the User on the Organizer list of Followers", async () => {
+                    let userResponse = await request(app).patch(`${userPrivateUrl(UserType.user)}follow/organizer/${organizers[0].id}`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+                    userResponse = await request(app).patch(`${userPrivateUrl(UserType.user)}follow/organizer/${organizers[0].id}`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+                    expect(userResponse.status).toBe(200)
+
+                    userResponse = await request(app).get(`${userPrivateUrl(UserType.user)}`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+                    expect(userResponse.body.body.followingOrganizers).not.toContain(organizers[0].id)
+                    expect(userResponse.body.body.followingCount).toBe(0)
+                });
+
+                it("SHOULD remove the Organizer on the User list of following", async () => {
+                    let userResponse = await request(app).patch(`${userPrivateUrl(UserType.user)}follow/organizer/${organizers[0].id}`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+                    userResponse = await request(app).patch(`${userPrivateUrl(UserType.user)}follow/organizer/${organizers[0].id}`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+                    expect(userResponse.status).toBe(200)
+                    expect(userResponse.body.body.followers).not.toContain(users[0].id)
+                    expect(userResponse.body.body.followersCount).toBe(0)
+                });
+            })
+        })
+    })
 });

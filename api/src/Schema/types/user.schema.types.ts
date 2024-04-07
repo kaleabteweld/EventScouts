@@ -7,6 +7,7 @@ import { ITransactions, ITransactionsDocument } from "./transactions.schema.type
 import { IUserUpdateFrom } from "../../Domains/User/types";
 import { IPagination } from "../../Domains/Common/types";
 import { IEventUpdateFrom } from "../../Domains/Event/types";
+import { IOrganizer } from "./organizer.schema.types";
 
 
 export type TGender = 'male' | 'female' | 'others' | 'none';
@@ -46,6 +47,12 @@ export interface IUser extends mongoose.Document {
     walletAccounts: String[];
     transactions: ITransactions[];
     FCMToken?: String;
+    followingOrganizers: {
+        name: String
+        logoURL: String
+        organizer: mongoose.Types.ObjectId | IOrganizer
+    }[]
+    followingCount: number
 }
 
 //Dynamic methods

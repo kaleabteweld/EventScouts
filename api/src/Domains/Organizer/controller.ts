@@ -6,6 +6,8 @@ import OrganizerModel from "../../Schema/organizer.schema";
 import { MakeTokens, MakeValidator, verifyAccessToken, verifyRefreshToken } from "../Common/utils";
 import Cache from "../../Util/cache";
 import { IOrganizer, TVerified } from "../../Schema/Types/organizer.schema.types";
+import { IUser } from "../../Schema/Types/user.schema.types";
+import User from "../../Schema/user.schema";
 
 export default class OrganizerController {
 
@@ -92,5 +94,13 @@ export default class OrganizerController {
         await OrganizerModel.validator(_from, updateOrganizerSchema);
         const organizer = await OrganizerModel.update(_organizer.id, _from);
         return { body: (organizer!.toJSON() as any) }
+    }
+
+    static async toggleFollower(organizerId: string, _user: IUser): Promise<IResponseType<IOrganizer>> {
+        const organizer = await OrganizerModel.getById(organizerId);
+        const user = await User.getUserById(_user.id);
+
+        return { body: (await (await (organizer?.toggleFollower(user!)!)).toJSON() as any) }
+
     }
 }

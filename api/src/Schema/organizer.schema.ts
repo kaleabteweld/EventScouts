@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import { IOrganizer, IOrganizerMethods, IOrganizerModel, verifiedEnum } from './Types/organizer.schema.types';
 import { mongooseErrorPlugin } from './Middleware/errors.middleware';
-import { checkPassword, encryptPassword, validator, getByEmail, getById, getByVerifiedKey, applyVerify, getByWalletAccounts, addWalletAccount, removeWalletAccount, update } from './ExtendedFunctions/organizer.extended'
+import { checkPassword, encryptPassword, validator, getByEmail, getById, getByVerifiedKey, applyVerify, getByWalletAccounts, addWalletAccount, removeWalletAccount, update, toggleFollower } from './ExtendedFunctions/organizer.extended'
 import EventModel from './event.schema';
 
 export const organizerSchema = new mongoose.Schema<IOrganizer, IOrganizerModel, IOrganizerMethods>({
@@ -19,6 +19,8 @@ export const organizerSchema = new mongoose.Schema<IOrganizer, IOrganizerModel, 
     events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
     walletAccounts: [String],
     socialLinks: { facebook: { type: String, default: null }, twitter: { type: String, default: null }, instagram: { type: String, default: null }, website: { type: String, default: null }, youtube: { type: String, default: null }, googlePhotos: { type: String, default: null } },
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    followersCount: { type: Number, default: 0 },
 }, {
     timestamps: true,
     methods: {
@@ -27,6 +29,7 @@ export const organizerSchema = new mongoose.Schema<IOrganizer, IOrganizerModel, 
         applyVerify,
         addWalletAccount,
         removeWalletAccount,
+        toggleFollower,
     },
     statics: {
         validator,

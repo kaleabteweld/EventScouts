@@ -7,6 +7,7 @@ import { MakeTokens, MakeValidator, verifyAccessToken, verifyRefreshToken } from
 import Cache from "../../Util/cache";
 import { IUser, TVerified } from "../../Schema/Types/user.schema.types";
 import { ITransactions } from "../../Schema/Types/transactions.schema.types";
+import { IOrganizer } from "../../Schema/Types/organizer.schema.types";
 
 
 export default class UserController {
