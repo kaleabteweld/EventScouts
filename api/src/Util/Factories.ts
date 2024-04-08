@@ -5,7 +5,7 @@ import { errorMiddleWare } from "./middlewares";
 import swaggerUi from "swagger-ui-express";
 import helmet from "helmet";
 import swaggerJsdoc from 'swagger-jsdoc'
-import { categoryCreationRequestSchema, categoryJsdocSchema, categoryWithEventCountJsdocSchema, Error401JsdocSchema, evenSearchFrom, eventCreationRequestSchema, eventJsdocSchema, eventUpdateRequestSchema, newReviewFromJsdocSchema, newTransactionJsdocSchema, organizerJsdocSchema, organizerLogInFrom, organizerSignUpFrom, organizerUpdateFrom, organizerWalletLogInFrom, reviewJsdocSchema, reviewReactionJsdocSchema, ticketTypeJsdocSchema, ticketTypesUpdateSchema, transactionsJsdocSchema, userJsdocSchema, userLoginJsdocSchema, userSignUpJsdocSchema, userUpdateJsdocSchema, userWalletLogInFrom, validationError } from "../Schema/Types/jsdoc";
+import { categoryCreationRequestSchema, categoryJsdocSchema, categoryWithEventCountJsdocSchema, Error401JsdocSchema, evenSearchFrom, eventCreationRequestSchema, eventJsdocSchema, eventUpdateRequestSchema, newReviewFromJsdocSchema, newTransactionJsdocSchema, notificationJsdocSchema, organizerJsdocSchema, organizerLogInFrom, organizerSignUpFrom, organizerUpdateFrom, organizerWalletLogInFrom, reviewJsdocSchema, reviewReactionJsdocSchema, ticketTypeJsdocSchema, ticketTypesUpdateSchema, transactionsJsdocSchema, userJsdocSchema, userLoginJsdocSchema, userSignUpJsdocSchema, userUpdateJsdocSchema, userWalletLogInFrom, validationError } from "../Schema/Types/jsdoc";
 
 export function errorFactory(error: errorResponse): errorResponse {
     return error;
@@ -86,6 +86,7 @@ export function makeServer() {
                     Transaction: transactionsJsdocSchema,
                     newTransactionJsdocSchema: newTransactionJsdocSchema,
                     userUpdateJsdocSchema: userUpdateJsdocSchema,
+                    Notification: notificationJsdocSchema
                 },
             },
             security: [{

@@ -1,5 +1,5 @@
 import { initializeApp, applicationDefault } from 'firebase-admin/app';
-import { getMessaging, Message } from "firebase-admin/messaging";
+import { getMessaging, Message, TopicMessage } from "firebase-admin/messaging";
 
 process.env.GOOGLE_APPLICATION_CREDENTIALS;
 initializeApp({
@@ -30,7 +30,7 @@ export async function sendEach(messages: Message[]) {
 
 
 export class PushMessageBuilder {
-    private message: Message;
+    protected message: Message;
 
     constructor(token: string) {
         this.message = {
@@ -38,30 +38,56 @@ export class PushMessageBuilder {
         };
     }
 
-    setTitle(title: string): PushMessageBuilder {
+    setTitle(title: string): this {
         this.message.notification = this.message.notification || {};
         this.message.notification.title = title;
         return this;
     }
 
-    setBody(body: string): PushMessageBuilder {
+    setBody(body: string): this {
         this.message.notification = this.message.notification || {};
         this.message.notification.body = body;
         return this;
     }
 
-    setData(data: { [key: string]: string }): PushMessageBuilder {
+    setData(data: { [key: string]: string }): this {
         this.message.data = data;
         return this;
     }
-
-    // setTopic(topic: string): PushMessageBuilder {
-    //     this.message. = topic;
-    //     return this;
-    // }
 
     build(): Message {
         return this.message;
     }
 }
 
+export class TopicMessageBuilder {
+
+    protected message: Message;
+
+    constructor(topic: string) {
+        this.message = {
+            topic: topic,
+        };
+    }
+
+    setTitle(title: string): this {
+        this.message.notification = this.message.notification || {};
+        this.message.notification.title = title;
+        return this;
+    }
+
+    setBody(body: string): this {
+        this.message.notification = this.message.notification || {};
+        this.message.notification.body = body;
+        return this;
+    }
+
+    setData(data: { [key: string]: string }): this {
+        this.message.data = data;
+        return this;
+    }
+
+    build(): Message {
+        return this.message;
+    }
+}

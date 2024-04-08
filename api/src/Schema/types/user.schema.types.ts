@@ -8,6 +8,7 @@ import { IUserUpdateFrom } from "../../Domains/User/types";
 import { IPagination } from "../../Domains/Common/types";
 import { IEventUpdateFrom } from "../../Domains/Event/types";
 import { IOrganizer } from "./organizer.schema.types";
+import { INewEventNotificationSchema, INewReactNotificationSchema, INotification } from "./notification.schema.types";
 
 
 export type TGender = 'male' | 'female' | 'others' | 'none';
@@ -53,6 +54,7 @@ export interface IUser extends mongoose.Document {
         organizer: mongoose.Types.ObjectId | IOrganizer
     }[]
     followingCount: number
+    notifications: mongoose.Types.ObjectId[] | INotification[]
 }
 
 //Dynamic methods
@@ -79,4 +81,5 @@ export interface UserModel extends mongoose.Model<IUserDocument> {
     checkIfUserHasTicket(eventId: string, userId: string): Promise<boolean>
     getTransactions(userId: string, pagination: IPagination): Promise<ITransactions[]>
     updateTransactionsEvent(eventId: string, newEvent: IEventUpdateFrom): void
+    getNotifications(userId: string, pagination: IPagination): Promise<INotification[]>
 }

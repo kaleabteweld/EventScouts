@@ -5,8 +5,10 @@ import request from "supertest";
 import { makeServer } from '../../src/Util/Factories';
 import { UserType } from '../../src/Types';
 import { IUser } from '../../src/Schema/Types/user.schema.types';
-import { createOrganizer, createUser, expectError, loginUrl, newValidOrganizer, newValidUser, sighupUrl, userPrivateUrl } from './common';
+import { createEvents, createOrganizer, createUser, eventPrivateUrl, expectError, expectValidEvent, loginUrl, newValidCategory, newValidEvent, newValidOrganizer, newValidTicketTypes, newValidUser, sighupUrl, userPrivateUrl } from './common';
 import { IOrganizer } from '../../src/Schema/Types/organizer.schema.types';
+import { IEvent } from '../../src/Schema/Types/event.schema.types';
+import { ICategory } from '../../src/Schema/Types/category.schema.types';
 
 const app = makeServer();
 
@@ -217,7 +219,7 @@ describe('User', () => {
 
     })
 
-    describe("follow", () => {
+    describe("Follow", () => {
         var users: IUser[] = [];
         var organizers: IOrganizer[] = [];
         var userAccessTokens: string[];
@@ -274,6 +276,44 @@ describe('User', () => {
                     expect(userResponse.body.body.followersCount).toBe(0)
                 });
             })
+        })
+    })
+
+    describe('Notification', () => {
+        var users: IUser[] = [];
+        var organizers: IOrganizer[] = [];
+        var userAccessTokens: string[];
+        var organizerAccessTokens: string[];
+        var events: IEvent[] = [];
+
+        beforeEach(async () => {
+            const { accessTokens: ats, users: usrs } = await createUser(request, app, [newValidUser]);
+            const { accessTokens: ats2, organizers: orgs } = await createOrganizer(request, app, [newValidOrganizer]);
+            userAccessTokens = ats;
+            users = usrs
+            organizerAccessTokens = ats2;
+            organizers = orgs
+
+            const userResponse = await request(app).patch(`${userPrivateUrl(UserType.user)}follow/organizer/${organizers[0].id}`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+        })
+
+        describe("WHEN Organizer Post an Event", () => {
+
+            it("SHOULD add the Event to the User Notifications Queue", async () => {
+
+                const { events: evs } = await createEvents(request, app, [newValidCategory], 2, organizerAccessTokens[0]);
+                events = evs;
+
+                const userResponse = await request(app).get(`${userPrivateUrl(UserType.user)}notifications/0/1`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+                expect(userResponse.status).toBe(200)
+                expect(userResponse.body.body.length).toBeGreaterThanOrEqual(1);
+                expect(userResponse.body.body[0]).toMatchObject({
+                    title: events[0].name,
+                    body: events[0].description,
+                    organizer: organizers[0].id,
+                    event: events[0].id
+                })
+            });
         })
     })
 });

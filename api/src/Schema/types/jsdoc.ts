@@ -540,3 +540,16 @@ export const userWalletLogInFrom = {
         walletAccounts: { type: 'array', items: { type: 'string' } },
     }
 }
+
+export const notificationJsdocSchema = {
+    type: 'object',
+    properties: {
+        _id: { type: 'string' },
+        title: { type: 'string' },
+        body: { type: 'string' },
+        organizer: { type: 'string', nullable: true },
+        event: { type: 'string', nullable: true },
+        user: { type: 'string', nullable: true },
+        reaction: { type: 'string', nullable: true },
+    }
+};

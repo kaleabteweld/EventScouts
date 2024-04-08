@@ -13,6 +13,7 @@ import { updateTicketTypesSchema } from "../TicketTypes/validation";
 import { ITicketTypes } from "../../Schema/Types/ticketTypes.schema.types";
 import { ValidationErrorFactory } from "../../Util/Factories";
 import { Request } from 'express'
+import { NotificationController } from "../Notification";
 
 
 export default class EventController {
@@ -34,6 +35,11 @@ export default class EventController {
         await event.save();
 
         await event.populate("categorys")
+
+        NotificationController.createEventNotification(_organizer as IOrganizer, event, {
+            title: `new Event: "${_event.name}" from ${_organizer?.name}`,
+            body: _event.description as string,
+        })
 
         return { body: (event.toJSON() as any) }
     }

@@ -14,6 +14,7 @@ import { ITransactions, ITransactionsDocument } from "../Types/transactions.sche
 import { IUserUpdateFrom } from "../../Domains/User/types";
 import { IPagination } from "../../Domains/Common/types";
 import { IEventUpdateFrom } from "../../Domains/Event/types";
+import { INotification } from "../Types/notification.schema.types";
 
 
 export async function encryptPassword(this: IUser, password?: string): Promise<String> {
@@ -408,4 +409,36 @@ export async function updateTransactionsEvent(this: mongoose.Model<IUser>, event
         }
         throw error;
     }
+}
+
+export async function getNotifications(this: mongoose.Model<IUser>, userId: string, pagination: IPagination): Promise<INotification[]> {
+
+    try {
+        const user = await this
+            .findById(userId)
+            .select('notifications')
+            .populate({
+                path: 'notifications',
+                options: pagination,
+            }).exec();
+
+        if (user == null) {
+            throw ValidationErrorFactory({
+                msg: "User either does not exist",
+                statusCode: 400,
+                type: "validation",
+            }, "userId");
+        }
+        return user.notifications as INotification[];
+    } catch (error) {
+        if (error instanceof BSONError) {
+            throw ValidationErrorFactory({
+                msg: "Input must be a 24 character hex string, 12 byte Uint8Array, or an integer",
+                statusCode: 400,
+                type: "validation",
+            }, "id");
+        }
+        throw error;
+    }
+
 }

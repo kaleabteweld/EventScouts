@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { getUserByEmail, checkPassword, encryptPassword, validator, getUserByWalletAccounts, getUserById, applyUserVerify, getByVerifiedKey, getPEGIRating, addEvent, update, removeByID, checkIfUserHasTicket, getTransactions, updateTransactionsEvent } from './ExtendedFunctions/user.extended';
+import { getUserByEmail, checkPassword, encryptPassword, validator, getUserByWalletAccounts, getUserById, applyUserVerify, getByVerifiedKey, getPEGIRating, addEvent, update, removeByID, checkIfUserHasTicket, getTransactions, updateTransactionsEvent, getNotifications } from './ExtendedFunctions/user.extended';
 import { mongooseErrorPlugin } from './Middleware/errors.middleware';
 import { GenderEnum, IUser, IUserMethods, UserModel, verifiedEnum } from './Types/user.schema.types';
 import { transactionSchema } from './transactions.schema';
@@ -32,6 +32,7 @@ export const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
         organizer: { type: mongoose.Schema.Types.ObjectId, ref: "Organizer" },
     }],
     followingCount: { type: Number, default: 0 },
+    notifications: [{ type: mongoose.Schema.Types.ObjectId, ref: "notification" }],
 }, {
     timestamps: true,
     methods: {
@@ -52,6 +53,7 @@ export const userSchema = new mongoose.Schema<IUser, UserModel, IUserMethods>({
         checkIfUserHasTicket,
         getTransactions,
         updateTransactionsEvent,
+        getNotifications,
     }
 });
 

@@ -8,12 +8,13 @@ import { TReactionType } from "../../Schema/Types/review.schema.types";
 const publicReviewRouter = express.Router();
 const privateReviewRouter = express.Router();
 
-/**
+/*
  * @swagger
  * /public/review/list/{eventId}/{skip}/{limit}:
  *   get:
  *     summary: Get a list of reviews for a specific event
- *     tags: [Review]
+ *     tags: 
+ *       - Review
  *     parameters:
  *       - in: path
  *         name: eventId
@@ -35,7 +36,7 @@ const privateReviewRouter = express.Router();
  *         schema:
  *           type: integer
  *           minimum: 1
-        - in: query
+ *       - in: query
  *         name: includeAuthor
  *         required: false
  *         description: Whether to include author information in the reviews
@@ -81,7 +82,7 @@ publicReviewRouter.get("/list/:eventId/:skip/:limit", MakeErrorHandler(
  *         description: ID of the review to retrieve
  *         schema:
  *           type: string
-         - in: query
+ *       - in: query
  *         name: includeAuthor
  *         required: false
  *         description: Whether to include author information in the reviews
