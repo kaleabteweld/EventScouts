@@ -308,7 +308,7 @@ describe('User', () => {
                 expect(userResponse.status).toBe(200)
                 expect(userResponse.body.body.length).toBeGreaterThanOrEqual(1);
                 expect(userResponse.body.body[0]).toMatchObject({
-                    title: events[0].name,
+                    title: `new Event: \"${events[0].name}\" from ${organizers[0].name}`,
                     body: events[0].description,
                     organizer: organizers[0].id,
                     event: events[0].id
