@@ -52,4 +52,5 @@ export const newEventNotificationSchema = NotificationModel.discriminator<INewEv
 export const newReactNotificationSchema = NotificationModel.discriminator<INewReactNotificationSchema>('newReactNotificationS', new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     reaction: { type: String, enum: reactions },
+    review: { type: mongoose.Schema.Types.ObjectId, ref: 'Review' }
 }, { discriminatorKey: 'type' }));

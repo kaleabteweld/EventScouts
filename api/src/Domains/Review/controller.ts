@@ -5,6 +5,7 @@ import { IReview, TReactionType } from "../../Schema/Types/review.schema.types";
 import ReviewModel from "../../Schema/review.schema";
 import { newReviewSchema } from "./validation";
 import User from "../../Schema/user.schema";
+import { NotificationController } from "../Notification";
 
 
 export default class ReviewController {
@@ -38,7 +39,13 @@ export default class ReviewController {
 
     static async react(reviewId: string, reaction: TReactionType, _user: IUser): Promise<IResponseType<IReview | null>> {
         const user = await User.getUserById(_user.id);
-        const review = await ReviewModel.getById(reviewId);
+        const review = await ReviewModel.getById(reviewId, false, false, "user");
+        const author = review?.user;
+
+        NotificationController.createReactNotification(user as IUser, author as IUser, reaction, review as IReview, {
+            title: `${user?.userName} react to review: "${review?.review}"`,
+            body: `${user?.userName} react ${reaction} to review: "${review?.review}"`,
+        })
 
         return { body: ((await review?.react(reaction, (user as IUser)))?.toJSON() as any) };
     }

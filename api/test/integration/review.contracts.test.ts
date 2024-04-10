@@ -3,7 +3,7 @@ import { connectDB, dropCollections, dropDB } from '../api/util';
 import Cache from '../../src/Util/cache';
 import request from "supertest";
 import { makeServer } from '../../src/Util/Factories';
-import { createEvents, createOrganizer, createUser, eventPublicUrl, expectError, newValidUser2, expectValidReview, newValidCategory, newValidOrganizer, newValidReview, newValidUser, reviewPrivateUrl, reviewPublicUrl, transactionPrivateUrl } from '../api/common';
+import { createEvents, createOrganizer, createUser, eventPublicUrl, expectError, newValidUser2, expectValidReview, newValidCategory, newValidOrganizer, newValidReview, newValidUser, reviewPrivateUrl, reviewPublicUrl, transactionPrivateUrl, userPrivateUrl } from '../api/common';
 import { UserType } from '../../src/Types';
 import { IUser } from '../../src/Schema/Types/user.schema.types';
 import { ICategory } from '../../src/Schema/Types/category.schema.types';
@@ -359,12 +359,32 @@ describe('Review', () => {
 
             describe("WHEN trying to add a 👍 like Reaction By any user", () => {
 
-                it("SHOULD Increment the like Reaction counter ", async () => {
+                it("SHOULD Increment the like Reaction counter", async () => {
                     const toggleReactResponse = await request(app).patch(`${reviewPrivateUrl()}react/${reviews[0].id}/like`).set("Authorization", `Bearer ${userAccessTokens[1]}`).send();
                     const response = await request(app).get(`${reviewPublicUrl()}byId/${reviews[0].id}`).send();
 
                     expectValidReview(response, newValidReview(events[0].id));
                     expect(response.body.body.reactions.like.count).toBe(1)
+                })
+
+                it("SHOULD update review Authors notification queue", async () => {
+                    const toggleReactResponse = await request(app).patch(`${reviewPrivateUrl()}react/${reviews[0].id}/like`).set("Authorization", `Bearer ${userAccessTokens[1]}`).send();
+                    const response = await request(app).get(`${reviewPublicUrl()}byId/${reviews[0].id}`).send();
+                    expectValidReview(response, newValidReview(events[0].id));
+                    expect(response.body.body.reactions.like.count).toBe(1)
+
+                    const userResponse = await request(app).get(`${userPrivateUrl(UserType.user)}notifications/0/1`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+
+                    expect(userResponse.status).toBe(200)
+                    expect(userResponse.body.body.length).toBeGreaterThanOrEqual(1);
+                    expect(userResponse.body.body[0]).toMatchObject({
+                        title: `${users[1]?.userName} react to review: "${reviews[0]?.review}"`,
+                        body: `${users[1]?.userName} react like to review: "${reviews[0]?.review}"`,
+                        reaction: "like",
+                        user: users[1].id,
+                        review: reviews[0].id
+                    })
+
                 })
 
                 describe("WHEN trying switch from 👍 like Reaction to a ❤️ love Reaction", () => {

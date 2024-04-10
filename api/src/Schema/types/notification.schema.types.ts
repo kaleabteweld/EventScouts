@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { IOrganizer } from "./organizer.schema.types";
-import { TReactionType } from "./review.schema.types";
+import { IReview, TReactionType } from "./review.schema.types";
 import { IUser } from "./user.schema.types";
 
 
@@ -15,8 +15,9 @@ export interface INewEventNotificationSchema extends INotification {
     event: mongoose.Types.ObjectId | IOrganizer;
 }
 export interface INewReactNotificationSchema extends INotification {
-    user: mongoose.Types.ObjectId | IOrganizer;
+    user: mongoose.Types.ObjectId | IUser;
     reaction: TReactionType,
+    review: mongoose.Types.ObjectId | IReview;
 }
 
 //Dynamic methods
