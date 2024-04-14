@@ -3,6 +3,7 @@ import { IOrganizer, IOrganizerMethods, IOrganizerModel, verifiedEnum } from './
 import { mongooseErrorPlugin } from './Middleware/errors.middleware';
 import { checkPassword, encryptPassword, validator, getByEmail, getById, getByVerifiedKey, applyVerify, getByWalletAccounts, addWalletAccount, removeWalletAccount, update, toggleFollower } from './ExtendedFunctions/organizer.extended'
 import EventModel from './event.schema';
+import User from './user.schema';
 
 export const organizerSchema = new mongoose.Schema<IOrganizer, IOrganizerModel, IOrganizerMethods>({
     email: { type: String, unique: true },
@@ -53,11 +54,24 @@ organizerSchema.post('findOneAndUpdate', async function () {
     const organizer = this;
     try {
         const docUpdated: IOrganizer | null = await organizer.model.findOne(organizer.getFilter());
+        const updateSet = (organizer as any).getUpdate()['$set'];
 
-        await EventModel.updateMany({ 'organizer.organizer': docUpdated?._id }, {
-            'organizer.name': docUpdated?.name,
-            'organizer.logoURL': docUpdated?.logoURL
-        });
+        if (updateSet.hasOwnProperty('name') || updateSet.hasOwnProperty('logoURL')) {
+            await EventModel.updateMany({ 'organizer.organizer': docUpdated?._id }, {
+                'organizer.name': docUpdated?.name,
+                'organizer.logoURL': docUpdated?.logoURL
+            });
+
+            await User.updateMany({ 'followingOrganizers.organizer': docUpdated?._id }, {
+                $set: {
+                    'followingOrganizers.$.name': docUpdated?.name,
+                    'followingOrganizers.$.logoURL': docUpdated?.logoURL
+
+                },
+            });
+        }
+
+
     } catch (error) {
         console.error('Error updating events:', error);
     }

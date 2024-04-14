@@ -5,7 +5,7 @@ import request from "supertest";
 import { makeServer } from '../../src/Util/Factories';
 import { UserType } from '../../src/Types';
 import { IUser } from '../../src/Schema/Types/user.schema.types';
-import { createEvents, createOrganizer, createUser, eventPrivateUrl, expectError, expectValidEvent, loginUrl, newValidCategory, newValidEvent, newValidOrganizer, newValidTicketTypes, newValidUser, newValidUser2, sighupUrl, userPrivateUrl } from './common';
+import { createEvents, createOrganizer, createUser, delay, eventPrivateUrl, expectError, expectValidEvent, loginUrl, newValidCategory, newValidEvent, newValidOrganizer, newValidTicketTypes, newValidUser, newValidUser2, sighupUrl, userPrivateUrl } from './common';
 import { IOrganizer } from '../../src/Schema/Types/organizer.schema.types';
 import { IEvent } from '../../src/Schema/Types/event.schema.types';
 import { ICategory } from '../../src/Schema/Types/category.schema.types';
@@ -275,6 +275,27 @@ describe('User', () => {
                     expect(userResponse.body.body.followers).not.toContain(users[0].id)
                     expect(userResponse.body.body.followersCount).toBe(0)
                 });
+            })
+        })
+
+        describe("WHEN User Flows Organizer", () => {
+
+            describe("WHEN Organizer updates his profile", () => {
+
+                it("SHOULD update Organizer info on User followingOrganizers list", async () => {
+                    const userResponse = await request(app).patch(`${userPrivateUrl(UserType.user)}follow/organizer/${organizers[0].id}`).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+                    const response = await request(app).patch(`${userPrivateUrl(UserType.organizer)}update`).set('authorization', `Bearer ${organizerAccessTokens[0]}`).send({
+                        name: "kolo-enterprise",
+                    });
+
+                    const _userResponse = await request(app).get(userPrivateUrl(UserType.user)).set("Authorization", `Bearer ${userAccessTokens[0]}`).send();
+                    expect(_userResponse.body.body.followingOrganizers.length).toBe(1)
+                    expect(_userResponse.body.body.followingOrganizers[0]).toMatchObject({
+                        name: "kolo-enterprise",
+                        logoURL: organizers[0].logoURL,
+                        organizer: organizers[0].id,
+                    })
+                })
             })
         })
     })

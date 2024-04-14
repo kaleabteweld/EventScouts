@@ -9,7 +9,7 @@ export default class Cache {
     static async connect() {
         Cache.client.on('error', (err) => console.log('[+] Redis Client Error', err));
         await Cache.client.connect();
-        console.log("[+] Redis Client Connnected")
+        console.log("[+] Redis Client Connected")
     }
 
     static async disconnect() {
@@ -20,7 +20,6 @@ export default class Cache {
         const temp = await Cache.client.set(userId.toString(), refreshToken, {
             EX: ttl
         });
-        // await Cache.expireat(userId, ttl);
     }
     static async getRefreshToken(userId: string) {
         return await Cache.client.get(userId.toString());

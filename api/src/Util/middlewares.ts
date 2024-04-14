@@ -93,3 +93,29 @@ export function adminOnly(req: any, res: any, next: NextFunction) {
 
     next();
 }
+
+export function authorization(userTypes: UserType[]) {
+
+    return (req: any, res: any, next: NextFunction) => {
+
+        const userType = req["userType"];
+        if (userType === undefined || userType === null) throw Error("No Valid Token");
+
+        if (userTypes.includes(userType)) {
+            let msg;
+            if (userTypes.length === 1) {
+                msg = `${userTypes[0]} Only`;
+            } else {
+                const formattedUserTypes = userTypes.join(" or ");
+                msg = `${formattedUserTypes} only`;
+            }
+            throw errorFactory({
+                msg,
+                statusCode: 401,
+                type: "Token"
+            });
+        }
+
+        next();
+    }
+}

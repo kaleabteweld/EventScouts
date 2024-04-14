@@ -350,3 +350,5 @@ export async function expectValidUserTransaction(response: Response, event: IEve
     });
 
 }
+
+export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

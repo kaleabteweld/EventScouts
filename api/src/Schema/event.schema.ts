@@ -38,7 +38,7 @@ export const eventSchema = new mongoose.Schema<IEvent, IEventModel, IEventMethod
     organizer: {
         name: { type: String },
         logoURL: { type: String },
-        organizer: { type: mongoose.Schema.Types.ObjectId, ref: "Organizer" },
+        organizer: { type: mongoose.Schema.Types.ObjectId, ref: "Organizer", _id: false },
     },
     categorys: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }],
     reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: "Review" }],
@@ -99,7 +99,8 @@ eventSchema.pre('save', async function (next) {
             event.minimumTicketPrice = minimumPrice;
         }
 
-        const cohere = CohereAI.getInstance(process.env.COHERE_API_KEY, true);
+        const isRunningInJest: boolean = typeof process !== 'undefined' && process.env.JEST_WORKER_ID !== undefined;
+        const cohere = CohereAI.getInstance(process.env.COHERE_API_KEY, !isRunningInJest);
         try {
             event.descriptionEmbedding = await cohere.embed(event.fullDescription);
         } catch (error) {
