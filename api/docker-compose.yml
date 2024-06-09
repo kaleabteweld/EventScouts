@@ -1,0 +1,31 @@
+services:
+  app:
+    build: .
+    container_name: eventShop
+    env_file:
+      - .env.production
+    environment:
+      - DATABASE_URL=mongodb://mongo:27017/eventShop
+      - REDIS_URL=redis://dragonflydb:6379
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+      - dragonflydb
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - eventShop:/data/db
+
+  dragonflydb:
+    image: dragonflydb/dragonfly:latest
+    container_name: dragonflydb
+    ports:
+      - "6379:6379"
+
+volumes:
+  eventShop:
